@@ -1,0 +1,8 @@
+[project]
+name = "Glia"
+version = "0.1.0"
+requires-python = "3.12" # Also listed in  mise.toml and in the [tool.ruff] section of this TOML
+
+dependencies = [
+    "fastapi==0.124.1",
+]
