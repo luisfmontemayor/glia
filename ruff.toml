@@ -1,0 +1,39 @@
+target-version = "py312"
+line-length = 88
+
+include = ["*.py", "*.pyi", "**/custom_script"] 
+ exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "renv",
+] 
+
+[lint]
+# E: pycodestyle errors
+# F: Pyflakes
+# I: isort (Import sorting)
+# B: flake8-bugbear (Likely bugs)
+# UP: pyupgrade (Upgrade syntax to newer Python versions)
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[lint.isort]
+known-first-party = ["backend"]
