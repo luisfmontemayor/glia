@@ -1,5 +1,6 @@
 # Glia
 
+*Currently work in progress*
 A telemetry suite for technical data teams working on joint linux systems.
 
 ## Getting started
@@ -44,5 +45,4 @@ Recommended VS Code extensions (configured in `.vscode/extensions.json`):
 
 ## Project Structure
 - **Backend**: Built with [FastAPI](https://fastapi.tiangolo.com/) (Python).
-- **Dependency Management**: [uv](https://github.com/astral-sh/uv) (via `mise`).
-- **Task Runner**: `mise`.
+- **Clients**: Written in their respective languages, for Python and R
