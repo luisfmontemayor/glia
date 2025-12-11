@@ -1,2 +1,48 @@
-The [`scripts/commit.mjs`](./scripts/commit.mjs) helper script will make this easier by generating the appropriate scope for you.
-You can create an alias for it in your shell like so: `alias cc="~/path/to/glia/scripts/commit.mjs"`.
+# Glia
+
+A telemetry suite for technical data teams working on joint linux systems.
+
+## Getting started
+### If you don't have `mise` installed
+1. [Install mise](https://mise.jdx.dev/getting-started.html), a tool for managing installed language runtimes and environment variables.
+2. Restart your terminal.
+
+### One-time set up
+1. Run `mise run setup` to:
+   - Install Python, R, uv, gum, and ruff.
+   - Sync python dependencies using `uv`.
+   - configure `lazygit` integration by copying the configuration file.
+
+## Development
+
+### Linting & Formatting
+This project uses [Ruff](https://docs.astral.sh/ruff/) for both linting and formatting.
+1. `ruff check .` to lint.
+2. `ruff format .` to format.
+
+## Conventional commits
+Commit messages in this repository follow the [conventional commits specification](https://www.conventionalcommits.org).
+
+There are two ways to make compliant commits easily:
+
+### 1. Using Lazygit (Recommended)
+The setup script configures a custom command for `lazygit`.
+- Press `C` in the **Files** panel to open the Conventional Commit menu.
+- It will automatically suggest scopes based on your staged files.
+
+### 2. Using the CLI Helper
+You can run the helper script directly:
+```bash
+python3 -m scripts.conventionalCommits
+```
+
+## VS Code config
+Recommended VS Code extensions (configured in `.vscode/extensions.json`):
+* [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+* [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff)
+* [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml)
+
+## Project Structure
+- **Backend**: Built with [FastAPI](https://fastapi.tiangolo.com/) (Python).
+- **Dependency Management**: [uv](https://github.com/astral-sh/uv) (via `mise`).
+- **Task Runner**: `mise`.
