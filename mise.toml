@@ -4,14 +4,15 @@ lockfile     = true
 
 [tools]
 gum    = "0.17.0"
-python = "3.12"   # Also listed in pyproject.toml
+python = "3.12.0"   # Also listed in pyproject.toml
 r      = "4.4.1"
 ruff   = "0.14.8"
 uv     = "0.9.17"
 
 [env]
 _.path = ["./scripts"]
+PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
 
 [tasks.setup]
 description = "Other dependencies"
-run         = "mise install && uv sync"
+run         = "mise install && uv sync && cp lazygit.yml .git/lazygit.yml"
