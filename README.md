@@ -1,6 +1,6 @@
 # Glia
 
-*Currently work in progress*
+*Currently work in progress*\
 A telemetry suite for technical data teams working on joint linux systems.
 
 ## Getting started
