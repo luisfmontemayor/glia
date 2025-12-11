@@ -1,0 +1,28 @@
+customCommands:
+  - key: "C"
+    context: "files"
+    description: "Conventional Commit (Native)"
+    command: 'git commit -m "{{index .PromptResponses 2}}"'    
+    prompts:
+      - type: "menu"
+        title: "Select Commit Type"
+        options:
+          - value: "feat"
+            description: "A new feature"
+          - value: "fix"
+            description: "A bug fix"
+          - value: "refactor"
+            description: "A code change that neither fixes a bug nor adds a feature"
+          - value: "chore"
+            description: "Other: either a refactor, a fix or a feat"
+          - value: "test"
+            description: "Adding tests or correcting existing ones"
+
+      - type: "menu"
+        title: "Select Scope"
+        command: "python3 conventionalCommits.py --print-scopes"
+        filter: '(?P<value>.*)'
+
+      - type: "input"
+        title: "Commit Message"
+        initialValue: "{{index .PromptResponses 0}}({{index .PromptResponses 1}}): "
