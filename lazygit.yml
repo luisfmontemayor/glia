@@ -18,10 +18,12 @@ customCommands:
           - value: "test"
             description: "Adding tests or correcting existing ones"
 
-      - type: "menu"
+      - type: "menuFromCommand"
         title: "Select Scope"
-        command: "python3 conventionalCommits.py --print-scopes"
+        command: "getStagedScopes.py"
         filter: '(?P<value>.*)'
+        valueFormat: '{{ .value }}'
+        labelFormat: '{{ .value }}'
 
       - type: "input"
         title: "Commit Message"
