@@ -41,3 +41,8 @@ def get_staged_files():
         else:
             sys.exit(0)
     return list_stage_files()
+
+
+if __name__ == "__main__":
+    for file in get_staged_files():
+        print(file)
