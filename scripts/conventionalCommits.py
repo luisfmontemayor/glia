@@ -225,7 +225,7 @@ def main():
         # Commit with --amend trick to open editor with pre-filled message is tricky in scripts
         # Easier: prompt for message using gum input or just git commit -m
         # Let's use `gum input` for a sleek experience
-        user_message = subprocess.run(
+        gum_result = subprocess.run(
             [
                 "gum",
                 "input",
@@ -239,11 +239,11 @@ def main():
             stderr=None,
         )
 
-        if not user_message:
+        if not gum_result:
             print("Aborted.")
             sys.exit(1)
 
-        conventional_commit_message = f"{commit_prefix} {user_message}"
+        conventional_commit_message = f"{commit_prefix} {gum_result.stdout.strip()}"
 
     _ = subprocess.run(git_commit_cmd + [conventional_commit_message])
 
