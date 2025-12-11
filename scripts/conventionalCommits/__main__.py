@@ -6,82 +6,18 @@ import shutil
 import signal
 import subprocess
 import sys
-from pathlib import Path
 
-from . import stageFiles, utils
+from . import utils
+from .constants import COMMIT_TYPES
+from .scopes import get_staged_scopes
 
 SYSTEM_DEPENDENCIES = ["gum"]
-COMMIT_TYPES = ["feat", "fix", "refactor", "test", "chore"]
-SCOPE_CATEGORIES = {"backend", "clients", "infrastructural", "helpers"}
-INFRA_FILES = {
-    "mise.toml",
-    "mise.lock",
-    "pyproject.toml",
-    "uv.lock",
-    "ruff.toml",
-    ".gitattributes",
-    ".gitignore",
-}
-INFRA_DIRS = {".git", ".vscode"}
-NO_SCOPE_STR = "(None)"
 
 git_commit_cmd = ["git", "commit", "-m"]
 
 
 def signal_handler(sig, frame):
     sys.exit(0)
-
-
-def is_infra_file(
-    filename: str, filepath: Path, INFRA_FILES: set[str] = INFRA_FILES
-) -> bool:
-    return filename in INFRA_FILES or any(
-        dir for dir in INFRA_DIRS if dir in filepath.parts
-    )
-
-
-def prefix_scope_category(filepath: str) -> str:
-    """
-    Prefixes a filepath with a scope category
-    """
-    path = Path(filepath)
-    parts = path.parts
-    root = parts[0] if parts else ""
-    filename = path.name
-
-    if is_infra_file(filename, filepath=path):
-        return "infrastructural"
-
-    if root == "scripts":
-        if len(parts) > 1:
-            return f"helpers/{path.stem}"
-        return "helpers"
-
-    if root == "backend":
-        relative = Path(*parts[1:])
-        return f"backend/{relative.with_suffix('')}"
-
-    if root == "clients":
-        relative = Path(*parts[1:])
-        return f"clients/{relative.with_suffix('')}"
-
-    return f"{path.parent}/{path.stem}".strip("./")
-
-
-def get_common_path(scopes: list[str]) -> str | None:
-    if not scopes:
-        return None
-
-    split_scopes = [s.split("/") for s in scopes]
-    common_parts = []
-
-    for parts in zip(*split_scopes, strict=False):
-        if all(p == parts[0] for p in parts):
-            common_parts.append(parts[0])
-        else:
-            break
-
-    return "/".join(common_parts) if common_parts else None
 
 
 def main():
@@ -99,8 +35,6 @@ def main():
         sys.exit(0)
     signal.signal(signal.SIGINT, signal_handler)
 
-    staged_files = stageFiles.get_staged_files()
-
     preselected_commit_type = (
         sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in COMMIT_TYPES else None
     )
@@ -111,21 +45,7 @@ def main():
         if not commit_type:
             sys.exit(0)
 
-    unique_staged_scopes = [prefix_scope_category(f) for f in staged_files]
-    possible_scope_choices = []
-    possible_scope_choices.extend(list(set(unique_staged_scopes)))
-    active_categories = {
-        scope.split("/")[0]
-        for scope in unique_staged_scopes
-        if scope.split("/")[0] in SCOPE_CATEGORIES
-    }
-    common_scope = get_common_path(unique_staged_scopes)
-    if common_scope and common_scope not in possible_scope_choices:
-        possible_scope_choices.insert(0, common_scope)
-    for cat in active_categories:
-        if cat not in possible_scope_choices:
-            possible_scope_choices.append(cat)
-    possible_scope_choices.append(NO_SCOPE_STR)
+    possible_scope_choices = get_staged_scopes()
     scope = utils.gum_choose("Choose a commit scope", list(possible_scope_choices))
     if not scope:
         sys.exit(0)
