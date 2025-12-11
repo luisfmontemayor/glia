@@ -10,6 +10,7 @@ INFRA_FILES = {
     "ruff.toml",
     ".gitattributes",
     ".gitignore",
+    "lazygit.yml",
 }
 INFRA_DIRS = {".git", ".vscode"}
 NO_SCOPE_STR = "(None)"

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from . import utils
-from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR, SCOPE_CATEGORIES
+from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR
 
 
 def changed_files_exist():
@@ -69,7 +69,7 @@ def get_common_path(scopes: list[str]) -> str | None:
     return "/".join(common_parts) if common_parts else None
 
 
-def prefix_scope_category(filepath: str) -> str:
+def add_scope_category(filepath: str) -> str:
     path = Path(filepath)
     parts = path.parts
     root = parts[0] if parts else ""
@@ -79,9 +79,12 @@ def prefix_scope_category(filepath: str) -> str:
         return "infrastructural"
 
     if root == "scripts":
+        if len(parts) > 2:
+            return f"helpers/{parts[1]}"
         if len(parts) > 1:
             return f"helpers/{path.stem}"
-        return "helpers"
+        else:
+            return "helpers"
 
     if root == "backend":
         relative = Path(*parts[1:])
@@ -91,24 +94,19 @@ def prefix_scope_category(filepath: str) -> str:
         relative = Path(*parts[1:])
         return f"clients/{relative.with_suffix('')}"
 
-    return f"{path.parent}/{path.stem}".strip("./")
+    return NO_SCOPE_STR
 
 
 def get_staged_scopes():
-    unique_staged_scopes = [prefix_scope_category(f) for f in get_staged_files()]
+    unique_staged_scopes = [add_scope_category(f) for f in get_staged_files()]
     possible_scope_choices = []
     possible_scope_choices.extend(list(set(unique_staged_scopes)))
-    active_categories = {
-        scope.split("/")[0]
-        for scope in unique_staged_scopes
-        if scope.split("/")[0] in SCOPE_CATEGORIES
-    }
+
     common_scope = get_common_path(unique_staged_scopes)
     if common_scope and common_scope not in possible_scope_choices:
         possible_scope_choices.insert(0, common_scope)
-    for cat in active_categories:
-        if cat not in possible_scope_choices:
-            possible_scope_choices.append(cat)
-    possible_scope_choices.append(NO_SCOPE_STR)
 
-    return possible_scope_choices
+    if NO_SCOPE_STR not in possible_scope_choices:
+        possible_scope_choices.append(NO_SCOPE_STR)
+
+    return sorted(possible_scope_choices)
