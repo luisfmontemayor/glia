@@ -99,6 +99,8 @@ def main():
         sys.exit(0)
     signal.signal(signal.SIGINT, signal_handler)
 
+    staged_files = stageFiles.get_staged_files()
+
     preselected_commit_type = (
         sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in COMMIT_TYPES else None
     )
@@ -109,7 +111,6 @@ def main():
         if not commit_type:
             sys.exit(0)
 
-    staged_files = stageFiles.get_staged_files()
     unique_staged_scopes = [prefix_scope_category(f) for f in staged_files]
     possible_scope_choices = []
     possible_scope_choices.extend(list(set(unique_staged_scopes)))
@@ -156,7 +157,7 @@ def main():
             stderr=None,
         )
 
-        if not gum_result:
+        if not gum_result or gum_result.returncode != 0:
             print("Aborted.")
             sys.exit(1)
 
