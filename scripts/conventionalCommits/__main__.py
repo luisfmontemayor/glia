@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # Written by Luis Felipe Montemayor, sometime around December of 2025
-# https://open.spotify.com/track/4ewSenduOmU9Vo40jPnK4T?si=ece2bb53df9f4aa6
+# https://youtu.be/lBueLHd2Ojw?t=1083
+
 import shutil
 import signal
 import subprocess
 import sys
 from pathlib import Path
+
+from . import stageFiles, utils
 
 SYSTEM_DEPENDENCIES = ["gum"]
 COMMIT_TYPES = ["feat", "fix", "refactor", "test", "chore"]
@@ -25,83 +28,8 @@ NO_SCOPE_STR = "(None)"
 git_commit_cmd = ["git", "commit", "-m"]
 
 
-def run_command(command: list[str], capture: bool = True) -> str | None:
-    try:
-        result = subprocess.run(
-            command,
-            text=True,
-            capture_output=capture,
-            check=False,  # handled manually
-        )
-        if result.returncode != 0 and capture:
-            return None
-        return result.stdout.strip() if capture else str(result.returncode)
-    except FileNotFoundError:
-        return None
-
-
-def exec_interactive(command: list[str]) -> int:
-    try:
-        # Use shell=False for safety, pass standard descriptors
-        process = subprocess.run(command, shell=False)
-        return process.returncode
-    except KeyboardInterrupt:
-        sys.exit(0)
-
-
-def gum_choose(header: str, options: list[str]) -> str | None:
-    if not options:
-        return None
-
-    cmd: list[str] = ["gum", "choose", "--header", header]
-    if len(options) == 1:
-        cmd.append("--select-if-one")
-    cmd.extend(options)
-
-    result = subprocess.run(
-        cmd,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=None,  # The interactive output
-    )
-
-    if result.returncode == 0:
-        return result.stdout.strip()
-    return None
-
-
-def gum_confirm(prompt: str) -> bool:
-    return subprocess.run(["gum", "confirm", prompt]).returncode == 0
-
-
 def signal_handler(sig, frame):
     sys.exit(0)
-
-
-def get_staged_files() -> list[str]:
-    output = run_command(["git", "diff", "--cached", "--name-only"])
-    if not output:
-        return []
-    return output.split("\n")
-
-
-def changed_files_exist():
-    unstaged = run_command(
-        ["git", "ls-files", "--others", "--exclude-standard", "--modified"]
-    )
-    return True if unstaged else False
-
-
-def confirm_stage_all():
-    if not changed_files_exist():
-        print("No changed files exist.")
-        return False
-    else:
-        return gum_confirm("Stage all files?")
-
-
-def stage_all_files():
-    run_command(["git", "add", "--all"], capture=False)
 
 
 def is_infra_file(
@@ -171,24 +99,17 @@ def main():
         sys.exit(0)
     signal.signal(signal.SIGINT, signal_handler)
 
-    prestaged_files = get_staged_files()
-    if not prestaged_files:
-        if confirm_stage_all():
-            stage_all_files()
-        else:
-            sys.exit(0)
-    staged_files = get_staged_files()
-
     preselected_commit_type = (
         sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in COMMIT_TYPES else None
     )
     if preselected_commit_type:
         commit_type = preselected_commit_type
     else:
-        commit_type = gum_choose("Choose a commit type", COMMIT_TYPES)
+        commit_type = utils.gum_choose("Choose a commit type", COMMIT_TYPES)
         if not commit_type:
             sys.exit(0)
 
+    staged_files = stageFiles.get_staged_files()
     unique_staged_scopes = [prefix_scope_category(f) for f in staged_files]
     possible_scope_choices = []
     possible_scope_choices.extend(list(set(unique_staged_scopes)))
@@ -204,7 +125,7 @@ def main():
         if cat not in possible_scope_choices:
             possible_scope_choices.append(cat)
     possible_scope_choices.append(NO_SCOPE_STR)
-    scope = gum_choose("Choose a commit scope", list(possible_scope_choices))
+    scope = utils.gum_choose("Choose a commit scope", list(possible_scope_choices))
     if not scope:
         sys.exit(0)
 
@@ -221,10 +142,6 @@ def main():
     if preselected_message:
         conventional_commit_message = f"{commit_prefix} {preselected_message}"
     else:
-        # TODO: test this, a gemini add
-        # Commit with --amend trick to open editor with pre-filled message is tricky in scripts
-        # Easier: prompt for message using gum input or just git commit -m
-        # Let's use `gum input` for a sleek experience
         gum_result = subprocess.run(
             [
                 "gum",
