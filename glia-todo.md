@@ -1,4 +1,4 @@
-# Give me a summary of the entirity of glia, so that another gemini chat can understand what progress and descriptions have been taken thus far, in a copyable markdown code block
+# give me a summary of the entirety of the glia project for a new chat to understand what it has become thus far been taken thus far, in a copyable markdown code block
 # Philosophy
 - [ ] What am I actually trying to solve?
     - I want to gauge how much my tool is being used, to see how much adoption it has vs other alternatives
@@ -24,26 +24,26 @@
 
 
 # Setup
-- [] Dependencies
-    - General dependencies:
-        - Docker
-        
-        - mise
-        - R
-        - Python
-            - FastAPI
-        
-    - dev dependencies
-        - gum
 -- [x] Lock files
     
 - [x] A task runner
-- [] CCs 
-        
-- [ ] Basic dir structure
+- [x] CCs 
+- [x] Basic dir structure
+- [] Dependencies
+    - General dependencies:
+        - Docker
+        - [x] mise
+        - [x] R
+        - [x] Python
+            - [x] FastAPI
+    - dev dependencies
+        - [x] gum
 - [ ] Docs
     - [ ] Basic README
-- [ ] Identify testing 
+- [ ] Identify testing
+- [ ] Git
+    - [ ] Merge branches protections, only stiff I approve can be merged
+    - [ ] merged branches get deleted
 
 
 # Clients
