@@ -1,6 +1,8 @@
 # Glia
 
-*Currently work in progress*\
+> [!NOTE]  
+> *Currently a work in progress*
+
 A telemetry suite for technical data teams working on joint linux systems.
 
 ## Getting started
