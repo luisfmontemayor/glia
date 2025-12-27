@@ -29,23 +29,41 @@
 - [x] A task runner
 - [x] CCs 
 - [x] Basic dir structure
-- [] Dependencies
-    - General dependencies:
-        - Docker
+- [x] Dependencies
+    - []? Make a Makefile
+    - Manual installs
+        - [x] Docker
         - [x] mise
+    - General dependencies:
         - [x] R
         - [x] Python
             - [x] FastAPI
     - dev dependencies
         - [x] gum
+        
 - [ ] Docs
-    - [ ] Basic README
+    - [x] Basic README
 - [ ] Identify testing
 - [ ] Git
-    - [ ] Merge branches protections, only stiff I approve can be merged
-    - [ ] merged branches get deleted
+    - [x] Merge branches protections, only stiff I approve can be merged
+    - [x] merged branches get deleted
 
 
+# Backend
+- [ ] Data Schema
+    - [x] Choose compulsory variables
+        - run_id
+        - program_name
+        - user_name
+        - script_sha256
+        - exit_code_int
+        - started_at
+        - ended_at
+        - cpu_time_sec
+        - cpu_percent
+        - max_rss_mb
+    - 
+    
 # Clients
 - [ ] Architecture - use
     - [ ] How will it actually be implemented in R?
