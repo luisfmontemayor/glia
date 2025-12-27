@@ -13,4 +13,4 @@ INFRA_FILES = {
     "lazygit.yml",
 }
 INFRA_DIRS = {".git", ".vscode"}
-NO_SCOPE_STR = "(None)"
+NO_SCOPE_STR = "None"
