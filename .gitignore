@@ -1,2 +1,5 @@
 .vscode/launch.json
 __pycache__/
+llm-project-summary.txt
+scripts/copyDescription.sh
+.env
