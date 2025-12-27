@@ -8,7 +8,7 @@ A telemetry suite for technical data teams working on joint linux systems.
 ## Getting started
 ### If you don't have `mise` installed
 1. [Install mise](https://mise.jdx.dev/getting-started.html), a tool for managing installed language runtimes and environment variables.
-2. Restart your terminal.
+2. [Install Docker](https://www.docker.com/get-started/)
 
 ### One-time set up
 1. Run `mise run setup` to:
@@ -17,7 +17,6 @@ A telemetry suite for technical data teams working on joint linux systems.
    - configure `lazygit` integration by copying the configuration file.
 
 ## Development
-
 ### Linting & Formatting
 This project uses [Ruff](https://docs.astral.sh/ruff/) for both linting and formatting.
 1. `ruff check .` to lint.
