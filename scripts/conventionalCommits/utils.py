@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Written by Luis Felipe Montemayor, sometime around December of 2025
 # https://open.spotify.com/track/5rKofmG2wSD3pdZcNpkz6T?si=2ba4f58be4b54277
-
 import subprocess
 
 
