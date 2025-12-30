@@ -27,6 +27,29 @@ def changed_files_exist():
     return True if unstaged else False
 
 
+def gum_input(
+    header: str, placeholder: str = "", value: str = "", password: bool = False
+) -> str | None:
+    cmd = ["gum", "input", "--header", header]
+    if placeholder:
+        cmd.extend(["--placeholder", placeholder])
+    if value:
+        cmd.extend(["--value", value])
+    if password:
+        cmd.append("--password")
+
+    result = subprocess.run(
+        cmd,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=None,
+    )
+
+    if result.returncode == 0:
+        return result.stdout.strip()
+    return None
+
+
 def gum_choose(header: str, options: list[str]) -> str | None:
     if not options:
         return None
