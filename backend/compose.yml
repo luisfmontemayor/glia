@@ -1,0 +1,13 @@
+services:
+  postgres:
+    # postgres:16.11-bookworm
+    image: postgres:sha256:7757807119a6a31db2b491cefc3b810badca2c08f0ac45401dd45dee587bc213
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file:
+     - ../.env
+
+volumes:
+  db_data:
