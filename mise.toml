@@ -15,11 +15,11 @@ PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
 
 [tasks.setup-deps]
 description = "Program deps"
-run         = "setupDeps.sh"
+run         = "setup_deps.sh"
 
 [tasks.setup-local-db]
 description = "Program deps"
-run         = "postgresSetup.py"
+run         = "setup_postgres.py"
 raw         = true
 
 [tasks.full-setup]
