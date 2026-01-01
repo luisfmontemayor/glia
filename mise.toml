@@ -18,10 +18,19 @@ description = "Program deps"
 run         = "setup_deps.sh"
 
 [tasks.setup-local-db]
-description = "Program deps"
+description = "Setup credentials and container"
 run         = "setup_postgres.py"
 raw         = true
+
+[tasks."test:db-init"]
+description = "Verify DB is up, healthy, and credentials are valid"
+run = "docker compose exec -T postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -q -c 'SELECT 1'"
 
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
 run         = "mise run setup-deps && mise run setup-local-db"
+
+#[tasks."test:integration"]
+#description = "Run integration tests (requires DB)"
+#depends = ["db-check"] # Using the task we just made!
+#run = "uv run pytest tests/integration"}
