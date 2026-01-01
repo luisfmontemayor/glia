@@ -1,6 +1,6 @@
 customCommands:
   - key: "C"
-    context: "global"
+    context: "files"
     description: "Conventional Commit (Native)"
     command: 'git commit -m {{index .PromptResponses 2 | quote}}'
     prompts:
