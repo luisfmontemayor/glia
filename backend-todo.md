@@ -3,9 +3,10 @@
 ## Phase 1: Infrastructure & The Container (Docker)
 *Goal: Get a Postgres instance running in an isolated environment without polluting the host OS.*
 - [x] Install Docker and verify installation.
-- [ ] Create a `compose.yaml` file in the root directory to define the Postgres service.
-- [ ] Configure environment variables (User, Password, DB Name) securely using a `.env` file.
-- [ ] Launch the database and connect to it using a GUI tool (like DBeaver or TablePlus) or the CLI to verify it is accepting connections.
+- [x] Create a `compose.yaml` file in the root directory to define the Postgres service.
+  - [x] Pick a docker image
+- [x] Configure environment variables (User, Password, DB Name) securely using a `.env` file.
+- [ ] Launch the database and connect to it using the CLI to verify it is accepting connections.
 
 ## Phase 2: The Data Layer (ORM & Models)
 *Goal: Define the database structure using Python code (SQLModel) rather than writing raw SQL.*
