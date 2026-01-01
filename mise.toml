@@ -13,6 +13,7 @@ uv     = "0.9.17"
 _.path     = ["./scripts"]
 PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
 
+# Dependencies
 [tasks.setup-mise-deps]
 description = "Program deps"
 run         = "mise install"
@@ -26,7 +27,7 @@ run         = "uv sync && uv lock"
 description = "Program deps"
 run         = "cp --force lazygit.yml .git/lazygit.yml"
 
-[tasks.setup-deps]
+[tasks."setup:deps"]
 description = "Run all setup tasks in order"
 run = """
 mise run setup-mise-deps && \
@@ -34,28 +35,70 @@ mise run setup-python-deps && \
 mise run sync-lazygit
 """
 
-[tasks.setup-local-db-creds]
+# Database
+[tasks."db:setup-creds"]
 description = "Setup credentials and container"
 run         = "setup_postgres_creds.py"
 raw         = true
+
+[tasks."db:up"]
+description = "Start Postgres container"
+run         = "docker compose -f backend/compose.yaml up -d"
+
+[tasks."db:down"]
+description = "Stop Postgres container"
+run         = "docker compose -f backend/compose.yaml down"
+
+[tasks."db:logs"]
+description = "View Postgres logs"
+run         = "docker compose -f backend/compose.yaml logs -f"
+
+[tasks."db:reset"]
+description = "Wipe and restart DB (deletes all data)"
+run         = "docker compose -f backend/compose.yaml down -v && mise run db:up"
 
 [tasks."test:db-init"]
 description = "Verify DB is up, healthy, and credentials are valid"
 run         = "docker compose exec -T postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -q -c 'SELECT 1'"
 
-[tasks.setup-local-db]
-description = "Setup credentials and container"
+[tasks."db:alembic-init"]
+run = "uv run alembic -c backend/alembic.ini"
+
+[tasks."db:alembic-revision"]
+description = "Generate a new migration script"
+run         = "mise run alembic revision --autogenerate -m"
+
+[tasks."db:alembic-migrate"]
+description = "Apply pending migrations to the database"
+run         = "mise run alembic upgrade head"
+
+[tasks."db:alembic-rollback"]
+description = "Rollback the last migration"
+run         = "mise run alembic downgrade -1"
+
+[tasks."db:wait"]
+description = "Block until the database is accepting connections"
 run = """
-mise run setup-local-db-creds && \
-mise run test:db-init
+echo "Waiting for database..." >&2
+# Try for 30 seconds
+timeout 30s bash -c 'until mise run test:db-init > /dev/null 2>&1; do sleep 1; done'
+echo "Database is ready!" >&2
 """
-raw = true
+
+[tasks."setup:db"]
+description = "Full database lifecycle: creds -> container -> wait -> migrations"
+run = """
+mise run db:setup-creds && \
+mise run db:up && \
+mise run db:wait && \
+mise run db:migrate
+"""
 
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
 run = """
 mise run setup-deps && \
-mise run setup-local-db
+mise run setup-db-creds
 """
 
 #[tasks."test:integration"]
