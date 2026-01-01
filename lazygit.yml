@@ -1,6 +1,6 @@
 customCommands:
   - key: "C"
-    context: "files"
+    context: "global"
     description: "Conventional Commit (Native)"
     command: 'git commit -m {{index .PromptResponses 2 | quote}}'
     prompts:
@@ -20,7 +20,7 @@ customCommands:
 
       - type: "menuFromCommand"
         title: "Select Scope"
-        command: "uv run python scripts/getStagedScopes.py"
+        command: "uv run python scripts/get_staged_scopes.py"
         filter: '(?P<value>.*)'
         valueFormat: '{{ .value }}'
         labelFormat: '{{ .value }}'
