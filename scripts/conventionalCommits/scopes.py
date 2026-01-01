@@ -5,14 +5,13 @@
 import sys
 from pathlib import Path
 
-from . import utils
-from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR
+from glia_common import cli, system
 
 from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR, SCOPE_CATEGORIES
 
 
 def changed_files_exist():
-    unstaged = utils.run_command(
+    unstaged = system.run_command(
         ["git", "ls-files", "--others", "--exclude-standard", "--modified"]
     )
     return True if unstaged else False
@@ -23,18 +22,18 @@ def confirm_stage_all():
         print("No changed files exist.")
         return False
     else:
-        return utils.gum_confirm("Stage all files?")
+        return cli.gum_confirm("Stage all files?")
 
 
 def list_staged_files() -> list[str]:
-    output = utils.run_command(["git", "diff", "--cached", "--name-only"])
+    output = system.run_command(["git", "diff", "--cached", "--name-only"])
     if not output:
         return []
     return output.split("\n")
 
 
 def stage_all_files():
-    utils.run_command(["git", "add", "--all"], capture=False)
+    system.run_command(["git", "add", "--all"], capture=False)
 
 
 def get_staged_files():
