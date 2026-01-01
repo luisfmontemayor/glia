@@ -13,22 +13,49 @@ uv     = "0.9.17"
 _.path     = ["./scripts"]
 PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
 
-[tasks.setup-deps]
+[tasks.setup-mise-deps]
 description = "Program deps"
-run         = "setup_deps.sh"
+run         = "mise install"
 
-[tasks.setup-local-db]
+[tasks.setup-python-deps]
+description = "Program deps"
+run         = "uv sync && uv lock"
+
+[tasks.sync-lazygit]
+description = "Program deps"
+run         = "cp --force lazygit.yml .git/lazygit.yml"
+
+[tasks.setup-deps]
+description = "Run all setup tasks in order"
+run = """
+mise run setup-mise-deps && \
+mise run setup-python-deps && \
+mise run sync-lazygit
+"""
+
+[tasks.setup-local-db-creds]
 description = "Setup credentials and container"
-run         = "setup_postgres.py"
+run         = "setup_postgres_creds.py"
 raw         = true
 
 [tasks."test:db-init"]
 description = "Verify DB is up, healthy, and credentials are valid"
-run = "docker compose exec -T postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -q -c 'SELECT 1'"
+run         = "docker compose exec -T postgres psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -q -c 'SELECT 1'"
+
+[tasks.setup-local-db]
+description = "Setup credentials and container"
+run = """
+mise run setup-local-db-creds && \
+mise run test:db-init
+"""
+raw = true
 
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
-run         = "mise run setup-deps && mise run setup-local-db"
+run = """
+mise run setup-deps && \
+mise run setup-local-db
+"""
 
 #[tasks."test:integration"]
 #description = "Run integration tests (requires DB)"
