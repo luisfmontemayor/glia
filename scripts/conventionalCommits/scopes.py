@@ -8,6 +8,8 @@ from pathlib import Path
 from . import utils
 from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR
 
+from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR, SCOPE_CATEGORIES
+
 
 def changed_files_exist():
     unstaged = utils.run_command(
@@ -72,27 +74,31 @@ def get_common_path(scopes: list[str]) -> str | None:
 def add_scope_category(filepath: str) -> str:
     path = Path(filepath)
     parts = path.parts
-    root = parts[0] if parts else ""
+
+    category = parts[0] if parts else ""
     filename = path.name
 
     if is_infra_file(filename, filepath=path):
         return "infrastructural"
 
-    if root == "scripts":
-        if len(parts) > 2:
-            return f"helpers/{parts[1]}"
-        if len(parts) > 1:
-            return f"helpers/{path.stem}"
-        else:
-            return "helpers"
+    if category in SCOPE_CATEGORIES:
+        if category == "scripts":
+            if len(parts) > 2:
+                return f"{category}/{parts[1]}"
+            if len(parts) > 1:
+                return f"{category}/{path.stem}"
+            return category
 
-    if root == "backend":
-        relative = Path(*parts[1:])
-        return f"backend/{relative.with_suffix('')}"
+        clean_parts = list(parts)
+        for i in range(len(parts) - 2):
+            if parts[i + 1] == "src" and parts[i + 2] == parts[i]:
+                clean_parts = parts[: i + 1] + parts[i + 3 :]
+                break
 
-    if root == "clients":
-        relative = Path(*parts[1:])
-        return f"clients/{relative.with_suffix('')}"
+        if len(clean_parts) > 1:
+            return Path(*clean_parts).with_suffix("").as_posix()
+
+        return category
 
     return NO_SCOPE_STR
 
