@@ -5,7 +5,7 @@ import signal
 import sys
 from pathlib import Path
 
-from glia_common import cli
+from glia_common import cli, system
 
 ENV_FILE = Path(".env")
 PG_KEYS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"]
@@ -16,19 +16,6 @@ def signal_handler(sig, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
-
-
-def parse_env(path: Path) -> dict[str, str]:
-    if not path.exists():
-        return {}
-    env_vars = {}
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, val = line.split("=", 1)
-                env_vars[key.strip()] = val.strip()
-    return env_vars
 
 
 def get_verified_password() -> str:
@@ -96,7 +83,13 @@ def write_env(config: dict[str, str], overwrite: bool = False):
 
 
 def main():
-    existing_vars = parse_env(ENV_FILE)
+    # We check existence first because parse_env_file exits on failure,
+    # but for setup, a missing file is a valid starting state.
+    if ENV_FILE.exists():
+        existing_vars = system.parse_env_file(ENV_FILE)
+    else:
+        existing_vars = {}
+
     keys_exist = any(key in existing_vars for key in PG_KEYS)
 
     if keys_exist:
