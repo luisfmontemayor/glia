@@ -1,0 +1,34 @@
+[[tools.gum]]
+version = "0.17.0"
+backend = "aqua:charmbracelet/gum"
+"platforms.linux-arm64" = { checksum = "sha256:b0b9ed95cbf7c8b7073f17b9591811f5c001e33c7cfd066ca83ce8a07c576f9c", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Linux_arm64.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:69ee169bd6387331928864e94d47ed01ef649fbfe875baed1bbf27b5377a6fdb", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Linux_x86_64.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:e2a4b8596efa05821d8c58d0c1afbcd7ad1699ba69c689cc3ff23a4a99c8b237", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Darwin_arm64.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:cd66576aeebe6cd19c771863c7e8d696e0e1d5387d1e7075666baa67c2052e53", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Darwin_x86_64.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:b2be80531c6babc8d4e0e6ca95773d58118a2e1582ae006aace08dbc55503072", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Windows_x86_64.zip"}
+
+[[tools.python]]
+version = "3.12.0"
+backend = "core:python"
+
+[[tools.r]]
+version = "4.4.1"
+backend = "asdf:r"
+
+[[tools.ruff]]
+version = "0.14.8"
+backend = "aqua:astral-sh/ruff"
+"platforms.linux-arm64" = { checksum = "sha256:0b3464f54fa56f514c29e92bcf05867b914ad6c246e2ddbe4cce5c0700f2a3d9", url = "https://github.com/astral-sh/ruff/releases/download/0.14.8/ruff-aarch64-unknown-linux-musl.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:0f5496a3d2413b3cb85bbf9e4a6f95b5db127ac10989ecb3d8c0c0a0a74a892b", url = "https://github.com/astral-sh/ruff/releases/download/0.14.8/ruff-x86_64-unknown-linux-musl.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:4efc019832a6b9225f650ee256d31b2e875021cae662963d533c78b5cf865f52", url = "https://github.com/astral-sh/ruff/releases/download/0.14.8/ruff-aarch64-apple-darwin.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:c53af0ba3cbc5e9e8f7768d28a7ff2d0795843e39302891093227bc6df343e94", url = "https://github.com/astral-sh/ruff/releases/download/0.14.8/ruff-x86_64-apple-darwin.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:a837e98f5e6a21222a896f60521f563aea2c686a07cad17da9f5b5f2c4e04f8a", url = "https://github.com/astral-sh/ruff/releases/download/0.14.8/ruff-x86_64-pc-windows-msvc.zip"}
+
+[[tools.uv]]
+version = "0.9.17"
+backend = "aqua:astral-sh/uv"
+"platforms.linux-arm64" = { checksum = "sha256:f6f48a301f8e855765af42ef50257af0cebc9c5439dfdcbc188142941aea45ca", url = "https://github.com/astral-sh/uv/releases/download/0.9.17/uv-aarch64-unknown-linux-musl.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:ab616c1851e7b1ed377a9ff3997dcee184bea7eda0b20bc8607abba6c469cbad", url = "https://github.com/astral-sh/uv/releases/download/0.9.17/uv-x86_64-unknown-linux-musl.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:a1e1464aa1d04d5e5fa700aa2f2e10397d1114e835dbd56be25ba65c9a31bd99", url = "https://github.com/astral-sh/uv/releases/download/0.9.17/uv-aarch64-apple-darwin.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:249e7fb18d45c06ba283c48f0a8e586ecc5fbb9e8dad0923c4169a7c4db815b2", url = "https://github.com/astral-sh/uv/releases/download/0.9.17/uv-x86_64-apple-darwin.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:ebc76197bf3e1a58f9dac6f70f49b0ebd3e6907ab35289ce228bce5ba8a3f201", url = "https://github.com/astral-sh/uv/releases/download/0.9.17/uv-x86_64-pc-windows-msvc.zip"}
