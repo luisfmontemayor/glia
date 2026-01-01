@@ -20,7 +20,7 @@ customCommands:
 
       - type: "menuFromCommand"
         title: "Select Scope"
-        command: "getStagedScopes.py"
+        command: "uv run python scripts/getStagedScopes.py"
         filter: '(?P<value>.*)'
         valueFormat: '{{ .value }}'
         labelFormat: '{{ .value }}'
