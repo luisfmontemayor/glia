@@ -5,7 +5,7 @@ import signal
 import sys
 from pathlib import Path
 
-from conventionalCommits import utils
+from glia_common import cli
 
 ENV_FILE = Path(".env")
 PG_KEYS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"]
@@ -32,13 +32,13 @@ def parse_env(path: Path) -> dict[str, str]:
 
 
 def get_verified_password() -> str:
-    password = utils.gum_input("Enter Postgres Password:", password=True)
+    password = cli.gum_input("Enter Postgres Password:", password=True)
 
     if not password:
         print("Password cannot be empty.", file=sys.stderr)
         return get_verified_password()
 
-    password_confirm = utils.gum_input("Confirm Password:", password=True)
+    password_confirm = cli.gum_input("Confirm Password:", password=True)
 
     if password != password_confirm:
         print("Passwords do not match. Try again.", file=sys.stderr)
@@ -50,12 +50,12 @@ def get_verified_password() -> str:
 def get_postgres_config() -> dict[str, str]:
     print("Configuring Postgres credentials...")
 
-    user = utils.gum_input("Enter Postgres User:", value="glia_user")
+    user = cli.gum_input("Enter Postgres User:", value="glia_user")
     if not user or user == "":
         print("Error: no user returned. Exiting.", file=sys.stderr)
         sys.exit(1)
 
-    db_name = utils.gum_input("Enter Postgres DB Name:", value="glia_db")
+    db_name = cli.gum_input("Enter Postgres DB Name:", value="glia_db")
     if not db_name or db_name == "":
         print("Error: no database name returned. Exiting.", file=sys.stderr)
         sys.exit(1)
@@ -100,7 +100,7 @@ def main():
     keys_exist = any(key in existing_vars for key in PG_KEYS)
 
     if keys_exist:
-        should_overwrite = utils.gum_confirm(
+        should_overwrite = cli.gum_confirm(
             "Postgres configuration found in .env. Overwrite postgres variables?"
         )
         if not should_overwrite:

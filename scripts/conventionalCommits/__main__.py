@@ -7,7 +7,8 @@ import signal
 import subprocess
 import sys
 
-from . import utils
+from glia_common import cli
+
 from .constants import COMMIT_TYPES
 from .scopes import get_staged_scopes
 
@@ -41,12 +42,12 @@ def main():
     if preselected_commit_type:
         commit_type = preselected_commit_type
     else:
-        commit_type = utils.gum_choose("Choose a commit type", COMMIT_TYPES)
+        commit_type = cli.gum_choose("Choose a commit type", COMMIT_TYPES)
         if not commit_type:
             sys.exit(0)
 
     possible_scope_choices = get_staged_scopes()
-    scope = utils.gum_choose("Choose a commit scope", list(possible_scope_choices))
+    scope = cli.gum_choose("Choose a commit scope", list(possible_scope_choices))
     if not scope:
         sys.exit(0)
 
