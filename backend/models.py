@@ -40,3 +40,11 @@ class JobBase(SQLModel):
 class Job(JobBase, table=True):
     __tablename__ = "jobs"
     id: int | None = Field(default=None, primary_key=True)
+
+
+class JobCreate(JobBase):
+    pass
+
+
+class JobRead(JobBase):
+    id: int
