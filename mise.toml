@@ -29,6 +29,7 @@ description = "Program deps"
 run         = "cp --force lazygit.yml .git/lazygit.yml"
 
 [tasks."setup:deps"]
+alias = "sd"
 description = "Run all setup tasks in order"
 run = """
 mise run setup-mise-deps && \
@@ -37,7 +38,6 @@ mise run sync-lazygit
 """
 
 # Database
-
 [tasks."db:setup-creds"]
 description = "Setup credentials and container"
 run         = "setup_postgres_creds.py"
