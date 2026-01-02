@@ -111,7 +111,8 @@ def get_staged_scopes():
     if common_scope and common_scope not in possible_scope_choices:
         possible_scope_choices.insert(0, common_scope)
 
+    possible_scope_choices = sorted(possible_scope_choices)
     if NO_SCOPE_STR not in possible_scope_choices:
         possible_scope_choices.append(NO_SCOPE_STR)
 
-    return sorted(possible_scope_choices)
+    return possible_scope_choices
