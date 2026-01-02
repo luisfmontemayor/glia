@@ -14,6 +14,11 @@ _.file     = ".env"
 _.path     = ["./scripts"]
 PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
 
+# Tools
+[tasks.alembic]
+description = "Internal helper for alembic commands"
+run         = "uv run alembic -c backend/alembic.ini"
+
 # Dependencies
 [tasks.setup-mise-deps]
 description = "Program deps"
@@ -59,10 +64,6 @@ run         = "docker compose -f backend/compose.yml logs -f"
 description = "Wipe and restart DB (deletes all data)"
 run         = "docker compose -f backend/compose.yml down -v && mise run db:up"
 
-[tasks.alembic]
-description = "Internal helper for alembic commands"
-run         = "uv run alembic -c backend/alembic.ini"
-
 [tasks."db:migration-plan"]
 description = "Generate a new migration script"
 run         = "mise run alembic revision --autogenerate -m"
@@ -82,7 +83,7 @@ run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$
 [tasks."db:test-wait"]
 description = "Poll the database until it accepts connections"
 run = """
-MAX_TRIES=20
+MAX_TRIES=15
 COUNT=0
 
 # Loop quietly
@@ -110,11 +111,21 @@ mise run db:test-wait && \
 mise run db:migrate
 """
 
+# Backend server
+[tasks."test:backend"]
+run = "mise run db:test-wait && uv run pytest backend/tests"
+
+[tasks."setup:backend"]
+run = "uv run fastapi dev backend/main.py && mise run test:backend" 
+alias = "serve"
+
+
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
 run = """
 mise run setup:deps && \
-mise run setup:db
+mise run setup:db && \
+mise run setup:backend
 """
 
 #[tasks."test:integration"]
