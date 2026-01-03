@@ -34,15 +34,6 @@ run         = "uv sync && uv lock"
 description = "Program deps"
 run         = "cp --force lazygit.yml .git/lazygit.yml"
 
-[tasks."setup:deps"]
-alias = "sd"
-description = "Run all setup tasks in order"
-run = """
-mise run setup-mise-deps && \
-mise run setup-python-deps && \
-mise run sync-lazygit
-"""
-
 # Database
 [tasks."db:setup-creds"]
 description = "Setup credentials and container"
@@ -65,6 +56,32 @@ run         = "docker compose -f backend/compose.yml logs -f"
 description = "Wipe and restart DB (deletes all data)"
 run         = "docker compose -f backend/compose.yml down -v && mise run db:up"
 
+[tasks."db:status"]
+description = "Verify DB is up, healthy, and credentials are valid"
+run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1"'
+
+[tasks."db:status-wait"]
+description = "Poll the database until it accepts connections"
+run = """
+MAX_TRIES=15
+COUNT=0
+
+# Loop quietly
+until mise run db:status > /dev/null 2>&1; do
+  COUNT=$((COUNT + 1))
+  if [ $COUNT -ge $MAX_TRIES ]; then
+    echo "\n[ERROR] Database failed to become ready after $MAX_TRIES seconds."
+    echo "Last error from psql:"
+    # Run one last time WITHOUT hiding output so you see the error
+    mise run db:status
+    exit 1
+  fi
+  printf "."
+  sleep 1
+done
+echo "\n[SUCCESS] Database is ready."
+"""
+
 [tasks."db:migration-plan"]
 description = "Generate a new migration script"
 run         = "mise run alembic revision --autogenerate -m"
@@ -77,49 +94,36 @@ run         = "mise run alembic upgrade head"
 description = "Rollback the last migration"
 run         = "mise run alembic downgrade -1"
 
-[tasks."db:test-init"]
-description = "Verify DB is up, healthy, and credentials are valid"
-run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1"'
+# Backend server
+[tasks."backend:up"]
+run = "uv run fastapi dev backend/main.py"
 
-[tasks."db:test-wait"]
-description = "Poll the database until it accepts connections"
+[tasks."backend:status"]
+run = "curl -s http://localhost:8000/health"
+
+[tasks."test:backend"]
+run = "uv run pytest backend/tests"
+
+# Setup
+[tasks."setup:deps"]
+alias = "sd"
+description = "Run all setup tasks in order"
 run = """
-MAX_TRIES=15
-COUNT=0
-
-# Loop quietly
-until mise run db:test-init > /dev/null 2>&1; do
-  COUNT=$((COUNT + 1))
-  if [ $COUNT -ge $MAX_TRIES ]; then
-    echo "\n[ERROR] Database failed to become ready after $MAX_TRIES seconds."
-    echo "Last error from psql:"
-    # Run one last time WITHOUT hiding output so you see the error
-    mise run db:test-init
-    exit 1
-  fi
-  printf "."
-  sleep 1
-done
-echo "\n[SUCCESS] Database is ready."
+mise run setup-mise-deps && \
+mise run setup-python-deps && \
+mise run sync-lazygit
 """
-
 [tasks."setup:db"]
 description = "Full database lifecycle: creds -> container -> wait -> migrations"
 run = """
 mise run db:setup-creds && \
 mise run db:up && \
-mise run db:test-wait && \
+mise run db:status-wait && \
 mise run db:migrate
 """
 
-# Backend server
-[tasks."test:backend"]
-run = "mise run db:test-wait && uv run pytest backend/tests"
-
 [tasks."setup:backend"]
-run = "uv run fastapi dev backend/main.py && mise run test:backend" 
-alias = "serve"
-
+run = "mise run backend:up && mise run backend:status && mise run test:backend"
 
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
@@ -129,7 +133,9 @@ mise run setup:db && \
 mise run setup:backend
 """
 
-#[tasks."test:integration"]
-#description = "Run integration tests (requires DB)"
-#depends = ["db-check"] # Using the task we just made!
-#run = "uv run pytest tests/integration"}
+[tasks.spinup]
+description = "Plug-and-play setup: dependencies then local database"
+run = """
+mise run db:up && \
+mise run setup:backend
+"""
