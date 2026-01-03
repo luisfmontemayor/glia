@@ -10,9 +10,10 @@ ruff   = "0.14.8"
 uv     = "0.9.17"
 
 [env]
-_.file     = ".env"
-_.path     = ["./scripts"]
-PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
+_.file        = ".env"
+_.path        = ["./scripts"]
+PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
+GLIA_DEV_MODE = true
 
 # Tools
 [tasks.alembic]
