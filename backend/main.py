@@ -5,8 +5,8 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from backend.database import engine, get_session
-from backend.models import Job, JobCreate, JobRead
+from database import engine, get_session
+from models import Job, JobCreate, JobRead
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
