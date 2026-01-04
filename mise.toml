@@ -94,15 +94,16 @@ run         = "mise run alembic upgrade head"
 description = "Rollback the last migration"
 run         = "mise run alembic downgrade -1"
 
-# Backend server
-[tasks."backend:up"]
+# API
+[tasks."api:up"]
 run = "uv run fastapi dev backend/main.py"
 
-[tasks."backend:status"]
+[tasks."api:status"]
 run = "curl -s http://localhost:8000/health"
 
+# Backend
 [tasks."test:backend"]
-run = "uv run pytest backend/tests"
+run = "uv run pytest backend/test"
 
 # Setup
 [tasks."setup:deps"]
@@ -122,8 +123,20 @@ mise run db:status-wait && \
 mise run db:migrate
 """
 
+[tasks."setup:api"]
+description = "Start API, then run status check and tests in parallel"
+run = [
+  { task = "api:up" },
+  # These run in parallel the api:up task runs
+  { tasks = ["api:status", "test:backend"] },
+]
+
 [tasks."setup:backend"]
-run = "mise run backend:up && mise run backend:status && mise run test:backend"
+description = "Full database lifecycle: creds -> container -> wait -> migrations"
+run = """
+mise run setup:db && \
+mise run setup:api
+"""
 
 [tasks.full-setup]
 description = "Plug-and-play setup: dependencies then local database"
