@@ -3,18 +3,19 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlmodel import text
 
 from backend.database import engine
-
-API_URL = "http://localhost:8000"
+from backend.main import app
 
 
 @pytest_asyncio.fixture
 async def cleanup_client():
     job_id = str(uuid4())
-    async with AsyncClient(base_url=API_URL) as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         yield client, job_id
 
     print(f"\n[CLEANUP] Removing Job ID: {job_id}")
