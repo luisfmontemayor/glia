@@ -11,6 +11,8 @@ class Settings(BaseSettings):
 
     _DATABASE_URL: str | None = None
 
+    GLIA_DEV_MODE: bool = False
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @computed_field

@@ -1,15 +1,12 @@
-import os
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import settings
 
-dev_mode: str | None = os.environ.get("GLIA_DEV_MODE")
-
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=dev_mode is True,
+    echo=settings.GLIA_DEV_MODE,
     future=True,
 )
 
