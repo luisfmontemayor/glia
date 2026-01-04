@@ -14,7 +14,8 @@ from backend.main import app
 async def cleanup_client():
     job_id = str(uuid4())
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
+        transport=ASGITransport(app=app),
+        base_url="http://test",  # URL set up by httpx for testing through ASGITransport
     ) as client:
         yield client, job_id
 
