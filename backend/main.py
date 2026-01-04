@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from database import engine, get_db_session
 from fastapi import Depends, FastAPI, HTTPException, status
-from models import Job, JobCreate, JobRead
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+
+from backend.database import engine, get_db_session
+from backend.models import Job, JobCreate, JobRead
 
 SessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 
