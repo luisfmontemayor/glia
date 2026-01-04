@@ -40,6 +40,7 @@ async def run_async_migrations():
 
 
 def run_migrations_online():
+    """Run migrations in 'online' mode."""
     asyncio.run(run_async_migrations())
 
 
