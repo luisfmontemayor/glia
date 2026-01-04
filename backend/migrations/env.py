@@ -6,8 +6,8 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
+import backend.models  # noqa: F401
 from backend.config import settings
-from backend.models import *  # noqa: F403, F405
 
 DATABASE_URL = settings.DATABASE_URL
 
