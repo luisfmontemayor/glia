@@ -25,7 +25,7 @@ async def cleanup_client():
 
 
 @pytest.mark.asyncio
-async def test_ingest_telemetry(cleanup_client):
+async def test_db_ingest_(cleanup_client):
     client, job_id = cleanup_client
 
     payload = {
