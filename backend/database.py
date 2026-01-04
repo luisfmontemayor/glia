@@ -1,44 +1,30 @@
+import os
 from collections.abc import AsyncGenerator
 
-from pydantic import computed_field
-from pydantic_settings import BaseSettings
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel
 
+from .config import settings
 
-class Settings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
+dev_mode: str | None = os.environ.get("GLIA_DEV_MODE")
 
-    @computed_field
-    @property
-    def DATABASE_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=dev_mode is True,
+    future=True,
+)
 
-    class Config:
-        env_file = ".env"
-
-
-settings = Settings()
-
-engine = create_async_engine(settings.DATABASE_URL, echo=True, future=True)
-
-async_session_factory = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
 )
 
 
-async def init_db():
-    async with engine.begin() as connection:
-        # await conn.run_sync(SQLModel.metadata.drop_all) # Uncomment to reset DB
-        await connection.run_sync(SQLModel.metadata.create_all)
-
-
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_factory() as session:
-        yield session
+    """
+    Yields a database session that automatically closes
+    after the request/block is finished.
+    """
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
