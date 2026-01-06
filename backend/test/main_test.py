@@ -3,11 +3,16 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
+from glia_common.cli import run_command
 from httpx import ASGITransport, AsyncClient
 from sqlmodel import text
 
 from backend.database import engine
 from backend.main import app
+
+
+def test_api_status():
+    run_command(["mise", "run", "api:status"], capture=False)
 
 
 @pytest_asyncio.fixture
