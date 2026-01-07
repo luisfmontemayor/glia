@@ -23,21 +23,21 @@ GLIA_DEV_MODE = true
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
 
-# Jargon
+# Nomenclature
 # - db -> the database
 # - api -> fastapi + uvicorn server
 # - backend -> db+api+server
-# - status -> task for checking status
 
 # Simple tasks:
-# up -> start service
-# down -> turn off service
-# test-wait -> test ran a few times to see if it succeeds (accounting for connection issues).
+# - up -> start service
+# - down -> turn off service
+# - status -> checking if service is up
+# - test-wait -> test ran a few times to see if it succeeds (accounting for connection issues).
 # and other specific ones like migrate
 
 # Compound tasks:
 # - setup -> from scratch: create configs and start service
-# – spinup -> start service, not from scratch. often up + test
+# - spinup -> start service, not from scratch. often up + test
 
 # task name structure:
 # - mise run <service>:<task> eg.: mise run db:up
