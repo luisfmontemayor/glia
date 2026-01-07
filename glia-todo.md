@@ -86,6 +86,7 @@
             - [x] FastAPI
     - dev dependencies
         - [x] gum
+    - [ ] make dev dependencies
 - [ ] Docs
     - [x] Basic README
 - [ ] Identify testing
