@@ -124,7 +124,7 @@ run         = "mise run alembic downgrade -1"
 run = "uv run fastapi dev backend/main.py"
 
 [tasks."api:status"]
-run = "curl -sf -o /dev/null http://localhost:8000/health"
+run = "curl -sf -o /dev/null http://localhost:8000/health/ready"
 
 [tasks."api:status-wait"]
 description = "Poll the database until it accepts connections"
@@ -133,7 +133,7 @@ MAX_TRIES=15
 COUNT=0
 
 # Loop quietly
-until mise run db:status > /dev/null 2>&1; do
+until mise run api:status > /dev/null 2>&1; do
   COUNT=$((COUNT + 1))
   if [ $COUNT -ge $MAX_TRIES ]; then
     echo "\n[ERROR] Database failed to become ready after $MAX_TRIES seconds."
@@ -150,23 +150,30 @@ echo "\n[SUCCESS] Database is ready."
 
 # Backend
 [tasks."test:backend"]
-run = "uv run pytest backend/test --color=yes"
+run = "mise run db:status-wait && uv run pytest backend/test --color=yes"
 
 # Spinup
 [tasks."spinup:db"]
-description = "Start db container, no cred setup"
+description = "Start db container and check status, no cred setup"
 run = """
 mise run db:up && \
 mise run db:status-wait && \
 mise run db:migrate
 """
 
+[tasks."spinup:api"]
+description = "Start up API server and check status"
+run = """
+mise run api:up && \
+mise run api:status-wait
+"""
+
 [tasks."spinup:backend"]
-description = "turn on backend, with tests"
+description = "Start database and API server"
 alias = "sb"
 run = """
 mise run spinup:db && \
-mise run api:up
+mise run spinup:api
 """
 
 # Setup
@@ -198,6 +205,5 @@ mise run spinup:api
 description = "Plug-and-play setup from scratch: dependencies then local database"
 run = """
 mise run setup:deps && \
-mise run setup:db && \
 mise run setup:backend
 """
