@@ -3,16 +3,17 @@
 ## Phase 1: Infrastructure & The Container (Docker)
 *Goal: Get a Postgres instance running in an isolated environment without polluting the host OS.*
 - [x] Install Docker and verify installation.
-- [ ] Create a `compose.yaml` file in the root directory to define the Postgres service.
-- [ ] Configure environment variables (User, Password, DB Name) securely using a `.env` file.
-- [ ] Launch the database and connect to it using a GUI tool (like DBeaver or TablePlus) or the CLI to verify it is accepting connections.
+- [x] Create a `compose.yaml` file in the root directory to define the Postgres service.
+  - [x] Pick a docker image
+- [x] Configure environment variables (User, Password, DB Name) securely using a `.env` file.
+- [x] Launch the database and connect to it using the CLI to verify it is accepting connections.
 
 ## Phase 2: The Data Layer (ORM & Models)
 *Goal: Define the database structure using Python code (SQLModel) rather than writing raw SQL.*
-- [ ] Add dependencies via `uv`: `sqlmodel`, `asyncpg` (async driver), and `pydantic-settings`.
-- [ ] Create `backend/database.py`: Set up the async engine and session functionality.
-- [ ] Design the Schema: Create `backend/models.py` translating Glia's requirements (Usage, Resources, Data Footprint, JSONB) into SQLModel classes.
-- [ ] Understand Primary Keys, Foreign Keys, and Indexes (crucial for query performance).
+- [x] Add dependencies via `uv`: `sqlmodel`, `asyncpg` (async driver), and `pydantic-settings`.
+- [x] Create `backend/database.py`: Set up the async engine and session functionality.
+- [x] Design the Schema: Create `backend/models.py` translating Glia's requirements (Usage, Resources, Data Footprint, JSONB) into SQLModel classes.
+- [x] Understand Primary Keys, Foreign Keys, and Indexes (crucial for query performance).
 
 ## Phase 3: Schema Management (Migrations)
 *Goal: Handle database changes over time (version control for your DB).*
