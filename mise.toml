@@ -24,6 +24,7 @@ description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
 
 # Nomenclature
+## Services
 # - db -> the database
 # - api -> fastapi + uvicorn server
 # - backend -> db+api+server
@@ -77,8 +78,8 @@ description = "View Postgres logs"
 run         = "docker compose -f backend/compose.yml logs -f"
 
 [tasks."db:reset"]
-description = "Wipe and restart DB (deletes all data)"
-run         = "docker compose -f backend/compose.yml down -v && mise run db:up"
+description = "Wipe volume, restart DB, and re-apply migrations"
+run         = "docker compose -f backend/compose.yml down -v && mise run spinup:db"
 
 [tasks."db:status"]
 description = "Verify DB is up, healthy, and credentials are valid"
