@@ -1,7 +1,7 @@
 [project]
-name = "Glia"
-version = "0.1.0"
-requires-python="==3.12.0" # Also listed in  mise.toml and in the [tool.ruff] section of this TOML
+name            = "Glia"
+version         = "0.1.0"
+requires-python = "==3.12.0" # Also listed in mise.toml and in [tool.ty]
 
 dependencies = [
     "alembic==1.17.2",
@@ -10,6 +10,7 @@ dependencies = [
     "pydantic-settings==2.12.0",
     "sqlmodel==0.0.31",
     "uvicorn==0.40.0",
+    "ty==0.0.8",
     "glia-common",
     "pytest==9.0.2",
     "pytest-asyncio==1.3.0",
@@ -18,9 +19,17 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = [
-    "libs/python/glia_common",
-]
+members = ["libs/python/glia_common"]
 
 [tool.uv.sources]
 glia-common = { workspace = true, editable = true }
+
+[tool.ty.environment]
+python-version = "3.12" # Also listed in mise.toml and in [project]
+
+[tool.ty.rules]
+"unresolved-attribute" = "error"
+"unresolved-import"    = "warn"
+
+# TODO: define a dev dependency group
+#[dependency-groups]
