@@ -4,7 +4,7 @@ lockfile     = true
 
 [tools]
 gum    = "0.17.0"
-python = "3.12.0" # Also listed in pyproject.toml under [project] and [tool.ty.environment]
+python = "3.12.0"
 r      = "4.4.1"
 ruff   = "0.14.8"
 uv     = "0.9.17"
@@ -34,6 +34,7 @@ run         = "uv run alembic -c backend/alembic.ini"
 # - down -> turn off service
 # - status -> checking if service is up
 # - test-wait -> test ran a few times to see if it succeeds (accounting for connection issues).
+# - sync -> make sure variables / files in different places are the same
 # and other specific ones like migrate
 
 # Compound tasks:
@@ -58,6 +59,10 @@ run         = "uv sync && uv lock"
 [tasks.sync-lazygit]
 description = "Program deps"
 run         = "cp --force lazygit.yml .git/lazygit.yml"
+
+[tasks."sync:python-versions"]
+description = "Sync places where python is listed with version in .python-version"
+run         = "scripts/sync_python_versions_in_pyprojects.py"
 
 # Database
 [tasks."db:setup-creds"]
