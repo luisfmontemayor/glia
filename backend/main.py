@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, status
-from sqlmodel import select
+from sqlalchemy.engine import Result
+from sqlmodel import select, text
 
 from backend.config import settings
 from backend.database import SessionDep, engine
@@ -22,9 +23,21 @@ app = FastAPI(
 )
 
 
-@app.get("/health")
+@app.get("/health/live")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.get("/health/ready")
+async def readiness_check(session: SessionDep):
+    try:
+        await session.execute(text("SELECT 1"))
+        return {"status": "ready"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not reachable",
+        ) from e
 
 
 @app.post("/ingest", response_model=JobRead, status_code=status.HTTP_201_CREATED)
@@ -49,5 +62,5 @@ async def ingest_telemetry(
 @app.get("/telemetry", response_model=list[JobRead])
 async def list_telemetry(session: SessionDep, limit: int = 100):
     statement = select(Job).limit(limit)
-    results = await session.execute(statement)
+    results: Result[tuple[Job]] = await session.execute(statement)
     return results.scalars().all()
