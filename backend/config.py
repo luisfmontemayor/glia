@@ -3,6 +3,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    PROJECT_TITLE: str = "Glia API"
+    PROJECT_DESCRIPTION: str = (
+        "Push-architecture API for observability of ephemeral jobs"
+    )
+    VERSION: str
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str

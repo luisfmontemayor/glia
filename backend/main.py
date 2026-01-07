@@ -1,14 +1,11 @@
 from contextlib import asynccontextmanager
-from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI, HTTPException, status
 from sqlmodel import select
 
-from backend.database import engine, get_db_session
+from backend.config import settings
+from backend.database import SessionDep, engine
 from backend.models import Job, JobCreate, JobRead
-
-SessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 
 
 @asynccontextmanager
@@ -18,9 +15,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Glia API",
-    description="Push-architecture observability for ephemeral jobs",
-    version="0.1.0",
+    title=settings.PROJECT_TITLE,
+    description=settings.PROJECT_TITLE,
+    version=settings.VERSION,
     lifespan=lifespan,
 )
 
