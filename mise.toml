@@ -10,9 +10,12 @@ ruff   = "0.14.8"
 uv     = "0.9.17"
 
 [env]
-_.file        = ".env"
-_.path        = ["./scripts"]
-PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
+_.file     = ".env"
+_.path     = ["./scripts"]
+PYTHONPATH = "{{config_root}}/scripts:$PYTHONPATH"
+
+VERSION = "0.1.0"
+
 GLIA_DEV_MODE = true
 
 # Tools
@@ -146,7 +149,7 @@ echo "\n[SUCCESS] Database is ready."
 
 # Backend
 [tasks."test:backend"]
-run = "uv run pytest backend/test"
+run = "uv run pytest backend/test --color=yes"
 
 # Spinup
 [tasks."spinup:db"]
@@ -157,20 +160,12 @@ mise run db:status-wait && \
 mise run db:migrate
 """
 
-[tasks."spinup:api"]
-description = "Start API, then run status check and tests in parallel"
-run = [
-  { task = "api:up" },
-  # These run in parallel the api:up task runs
-  { tasks = ["api:status", "test:backend"] },
-]
-
 [tasks."spinup:backend"]
 description = "turn on backend, with tests"
 alias = "sb"
 run = """
 mise run spinup:db && \
-mise run spinup:api
+mise run api:up
 """
 
 # Setup
