@@ -12,7 +12,7 @@ from backend.main import app
 
 
 def test_api_status():
-    run_command(["mise", "run", "api:status"], capture=False)
+    run_command(command=["mise", "run", "api:status"], capture=False)
 
 
 @pytest_asyncio.fixture
@@ -26,7 +26,10 @@ async def cleanup_client():
 
     print(f"\n[CLEANUP] Removing Job ID: {job_id}")
     async with engine.begin() as conn:
-        await conn.execute(text("DELETE FROM jobs WHERE run_id = :id"), {"id": job_id})
+        await conn.execute(
+            statement=text("DELETE FROM jobs WHERE run_id = :id"),
+            parameters={"id": job_id},
+        )
 
 
 @pytest.mark.asyncio
