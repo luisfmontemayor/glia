@@ -1,7 +1,10 @@
 [project]
 name            = "Glia"
 version         = "0.1.0"
-requires-python = "==3.12.0" # Also listed in mise.toml and in [tool.ty]
+description     = "Telemetry suite for job-running."
+readme          = "README.md"
+authors         = [{ name = "luisfmontemayor", email = "lfelipemonte@gmail.com" }]
+requires-python = "==3.12.0"                                                       # Also listed in mise.toml, [tool.ty] and glia/glia-python/pyproject.toml
 
 dependencies = [
     "alembic==1.17.2",
@@ -19,13 +22,13 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["libs/python/glia_common"]
+members = ["libs/python/glia_common", "glia-python"]
 
 [tool.uv.sources]
 glia-common = { workspace = true, editable = true }
 
 [tool.ty.environment]
-python-version = "3.12" # Also listed in mise.toml and in [project]
+python-version = "3.12" # Also listed in mise.toml, in [project] and glia/glia-python/pyproject.toml
 
 [tool.ty.rules]
 "unresolved-attribute" = "error"
