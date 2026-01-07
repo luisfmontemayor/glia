@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run
+#!/usr/bin/env -S uv run -q
 # Written by Luis Felipe Montemayor, sometime around December of 2025
 # https://open.spotify.com/track/1OW3pXLhVdMm7giLW6siEm?si=84f15023bf694f0f
 import signal
