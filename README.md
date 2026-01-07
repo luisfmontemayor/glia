@@ -10,11 +10,15 @@ A telemetry suite for technical data teams working on joint linux systems.
 1. [Install mise](https://mise.jdx.dev/getting-started.html), a tool for managing installed language runtimes and environment variables.
 2. [Install Docker](https://www.docker.com/get-started/)
 
-### One-time set up
-1. Run `mise run setup` to:
-   - Install Python, R, uv, gum, and ruff.
-   - Sync python dependencies using `uv`.
-   - configure `lazygit` integration by copying the configuration file.
+### Getting Started
+1. Run `mise run full-setup`, which in turn:
+   - Runs `mise run setup-deps`
+      - Install Python, R, uv, gum, and ruff.
+      - Sync python dependencies using `uv`.
+      - Configure `lazygit` integration by copying the configuration file.
+      
+   - Runs `mise run setup-db`
+      - Sets up postgres env variables.
 
 ## Development
 ### Linting & Formatting

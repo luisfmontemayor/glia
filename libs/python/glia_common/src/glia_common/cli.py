@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 # Written by Luis Felipe Montemayor, sometime around December of 2025
 # https://open.spotify.com/track/5rKofmG2wSD3pdZcNpkz6T?si=2ba4f58be4b54277
-
 import subprocess
 
 
@@ -25,6 +23,29 @@ def changed_files_exist():
         ["git", "ls-files", "--others", "--exclude-standard", "--modified"]
     )
     return True if unstaged else False
+
+
+def gum_input(
+    header: str, placeholder: str = "", value: str = "", password: bool = False
+) -> str | None:
+    cmd = ["gum", "input", "--header", header]
+    if placeholder:
+        cmd.extend(["--placeholder", placeholder])
+    if value:
+        cmd.extend(["--value", value])
+    if password:
+        cmd.append("--password")
+
+    result = subprocess.run(
+        cmd,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=None,
+    )
+
+    if result.returncode == 0:
+        return result.stdout.strip()
+    return None
 
 
 def gum_choose(header: str, options: list[str]) -> str | None:
