@@ -33,11 +33,11 @@ async def ingest_telemetry(
     session: SessionDep,
 ):
     try:
-        db_telemetry = Job.model_validate(telemetry_in)
-        session.add(db_telemetry)
+        job_instance: Job = Job.model_validate(telemetry_in)
+        session.add(instance=job_instance)
         await session.commit()
-        await session.refresh(db_telemetry)
-        return db_telemetry
+        await session.refresh(instance=job_instance)
+        return job_instance
     except Exception as e:
         await session.rollback()
         raise HTTPException(
