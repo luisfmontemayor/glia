@@ -53,15 +53,30 @@
 
 
 
+#######
 
-# Setup
--- [x] Lock files
-    
+## 🛠️ Technical Context
+- **Backend:** FastAPI (Python 3.12+)
+- **Database:** PostgreSQL (Optimized for high-frequency writes)
+- **Infrastructure:** Docker / Compose
+- **Tooling:** `uv` (Python), `mise` (Env management), `conventional commits`
+
+### v0 Scope
+- 2 Clients: Python and R (Single script model).
+- 1 Data Pipeline: Client -> FastAPI -> PostgreSQL.
+
+### v1 Scope
+- CLI client for bash scripting
+- Nextflow program for scripting
+- Queue and queue worker implemented
+
+### Setup
+- [x] Lock files
 - [x] A task runner
 - [x] CCs 
 - [x] Basic dir structure
 - [x] Dependencies
-    - []? Make a Makefile
+    - [ ]? Make a Makefile
     - Manual installs
         - [x] Docker
         - [x] mise
@@ -71,38 +86,41 @@
             - [x] FastAPI
     - dev dependencies
         - [x] gum
-        
 - [ ] Docs
     - [x] Basic README
 - [ ] Identify testing
 - [ ] Git
-    - [x] Merge branches protections, only stiff I approve can be merged
+    - [x] Merge branches protections, only stuff I approve can be merged
     - [x] merged branches get deleted
 
-
-# Backend
+### Backend
 - [x] Data Schema
     - [x] Choose compulsory variables
-        - run_id
-        - program_name
-        - user_name
-        - script_sha256
-        - exit_code_int
-        - started_at
-        - ended_at
-        - cpu_time_sec
-        - cpu_percent
-        - max_rss_mb
-    
-# Clients
+        - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
+
+
+### Clients
 - [ ] Architecture - use
     - [ ] How will it actually be implemented in R?
-    - [ ] How will it actually be implemented in Python?    
+    - [ ] How will it actually be implemented in Python?
+- [ ] Phase 1: Python `SystemTracker` (CPU, RAM, Wall Time, I/O)
+- [ ] Phase 2: Python DX (Context Manager `with glia.tracker()`, Decorators)
+- [ ] Phase 3: Python Network Layer (`httpx` push logic)
+- [ ] Phase 4: R Client Implementation (`httr2`, `gc()`, `proc.time()`)
 
- 
- 
- # give me a summary of the entirety of the glia project for a new chat to understand what it has become thus far been taken thus far, in a copyable markdown code block
-# Philosophy
+
+
+---
+
+## 🧠 Philosophy & Goals
+### The Problem
+- Gauge tool usage and adoption vs alternatives.
+- Passive benchmarking without manual user intervention.
+
+### Stakeholder Value
+- **The User:** See performance gains without engineering friction.
+- **The Dev/Admin:** Verify tool efficiency and optimize performance based on real-world telemetry.
+
 - [ ] What am I actually trying to solve?
     - I want to gauge how much my tool is being used, to see how much adoption it has vs other alternatives
     - I want to have ways of doing benchmarking passively, without having to request people doing to submit their stats
