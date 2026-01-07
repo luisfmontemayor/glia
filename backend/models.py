@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column
+from sqlalchemy import Column, DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -22,8 +22,14 @@ class JobBase(SQLModel):
         description="Hash of the script file for version tracking"
     )
 
-    started_at: datetime = Field(description="UTC timestamp when the job started")
-    ended_at: datetime = Field(description="UTC timestamp when the job finished")
+    started_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True)),
+        description="UTC timestamp when the job started",
+    )
+    ended_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True)),
+        description="UTC timestamp when the job finished",
+    )
     exit_code_int: int = Field(description="Process exit code")
 
     cpu_time_sec: float = Field(description="Total User + System CPU time consumed")
