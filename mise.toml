@@ -62,7 +62,7 @@ run         = "cp --force lazygit.yml .git/lazygit.yml"
 
 [tasks."sync:python-versions"]
 description = "Sync places where python is listed with version in .python-version"
-run         = "scripts/sync_python_versions_in_pyprojects.py"
+run         = "scripts/sync_python_versions_in_configs.py"
 
 # Database
 [tasks."db:setup-creds"]
