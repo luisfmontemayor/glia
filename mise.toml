@@ -56,7 +56,7 @@ description = "Python deps"
 alias       = "spd"
 run         = "uv sync && uv lock"
 
-[tasks.sync-lazygit]
+[tasks."sync:lazygit"]
 description = "Program deps"
 run         = "cp --force lazygit.yml .git/lazygit.yml"
 
@@ -188,7 +188,7 @@ description = "Run all deps installation tasks"
 run = """
 mise run setup-mise-deps && \
 mise run setup-python-deps && \
-mise run sync-lazygit
+mise run sync:lazygit
 """
 [tasks."setup:db"]
 description = "Full database lifecycle: creds -> container -> wait -> migrations"
