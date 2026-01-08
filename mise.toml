@@ -47,11 +47,11 @@ run         = "uv run alembic -c backend/alembic.ini"
 # - mise run <compound task>:<tier> eg.: mise run spinup:db
 
 # Dependencies
-[tasks.setup-mise-deps]
+[tasks."setup:mise-deps"]
 description = "Program deps"
 run         = "mise install"
 
-[tasks.setup-python-deps]
+[tasks."setup:python-deps"]
 description = "Python deps"
 alias       = "spd"
 run         = "uv sync && uv lock"
@@ -62,7 +62,7 @@ run         = "cp --force lazygit.yml .git/lazygit.yml"
 
 [tasks."sync:python-versions"]
 description = "Sync places where python is listed with version in .python-version"
-run         = "scripts/sync_python_versions_in_configs.py"
+run         = "scripts/sync_python_versions_in_pyprojects.py"
 
 # Database
 [tasks."db:setup-creds"]
@@ -200,7 +200,7 @@ mise run db:migrate
 """
 
 [tasks."setup:backend"]
-description = "Full database lifecycle: creds -> container -> wait -> migrations"
+description = "Full backend: db + api + server"
 run = """
 mise run setup:db && \
 mise run spinup:api
