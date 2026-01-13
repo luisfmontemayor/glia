@@ -22,7 +22,7 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
             rf'\1">={version}"',
         ),
         (
-            Path("glia-python/pyproject.toml"),
+            Path("glia_python/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),
