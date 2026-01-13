@@ -1,3 +1,5 @@
+# Written by Luis Felipe Montemayor, sometime around January of 2026
+# https://open.spotify.com/track/2wBrtYgA27EDPE7Fpyzpdx?si=6f91ac4ec4594ed8
 import hashlib
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
