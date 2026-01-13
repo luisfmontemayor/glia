@@ -1,17 +1,17 @@
 # Glia Clients Implementation Roadmap
 
 ## Phase 1: Python Client Foundation & Metrics
-*Goal: Create the `glia-python` package and implement the logic to capture raw system telemetry.*
-- [ ] Initialize `glia-python` project structure using `uv`.
-- [ ] Add core dependency: `psutil` (for cross-platform system monitoring).
-- [ ] Implement `SystemTracker` class:
-  - [ ] Capture **CPU Usage** (User/System time).
-  - [ ] Capture **RAM Usage** (Peak RSS).
-  - [ ] Capture **Wall Time** (Start/End deltas).
-  - [ ] Capture **I/O Counters** (Read/Write bytes).
-- [ ] Implement Metadata collection:
-  - [ ] Hostname, User, OS version.
-  - [ ] Script context (filename, arguments).
+*Goal: Create the `glia_python` package and implement the logic to capture raw system telemetry.*
+- [x] Initialize `glia_python` project structure using `uv`.
+- [x] Add core dependency: `psutil` (for cross-platform system monitoring).
+- [x] Implement `SystemTracker` class:
+  - [x] Capture **CPU Usage** (User/System time).
+  - [x] Capture **RAM Usage** (Peak RSS).
+  - [x] Capture **Wall Time** (Start/End deltas).
+  - [x] Capture **I/O Counters** (Read/Write bytes).
+- [x] Implement Metadata collection:
+  - [x] Hostname, User, OS version.
+  - [x] Script context (filename, arguments).
 
 ## Phase 2: Python Wrapper & Developer Experience (DX)
 *Goal: Abstract the complexity so developers can instrument code with a single line.*
@@ -54,6 +54,10 @@
 
 
 #######
+- [ ] lazygit plugin: no files staged means it puts in messed up scope label
+- [ ] store memory as kb instead of mb
+- [ ] add i/o metrics to models and to client
+- [ ] work on type safety
 
 ## 🛠️ Technical Context
 - **Backend:** FastAPI (Python 3.12+)
