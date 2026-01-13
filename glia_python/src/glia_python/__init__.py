@@ -1,5 +1,3 @@
-# glia_python/src/glia_python/__init__.py
-
 import functools
 from collections.abc import Callable
 from typing import Any
@@ -11,31 +9,38 @@ __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 
 class Glia:
     @staticmethod
-    def tracker(name: str | None = None) -> JobTracker:
+    def tracker(
+        program_name: str | None = None, context: dict[str, Any] | None = None
+    ) -> JobTracker:
         """
         Context manager for tracking a block of code.
-        The 'name' will be appended to the script name (e.g. script.py:name).
+        The 'program_name' will be appended to the script name (e.g. script.py:program_name).
         """
-        return JobTracker(block_name=name)
+        return JobTracker(program_name=program_name, context=context)
 
     @staticmethod
     def track(
-        name: str | Callable[..., Any] | None = None,
+        program_name: str | Callable[..., Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> Callable[..., Any]:
         """
-        Decorator. Uses the function name as the block name unless 'name' is provided.
+        Decorator. Uses the function name as the block name unless 'program_name' is provided.
         """
-        if callable(name):
-            func = name
-            return Glia.track(name=None)(func)
+        # Handle case where used as @Glia.track without arguments
+        if callable(program_name):
+            func = program_name
+            return Glia.track(program_name=None, context=context)(func)
 
         def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             @functools.wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
                 func_name = getattr(func, "__name__", type(func).__name__)
-                effective_name = name or func_name
 
-                with JobTracker(block_name=effective_name):
+                # Use user-provided name OR function name
+                effective_name = program_name or func_name
+
+                # Pass to JobTracker
+                with JobTracker(program_name=effective_name, context=context):
                     return func(*args, **kwargs)
 
             return wrapper
