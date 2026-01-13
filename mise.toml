@@ -157,6 +157,11 @@ echo "\n[SUCCESS] Database is ready."
 [tasks."test:backend"]
 run = "mise run db:status-wait && uv run pytest backend/test --color=yes"
 
+# Clients
+[tasks."test:glia_python"]
+run = "uv run pytest glia_python/test --color=yes"
+#dir = "glia_python"
+
 # Spinup
 [tasks."spinup:db"]
 description = "Start db container and check status, no cred setup"
