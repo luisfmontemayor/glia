@@ -71,12 +71,9 @@ class JobTracker:
     script_sha256: str
     metrics: JobMetrics | None
 
-    def __init__(self, program_name: str | None = None) -> None:
+    def __init__(self, block_name: str | None = None) -> None:
         self.process = psutil.Process()
         self.metrics = None
-
-        # We do NOT start the timer here anymore.
-        # This decouples instantiation from execution.
         self._start_time = None
         self._cpu_start = None
 
@@ -86,13 +83,16 @@ class JobTracker:
         if sys.argv[0]:
             self.script_path = Path(os.path.abspath(sys.argv[0]))
             self.script_sha256 = self._calculate_sha256(self.script_path)
-            default_name = self.script_path.name
+            base_name = self.script_path.name
         else:
             self.script_path = None
             self.script_sha256 = "unknown-hash"
-            default_name = "interactive"
+            base_name = "interactive"
 
-        self.program_name = program_name if program_name else default_name
+        if block_name:
+            self.program_name = f"{base_name}:{block_name}"
+        else:
+            self.program_name = base_name
 
     def start(self) -> None:
         """Explicitly start tracking. Called automatically by context manager."""
