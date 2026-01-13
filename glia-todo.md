@@ -8,16 +8,15 @@
   - [x] Capture **CPU Usage** (User/System time).
   - [x] Capture **RAM Usage** (Peak RSS).
   - [x] Capture **Wall Time** (Start/End deltas).
-  - [x] Capture **I/O Counters** (Read/Write bytes).
 - [x] Implement Metadata collection:
   - [x] Hostname, User, OS version.
   - [x] Script context (filename, arguments).
 
 ## Phase 2: Python Wrapper & Developer Experience (DX)
 *Goal: Abstract the complexity so developers can instrument code with a single line.*
-- [ ] Design the `Glia` singleton or main entry point.
-- [ ] Implement the Context Manager (`with glia.tracker(): ...`) for scoping specific blocks.
-- [ ] Implement the Decorator (`@glia.track`) for function-level monitoring.
+- [x] Design the `Glia` singleton or main entry point.
+- [x] Implement the Context Manager (`with glia.tracker(): ...`) for scoping specific blocks.
+- [x] Implement the Decorator (`@glia.track`) for function-level monitoring.
 - [ ] Add support for **Custom Values** (allowing users to pass a dictionary of extra metrics/tags).
 - [ ] Implement **Data Footprint** tracking (logic to accept file paths/directories and calculate sizes).
 
@@ -31,14 +30,20 @@
   - [ ] Timeout management (fail fast if the backend is unreachable).
 
 ## Phase 4: The R Client Implementation (`glia-r`)
-*Goal: Replicate the push-architecture for R scripts and ephemeral jobs.*
+*Goal: Replicate the Python architecture (Metrics -> DX -> Push).*
 - [ ] Initialize `glia-r` package structure.
-- [ ] Add dependencies: `httr2` (networking), `jsonlite` (serialization), `processx` or base `gc` (metrics).
-- [ ] Implement `glia_init()` and `glia_send()` functions.
-- [ ] Implement resource tracking in R:
-  - [ ] Use `gc()` logic for memory.
-  - [ ] Use `proc.time()` for CPU/Wall time.
-- [ ] Ensure API payload compatibility with the Python backend models.
+- [ ] **Sub-Phase 1: Metrics Foundation**
+    - [ ] Add dependencies: `processx` (or base `gc`/`proc.time`), `jsonlite`.
+    - [ ] Implement `SystemTracker` (R6 or S3 class).
+        - [ ] Capture **RAM** (Using `gc()` reset/diff or `OS` calls).
+        - [ ] Capture **CPU/Wall Time** (Using `proc.time()`).
+        - [ ] Capture **Metadata** (R version, Platform, User).
+- [ ] **Sub-Phase 2: Developer Experience (DX)**
+    - [ ] Implement `glia_init()` / `glia_tracker` (Context object).
+    - [ ] Implement Function Wrapper (equivalent to Python Decorator).
+- [ ] **Sub-Phase 3: Network Layer**
+    - [ ] Add dependency: `httr2`.
+    - [ ] Implement `glia_send()` to push JSON payload.
 
 ## Phase 5: End-to-End Verification
 *Goal: Verify that ephemeral jobs actually populate the database.*
@@ -48,16 +53,11 @@
   - [ ] Check if `JSONB` custom fields are queried correctly.
   - [ ] Confirm "Peak RAM" numbers look realistic compared to OS monitors.
 
-
-
-
-
-
 #######
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
 - [ ] store memory as kb instead of mb
-- [ ] add i/o metrics to models and to client
 - [ ] work on type safety
+- [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 
 ## 🛠️ Technical Context
 - **Backend:** FastAPI (Python 3.12+)
@@ -73,6 +73,7 @@
 - CLI client for bash scripting
 - Nextflow program for scripting
 - Queue and queue worker implemented
+- I/O Metrics implementation
 
 ### Setup
 - [x] Lock files
@@ -102,46 +103,3 @@
 - [x] Data Schema
     - [x] Choose compulsory variables
         - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
-
-
-### Clients
-- [ ] Architecture - use
-    - [ ] How will it actually be implemented in R?
-    - [ ] How will it actually be implemented in Python?
-- [ ] Phase 1: Python `SystemTracker` (CPU, RAM, Wall Time, I/O)
-- [ ] Phase 2: Python DX (Context Manager `with glia.tracker()`, Decorators)
-- [ ] Phase 3: Python Network Layer (`httpx` push logic)
-- [ ] Phase 4: R Client Implementation (`httr2`, `gc()`, `proc.time()`)
-
-
-
----
-
-## 🧠 Philosophy & Goals
-### The Problem
-- Gauge tool usage and adoption vs alternatives.
-- Passive benchmarking without manual user intervention.
-
-### Stakeholder Value
-- **The User:** See performance gains without engineering friction.
-- **The Dev/Admin:** Verify tool efficiency and optimize performance based on real-world telemetry.
-
-- [ ] What am I actually trying to solve?
-    - I want to gauge how much my tool is being used, to see how much adoption it has vs other alternatives
-    - I want to have ways of doing benchmarking passively, without having to request people doing to submit their stats
-- [ ] What do people actually care about?
-    ## The User
-    - Their gains vs previous program
-    - Not being slowed down by engineerial details
-    ## The Dev / Admin
-    - Ensuring people are using the new tools
-    - That new tool is actually more efficient
-    - Ways to optimise their tool
-- [ ] The max scope of v0
-    - 2 clients: Python and R
-        - Collection of data - single script model
-    - 1 way of pushing data to database
-    - 1 database
-    - 1 way of getting a JSON dump
-- [ ] The max scope of v0
-    - 1 Nextflow client
