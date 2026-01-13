@@ -80,7 +80,7 @@ class JobTracker:
     metrics: JobMetrics | None
 
     def __init__(
-        self, block_name: str | None = None, context: dict[str, Any] | None = None
+        self, program_name: str | None = None, context: dict[str, Any] | None = None
     ) -> None:
         self.process = psutil.Process()
         self.metrics = None
@@ -101,8 +101,8 @@ class JobTracker:
             self.script_sha256 = "unknown-hash"
             base_name = "interactive"
 
-        if block_name:
-            self.program_name = f"{base_name}:{block_name}"
+        if program_name:
+            self.program_name = f"{base_name}:{program_name}"
         else:
             self.program_name = base_name
 
