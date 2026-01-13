@@ -1,0 +1,170 @@
+import getpass
+import hashlib
+import os
+import platform
+import sys
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+from types import TracebackType
+from typing import Any
+
+import psutil
+
+try:
+    import resource
+except ImportError:
+    pass
+
+
+@dataclass
+class JobMetrics:
+    run_id: str
+    program_name: str
+    user_name: str
+    script_sha256: str
+
+    started_at: datetime
+    ended_at: datetime
+
+    cpu_time_sec: float
+    cpu_percent: float
+    max_rss_mb: float
+
+    exit_code_int: int
+
+    meta: dict[str, Any] = field(default_factory=dict)
+
+    def __str__(self) -> str:
+        hostname = self.meta.get("hostname", "unknown")
+        argv = " ".join(self.meta.get("argv", []))
+        wall_time = self.meta.get("wall_time_sec", 0.0)
+        start_str = self.started_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+        end_str = self.ended_at.strftime("%H:%M:%S UTC")
+
+        return (
+            f"\n--- Glia Telemetry ---\n"
+            f"Run ID:     {self.run_id}\n"  # <-- Added
+            f"User:       {self.user_name} on {hostname}\n"
+            f"Program:    {self.program_name} ({self.script_sha256[:8]}...)\n"  # <-- Added SHA (shortened)
+            f"Arguments:  {argv}\n"
+            f"Time:       {start_str} -> {end_str}\n"  # <-- Added Timestamps
+            f"Wall Time:  {wall_time:.4f} sec\n"
+            f"CPU Time:   {self.cpu_time_sec:.4f} sec ({self.cpu_percent}% avg)\n"
+            f"Peak RAM:   {self.max_rss_mb:.2f} MB\n"
+            f"Exit Code:  {self.exit_code_int}"
+        )
+
+
+class JobTracker:
+    process: psutil.Process
+    _start_time: float
+    _cpu_start: Any  # psutil cpu_times return type varies by OS
+
+    run_id: str
+    user_name: str
+    script_path: Path | None
+    program_name: str
+    script_sha256: str
+    metrics: JobMetrics | None
+
+    def __init__(self, program_name: str | None = None) -> None:
+        self.process = psutil.Process()
+        self.metrics = None
+
+        # Initialize timers immediately for manual usage
+        self._start_time = time.time()
+        self._cpu_start = self.process.cpu_times()
+
+        self.run_id = str(uuid.uuid4())
+        self.user_name = getpass.getuser()
+
+        if sys.argv[0]:
+            self.script_path = Path(os.path.abspath(sys.argv[0]))
+            self.script_sha256 = self._calculate_sha256(self.script_path)
+            default_name = self.script_path.name
+        else:
+            self.script_path = None
+            self.script_sha256 = "unknown-hash"
+            default_name = "interactive"
+
+        self.program_name = program_name if program_name else default_name
+
+    def __enter__(self) -> "JobTracker":
+        """Resets timers when entering the 'with' block for precision."""
+        self._start_time = time.time()
+        self._cpu_start = self.process.cpu_times()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """
+        Captures metrics upon exiting the block.
+        Sets exit_code=1 if an exception occurred.
+        """
+        exit_code = 1 if exc_type else 0
+        self.metrics = self.capture(exit_code=exit_code)
+        # We do not suppress exceptions; let them bubble up
+        return None
+
+    def _calculate_sha256(self, file_path: Path) -> str:
+        sha256: hashlib._Hash = hashlib.sha256()
+        try:
+            with file_path.open("rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256.update(chunk)
+            return sha256.hexdigest()
+        except OSError:
+            # This handles race conditions (file deleted during run)
+            # or permission errors.
+            return "access-denied"
+
+    def _get_peak_rss_mb(self) -> float:
+        if sys.platform != "win32" and "resource" in sys.modules:
+            usage: float = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            if sys.platform == "darwin":
+                return usage / (1024**2)
+            return usage / 1024
+
+        return self.process.memory_info().rss / (1024**2)
+
+    def capture(self, exit_code: int = 0) -> JobMetrics:
+        end_time: float = time.time()
+
+        cpu_end: Any = self.process.cpu_times()
+
+        cpu_total_start: float = self._cpu_start.user + self._cpu_start.system
+        cpu_total_end: float = cpu_end.user + cpu_end.system
+        cpu_time_consumed: float = cpu_total_end - cpu_total_start
+
+        wall_time: float = end_time - self._start_time
+
+        cpu_percent: float = 0.0
+        if wall_time > 0.0001:
+            cpu_percent = (cpu_time_consumed / wall_time) * 100
+
+        return JobMetrics(
+            run_id=self.run_id,
+            program_name=self.program_name,
+            user_name=self.user_name,
+            script_sha256=self.script_sha256,
+            started_at=datetime.fromtimestamp(self._start_time, tz=UTC),
+            ended_at=datetime.fromtimestamp(end_time, tz=UTC),
+            cpu_time_sec=cpu_time_consumed,
+            cpu_percent=round(cpu_percent, 2),
+            max_rss_mb=round(self._get_peak_rss_mb(), 2),
+            exit_code_int=exit_code,
+            meta={
+                "hostname": platform.node(),
+                "os": f"{platform.system()} {platform.release()}",
+                "argv": sys.argv[1:],
+                "wall_time_sec": wall_time,
+                "script_path": str(self.script_path) if self.script_path else None,
+            },
+        )
