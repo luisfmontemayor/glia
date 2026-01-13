@@ -22,13 +22,13 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["libs/python/glia_common", "glia-python"]
+members = ["libs/python/glia_common", "glia_python"]
 
 [tool.uv.sources]
 glia-common = { workspace = true, editable = true }
 
 [tool.ty.environment]
-python-version = "3.12" # Also listed in mise.toml, in [project] and glia/glia-python/pyproject.toml
+python-version = "3.12" # Also listed in mise.toml, in [project] and glia/glia_python/pyproject.toml
 
 [tool.ty.rules]
 "unresolved-attribute" = "error"

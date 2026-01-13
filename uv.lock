@@ -254,7 +254,7 @@ source = { editable = "libs/python/glia_common" }
 [[package]]
 name = "glia-python"
 version = "0.1.0"
-source = { editable = "glia-python" }
+source = { editable = "glia_python" }
 dependencies = [
     { name = "psutil" },
 ]
