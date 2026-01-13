@@ -25,8 +25,8 @@ def setup_system_mocks(mock_psutil, mock_time):
 
     # 2. Wall Time
     mock_time.time.side_effect = [
-        1000.0,  # Start
-        1020.0,  # End
+        1000.0,
+        1020.0,
     ]
 
     return mock_process

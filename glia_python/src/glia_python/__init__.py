@@ -1,3 +1,5 @@
+# glia_python/src/glia_python/__init__.py
+
 import functools
 from collections.abc import Callable
 from typing import Any
@@ -9,35 +11,31 @@ __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 
 class Glia:
     @staticmethod
-    def tracker(program_name: str | None = None) -> JobTracker:
+    def tracker(name: str | None = None) -> JobTracker:
         """
         Context manager for tracking a block of code.
-
-        Usage:
-            with Glia.tracker(program_name="data_cleanup"):
-                ...
+        The 'name' will be appended to the script name (e.g. script.py:name).
         """
-        return JobTracker(program_name=program_name)
+        return JobTracker(block_name=name)
 
     @staticmethod
     def track(
-        program_name: str | Callable[..., Any] | None = None,
+        name: str | Callable[..., Any] | None = None,
     ) -> Callable[..., Any]:
         """
-        Decorator for tracking a specific function execution.
-        Supports both @Glia.track() and @Glia.track usage.
+        Decorator. Uses the function name as the block name unless 'name' is provided.
         """
-        if callable(program_name):
-            func = program_name
-            return Glia.track(program_name=None)(func)
+        if callable(name):
+            func = name
+            return Glia.track(name=None)(func)
 
         def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             @functools.wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
                 func_name = getattr(func, "__name__", type(func).__name__)
-                effective_name = program_name or func_name
+                effective_name = name or func_name
 
-                with JobTracker(program_name=effective_name):
+                with JobTracker(block_name=effective_name):
                     return func(*args, **kwargs)
 
             return wrapper
