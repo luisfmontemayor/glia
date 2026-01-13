@@ -124,6 +124,10 @@ run         = "mise run alembic upgrade head"
 description = "Rollback the last migration"
 run         = "mise run alembic downgrade -1"
 
+[tasks."sync:db-migration"]
+description = "Apply pending migrations to the database"
+run         = "mise run db:migration-plan && mise run db:migrate"
+
 # API
 [tasks."api:up"]
 run = "uv run fastapi dev backend/main.py"
