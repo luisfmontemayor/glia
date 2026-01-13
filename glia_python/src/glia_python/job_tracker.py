@@ -1,3 +1,5 @@
+# Written by Luis Felipe Montemayor, sometime about January of 2026
+# https://open.spotify.com/track/633Rq13iZBksRDsGpS0xEw?si=1eb451dce4e8418a
 import getpass
 import hashlib
 import os
