@@ -5,8 +5,9 @@ description     = "Lightweight Python client for the Glia"
 authors         = [{ name = "luisfmontemayor", email = "lfelipemonte@gmail.com" }]
 requires-python = ">=3.12.0"                                                       # Also listed in mise.toml and glia/pyproject.toml in [tool.ty] and [project]
 dependencies    = [
+    "httpx>=0.28.1",
     "psutil>=7.2.1",
-    "pytest==9.0.2"
+    "pytest==9.0.2",
 ]
 
 [build-system]
