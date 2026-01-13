@@ -26,6 +26,12 @@ class JobMetrics:
     user_name: str
     script_sha256: str
 
+    hostname: str
+    os_info: str
+    script_path: str | None
+    argv: list[str]
+    wall_time_sec: float
+
     started_at: datetime
     ended_at: datetime
 
@@ -38,31 +44,33 @@ class JobMetrics:
     meta: dict[str, Any] = field(default_factory=dict)
 
     def __str__(self) -> str:
-        hostname = self.meta.get("hostname", "unknown")
-        argv = " ".join(self.meta.get("argv", []))
-        wall_time = self.meta.get("wall_time_sec", 0.0)
         start_str = self.started_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         end_str = self.ended_at.strftime("%H:%M:%S UTC")
+        argv_str = " ".join(self.argv)
 
         return (
             f"\n--- Glia Telemetry ---\n"
             f"Run ID:     {self.run_id}\n"
-            f"User:       {self.user_name} on {hostname}\n"
+            f"User:       {self.user_name} on {self.hostname}\n"
+            f"OS:         {self.os_info}\n"
             f"Program:    {self.program_name} ({self.script_sha256[:8]}...)\n"
-            f"Arguments:  {argv}\n"
+            f"Arguments:  {argv_str}\n"
             f"Time:       {start_str} -> {end_str}\n"
-            f"Wall Time:  {wall_time:.4f} sec\n"
+            f"Wall Time:  {self.wall_time_sec:.4f} sec\n"
             f"CPU Time:   {self.cpu_time_sec:.4f} sec ({self.cpu_percent}% avg)\n"
             f"Peak RAM:   {self.max_rss_mb:.2f} MB\n"
-            f"Exit Code:  {self.exit_code_int}"
+            f"Exit Code:  {self.exit_code_int}\n"
+            f"User-defined Metadata:    {self.meta}"
         )
 
 
 class JobTracker:
     process: psutil.Process
-    # These are now Optional, as they are not set until .start() is called
+
     _start_time: float | None
     _cpu_start: Any | None
+
+    _user_meta: dict[str, Any]
 
     run_id: str
     user_name: str
@@ -71,11 +79,15 @@ class JobTracker:
     script_sha256: str
     metrics: JobMetrics | None
 
-    def __init__(self, block_name: str | None = None) -> None:
+    def __init__(
+        self, block_name: str | None = None, context: dict[str, Any] | None = None
+    ) -> None:
         self.process = psutil.Process()
         self.metrics = None
         self._start_time = None
         self._cpu_start = None
+
+        self._user_meta = context or {}
 
         self.run_id = str(uuid.uuid4())
         self.user_name = getpass.getuser()
@@ -95,9 +107,15 @@ class JobTracker:
             self.program_name = base_name
 
     def start(self) -> None:
-        """Explicitly start tracking. Called automatically by context manager."""
         self._start_time = time.time()
         self._cpu_start = self.process.cpu_times()
+
+    def log_metadata(self, data: dict[str, Any]) -> None:
+        """
+        Add custom values.
+        Example: tracker.log_metadata({"dataset": "mnist", "epoch": 10})
+        """
+        self._user_meta.update(data)
 
     def __enter__(self) -> "JobTracker":
         self.start()
@@ -156,17 +174,16 @@ class JobTracker:
             program_name=self.program_name,
             user_name=self.user_name,
             script_sha256=self.script_sha256,
+            hostname=platform.node(),
+            os_info=f"{platform.system()} {platform.release()}",
+            script_path=str(self.script_path) if self.script_path else None,
+            argv=sys.argv[1:],
+            wall_time_sec=wall_time,
             started_at=datetime.fromtimestamp(self._start_time, tz=UTC),
             ended_at=datetime.fromtimestamp(end_time, tz=UTC),
             cpu_time_sec=cpu_time_consumed,
             cpu_percent=round(cpu_percent, 2),
             max_rss_mb=round(self._get_peak_rss_mb(), 2),
             exit_code_int=exit_code,
-            meta={
-                "hostname": platform.node(),
-                "os": f"{platform.system()} {platform.release()}",
-                "argv": sys.argv[1:],
-                "wall_time_sec": wall_time,
-                "script_path": str(self.script_path) if self.script_path else None,
-            },
+            meta=self._user_meta,
         )
