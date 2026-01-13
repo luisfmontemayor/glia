@@ -1,5 +1,3 @@
-# Written by Luis Felipe Montemayor, sometime about January of 2026
-# https://open.spotify.com/track/633Rq13iZBksRDsGpS0xEw?si=1eb451dce4e8418a
 import getpass
 import hashlib
 import os
@@ -20,6 +18,8 @@ try:
 except ImportError:
     pass
 
+from .network import send_telemetry
+
 
 @dataclass
 class JobMetrics:
@@ -27,29 +27,23 @@ class JobMetrics:
     program_name: str
     user_name: str
     script_sha256: str
-
     hostname: str
     os_info: str
     script_path: str | None
     argv: list[str]
     wall_time_sec: float
-
     started_at: datetime
     ended_at: datetime
-
     cpu_time_sec: float
     cpu_percent: float
     max_rss_mb: float
-
     exit_code_int: int
-
     meta: dict[str, Any] = field(default_factory=dict)
 
     def __str__(self) -> str:
         start_str = self.started_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         end_str = self.ended_at.strftime("%H:%M:%S UTC")
         argv_str = " ".join(self.argv)
-
         return (
             f"\n--- Glia Telemetry ---\n"
             f"Run ID:     {self.run_id}\n"
@@ -68,12 +62,9 @@ class JobMetrics:
 
 class JobTracker:
     process: psutil.Process
-
     _start_time: float | None
     _cpu_start: Any | None
-
     _user_meta: dict[str, Any]
-
     run_id: str
     user_name: str
     script_path: Path | None
@@ -88,7 +79,6 @@ class JobTracker:
         self.metrics = None
         self._start_time = None
         self._cpu_start = None
-
         self._user_meta = context or {}
 
         self.run_id = str(uuid.uuid4())
@@ -113,10 +103,6 @@ class JobTracker:
         self._cpu_start = self.process.cpu_times()
 
     def log_metadata(self, data: dict[str, Any]) -> None:
-        """
-        Add custom values.
-        Example: tracker.log_metadata({"dataset": "mnist", "epoch": 10})
-        """
         self._user_meta.update(data)
 
     def __enter__(self) -> "JobTracker":
@@ -131,6 +117,7 @@ class JobTracker:
     ) -> None:
         exit_code = 1 if exc_type else 0
         self.metrics = self.capture(exit_code=exit_code)
+        send_telemetry(self.metrics)
         return None
 
     def _calculate_sha256(self, file_path: Path) -> str:
@@ -149,7 +136,6 @@ class JobTracker:
             if sys.platform == "darwin":
                 return usage / (1024**2)
             return usage / 1024
-
         return self.process.memory_info().rss / (1024**2)
 
     def capture(self, exit_code: int = 0) -> JobMetrics:
