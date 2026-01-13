@@ -4,7 +4,7 @@ version         = "0.1.0"
 description     = "Telemetry suite for job-running."
 readme          = "README.md"
 authors         = [{ name = "luisfmontemayor", email = "lfelipemonte@gmail.com" }]
-requires-python = "==3.12.0"                                                       # Also listed in mise.toml, [tool.ty] and glia/glia-python/pyproject.toml
+requires-python = "==3.12.0"                                                       # Also listed in mise.toml, [tool.ty] and glia/glia_python/pyproject.toml
 
 dependencies = [
     "alembic==1.17.2",
@@ -33,6 +33,11 @@ python-version = "3.12" # Also listed in mise.toml, in [project] and glia/glia_p
 [tool.ty.rules]
 "unresolved-attribute" = "error"
 "unresolved-import"    = "warn"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
 
 # TODO: define a dev dependency group
 #[dependency-groups]
