@@ -46,11 +46,11 @@ class JobMetrics:
 
         return (
             f"\n--- Glia Telemetry ---\n"
-            f"Run ID:     {self.run_id}\n"  # <-- Added
+            f"Run ID:     {self.run_id}\n"
             f"User:       {self.user_name} on {hostname}\n"
-            f"Program:    {self.program_name} ({self.script_sha256[:8]}...)\n"  # <-- Added SHA (shortened)
+            f"Program:    {self.program_name} ({self.script_sha256[:8]}...)\n"
             f"Arguments:  {argv}\n"
-            f"Time:       {start_str} -> {end_str}\n"  # <-- Added Timestamps
+            f"Time:       {start_str} -> {end_str}\n"
             f"Wall Time:  {wall_time:.4f} sec\n"
             f"CPU Time:   {self.cpu_time_sec:.4f} sec ({self.cpu_percent}% avg)\n"
             f"Peak RAM:   {self.max_rss_mb:.2f} MB\n"
@@ -60,8 +60,9 @@ class JobMetrics:
 
 class JobTracker:
     process: psutil.Process
-    _start_time: float
-    _cpu_start: Any  # psutil cpu_times return type varies by OS
+    # These are now Optional, as they are not set until .start() is called
+    _start_time: float | None
+    _cpu_start: Any | None
 
     run_id: str
     user_name: str
@@ -74,9 +75,10 @@ class JobTracker:
         self.process = psutil.Process()
         self.metrics = None
 
-        # Initialize timers immediately for manual usage
-        self._start_time = time.time()
-        self._cpu_start = self.process.cpu_times()
+        # We do NOT start the timer here anymore.
+        # This decouples instantiation from execution.
+        self._start_time = None
+        self._cpu_start = None
 
         self.run_id = str(uuid.uuid4())
         self.user_name = getpass.getuser()
@@ -92,10 +94,13 @@ class JobTracker:
 
         self.program_name = program_name if program_name else default_name
 
-    def __enter__(self) -> "JobTracker":
-        """Resets timers when entering the 'with' block for precision."""
+    def start(self) -> None:
+        """Explicitly start tracking. Called automatically by context manager."""
         self._start_time = time.time()
         self._cpu_start = self.process.cpu_times()
+
+    def __enter__(self) -> "JobTracker":
+        self.start()
         return self
 
     def __exit__(
@@ -104,13 +109,8 @@ class JobTracker:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        """
-        Captures metrics upon exiting the block.
-        Sets exit_code=1 if an exception occurred.
-        """
         exit_code = 1 if exc_type else 0
         self.metrics = self.capture(exit_code=exit_code)
-        # We do not suppress exceptions; let them bubble up
         return None
 
     def _calculate_sha256(self, file_path: Path) -> str:
@@ -121,8 +121,6 @@ class JobTracker:
                     sha256.update(chunk)
             return sha256.hexdigest()
         except OSError:
-            # This handles race conditions (file deleted during run)
-            # or permission errors.
             return "access-denied"
 
     def _get_peak_rss_mb(self) -> float:
@@ -135,8 +133,12 @@ class JobTracker:
         return self.process.memory_info().rss / (1024**2)
 
     def capture(self, exit_code: int = 0) -> JobMetrics:
-        end_time: float = time.time()
+        if self._start_time is None or self._cpu_start is None:
+            raise RuntimeError(
+                "JobTracker was not started. Call .start() or use 'with JobTracker():'"
+            )
 
+        end_time: float = time.time()
         cpu_end: Any = self.process.cpu_times()
 
         cpu_total_start: float = self._cpu_start.user + self._cpu_start.system

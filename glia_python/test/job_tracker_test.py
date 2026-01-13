@@ -17,20 +17,16 @@ def setup_system_mocks(mock_psutil, mock_time):
     mock_process = MagicMock()
     mock_psutil.Process.return_value = mock_process
 
-    # 1. CPU Times (Init, Start, End)
-    # We need 3 values because __init__ also calls cpu_times()
+    # 1. CPU Times
     mock_process.cpu_times.side_effect = [
-        MagicMock(user=0.0, system=0.0),  # Init (ignored)
-        MagicMock(user=0.0, system=0.0),  # Start (__enter__)
-        MagicMock(user=8.0, system=2.0),  # End (capture)
+        MagicMock(user=0.0, system=0.0),  # Start (called in .start())
+        MagicMock(user=8.0, system=2.0),  # End (called in .capture())
     ]
 
-    # 2. Wall Time (Init, Start, End)
-    # We need 3 values because __init__ also calls time.time()
+    # 2. Wall Time
     mock_time.time.side_effect = [
-        999.0,  # Init (ignored)
-        1000.0,  # Start (__enter__)
-        1020.0,  # End (capture)
+        1000.0,  # Start
+        1020.0,  # End
     ]
 
     return mock_process
