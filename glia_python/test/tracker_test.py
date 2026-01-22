@@ -88,7 +88,7 @@ def test_decorator_usage(mock_time, mock_psutil, mock_sys):
     assert tracker.metrics.program_name == "app.py:decorated_func"
 
 
-# 3. Test various script detection scenarios.
+# 3. Test various script name detection scenarios.
 @patch("glia_python.tracker.sys")
 def test_program_name_logic(mock_sys):
     # Case 1: Standard script execution
