@@ -2,7 +2,8 @@ import functools
 from collections.abc import Callable
 from typing import Any
 
-from .tracker import JobMetrics, JobTracker
+from glia_python.JobMetrics import JobMetrics
+from glia_python.tracker import JobTracker
 
 __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 

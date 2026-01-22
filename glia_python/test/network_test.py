@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import httpx
+from glia_python.JobMetrics import JobMetrics
 from glia_python.network import send_telemetry
-from glia_python.tracker import JobMetrics
 
 
 def create_sample_metrics() -> JobMetrics:
