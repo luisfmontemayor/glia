@@ -41,9 +41,9 @@ def setup_platform_ram(mock_sys, mock_resource, platform: str, usage_val: int):
 
 
 # 1. The tracker correctly captures CPU/Wall time and infers script name from mocked argv.
-@patch("glia_python.job_tracker.sys")
-@patch("glia_python.job_tracker.psutil")
-@patch("glia_python.job_tracker.time")
+@patch("glia_python.tracker.sys")
+@patch("glia_python.tracker.psutil")
+@patch("glia_python.tracker.time")
 def test_context_manager_tracker(mock_time, mock_psutil, mock_sys):
     setup_system_mocks(mock_psutil, mock_time)
 
@@ -59,9 +59,9 @@ def test_context_manager_tracker(mock_time, mock_psutil, mock_sys):
 
 
 # 2. The @Glia.track decorator correctly initializes and runs.
-@patch("glia_python.job_tracker.sys")
-@patch("glia_python.job_tracker.psutil")
-@patch("glia_python.job_tracker.time")
+@patch("glia_python.tracker.sys")
+@patch("glia_python.tracker.psutil")
+@patch("glia_python.tracker.time")
 def test_decorator_usage(mock_time, mock_psutil, mock_sys):
     setup_system_mocks(mock_psutil, mock_time)
 
@@ -91,7 +91,7 @@ def test_decorator_usage(mock_time, mock_psutil, mock_sys):
 
 # TODO: account for different program nameş
 # # 3. Test various script detection scenarios (The "Example Cases" you requested).
-# @patch("glia_python.job_tracker.sys")
+# @patch("glia_python.tracker.sys")
 # def test_script_detection_logic(mock_sys):
 #     mock_sys.argv = ["/abs/path/model_train.py", "--epochs=10"]
 #     t1 = JobTracker(block_name="main")
@@ -107,8 +107,8 @@ def test_decorator_usage(mock_time, mock_psutil, mock_sys):
 
 
 # 4. The JobMetrics schema correctly separates system telemetry from user metadata.
-@patch("glia_python.job_tracker.platform")
-@patch("glia_python.job_tracker.sys")
+@patch("glia_python.tracker.platform")
+@patch("glia_python.tracker.sys")
 def test_metrics_schema_separation(mock_sys, mock_platform):
     mock_platform.node.return_value = "test-host"
     mock_platform.system.return_value = "TestOS"
@@ -152,8 +152,8 @@ def test_context_manager_exception():
 
 
 # 8. RAM Conversion (Linux)
-@patch("glia_python.job_tracker.sys")
-@patch("glia_python.job_tracker.resource")
+@patch("glia_python.tracker.sys")
+@patch("glia_python.tracker.resource")
 def test_linux_ram_conversion(mock_resource, mock_sys):
     setup_platform_ram(mock_sys, mock_resource, "linux", 102_400)
     tracker = JobTracker()
@@ -161,8 +161,8 @@ def test_linux_ram_conversion(mock_resource, mock_sys):
 
 
 # 9. RAM Conversion (macOS)
-@patch("glia_python.job_tracker.sys")
-@patch("glia_python.job_tracker.resource")
+@patch("glia_python.tracker.sys")
+@patch("glia_python.tracker.resource")
 def test_mac_ram_conversion(mock_resource, mock_sys):
     setup_platform_ram(mock_sys, mock_resource, "darwin", 104_857_600)
     tracker = JobTracker()
@@ -170,8 +170,8 @@ def test_mac_ram_conversion(mock_resource, mock_sys):
 
 
 # 10. RAM Conversion (Windows)
-@patch("glia_python.job_tracker.sys")
-@patch("glia_python.job_tracker.psutil")
+@patch("glia_python.tracker.sys")
+@patch("glia_python.tracker.psutil")
 def test_windows_ram_conversion(mock_psutil, mock_sys):
     mock_sys.platform = "win32"
     mock_sys.modules = {}
