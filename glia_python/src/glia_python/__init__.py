@@ -37,10 +37,8 @@ class Glia:
             def wrapper(*args: Any, **kwargs: Any) -> Any:
                 func_name = getattr(func, "__name__", type(func).__name__)
 
-                # Use user-provided name OR function name
                 effective_name = program_name or func_name
 
-                # Pass to JobTracker
                 with JobTracker(program_name=effective_name, context=context):
                     return func(*args, **kwargs)
 

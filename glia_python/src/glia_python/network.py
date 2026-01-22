@@ -9,7 +9,7 @@ from glia_python.JobMetrics import JobMetrics
 
 def _to_payload(metrics: JobMetrics) -> dict[str, Any]:
     """
-    Payload Builder: Maps JobMetrics to the Backend JSON schema.
+    Maps JobMetrics to the Backend JSON schema.
     Handles serialization of types like datetime.
     """
     return {
