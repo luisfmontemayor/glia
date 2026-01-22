@@ -55,16 +55,12 @@
 
 
 #######
+- [ ] change python version comment to use with mise run sync python or whatever it is
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
 - [ ] store memory as kb instead of mb
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 - [ ] An interactive mode
- # Case 2: Interactive session (e.g., Jupyter, Python REPL)
-    mock_sys.argv = [""]
-    t2 = JobTracker(program_name="cell_1")
-    assert t2.program_name == "interactive:cell_1"
-    assert t2.script_sha256 == "unknown-hash"
 
 ## 🛠️ Technical Context
 - **Backend:** FastAPI (Python 3.12+)
