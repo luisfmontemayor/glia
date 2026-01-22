@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["libs/python/glia_common"]
+members = ["libs/python/glia_common", "glia_python"]
 
 [tool.uv.sources]
 glia-common = { workspace = true, editable = true }
@@ -30,6 +30,9 @@ python-version = "3.12"
 [tool.ty.rules]
 "unresolved-attribute" = "error"
 "unresolved-import"    = "warn"
+
+[dependency-groups]
+dev = ["pytest>=9.0.2"]
 
 # TODO: define a dev dependency group
 #[dependency-groups]
