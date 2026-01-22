@@ -18,7 +18,7 @@ except ImportError:
     pass
 
 from glia_python.JobMetrics import JobMetrics
-from glia_python.network import send_telemetry
+from glia_python.network import push_telemetry
 
 
 class JobTracker:
@@ -82,7 +82,7 @@ class JobTracker:
     ) -> None:
         exit_code = 1 if exc_type else 0
         self.metrics = self.capture(exit_code=exit_code)
-        send_telemetry(self.metrics)
+        push_telemetry(self.metrics)
         return None
 
     def _calculate_sha256(self, file_path: Path) -> str:
