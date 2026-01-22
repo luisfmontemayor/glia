@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from .job_tracker import JobMetrics
+from .tracker import JobMetrics
 
 
 def _to_payload(metrics: JobMetrics) -> dict[str, Any]:
