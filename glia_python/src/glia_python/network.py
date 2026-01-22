@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from .tracker import JobMetrics
+from glia_python.JobMetrics import JobMetrics
 
 
 def _to_payload(metrics: JobMetrics) -> dict[str, Any]:
