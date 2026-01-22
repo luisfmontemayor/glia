@@ -17,17 +17,16 @@
 - [x] Design the `Glia` singleton or main entry point.
 - [x] Implement the Context Manager (`with glia.tracker(): ...`) for scoping specific blocks.
 - [x] Implement the Decorator (`@glia.track`) for function-level monitoring.
-- [ ] Add support for **Custom Values** (allowing users to pass a dictionary of extra metrics/tags).
-- [ ] Implement **Data Footprint** tracking (logic to accept file paths/directories and calculate sizes).
+- [x] Add support for **Custom Values** (allowing users to pass a dictionary of extra metrics/tags).
 
 ## Phase 3: Python Network Layer
 *Goal: Serialize the telemetry and push it to the running Backend API.*
-- [ ] Add dependency: `httpx` (for robust HTTP requests).
-- [ ] Create the Payload Builder: Map `SystemTracker` data to the JSON schema defined in the Backend.
-- [ ] Implement `send_telemetry()`:
-  - [ ] Configuration handling (API URL via env vars or config file).
-  - [ ] Error handling (Suppress connection errors to prevent crashing the main job).
-  - [ ] Timeout management (fail fast if the backend is unreachable).
+- [x] Add dependency: `httpx` (for robust HTTP requests).
+- [x] Create the Payload Builder: Map `SystemTracker` data to the JSON schema defined in the Backend.
+- [x] Implement `send_telemetry()`:
+  - [x] Configuration handling (API URL via env vars or config file).
+  - [x] Error handling (Suppress connection errors to prevent crashing the main job).
+  - [x] Timeout management (fail fast if the backend is unreachable).
 
 ## Phase 4: The R Client Implementation (`glia-r`)
 *Goal: Replicate the Python architecture (Metrics -> DX -> Push).*
@@ -53,11 +52,19 @@
   - [ ] Check if `JSONB` custom fields are queried correctly.
   - [ ] Confirm "Peak RAM" numbers look realistic compared to OS monitors.
 
+
+
 #######
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
 - [ ] store memory as kb instead of mb
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
+- [ ] An interactive mode
+ # Case 2: Interactive session (e.g., Jupyter, Python REPL)
+    mock_sys.argv = [""]
+    t2 = JobTracker(program_name="cell_1")
+    assert t2.program_name == "interactive:cell_1"
+    assert t2.script_sha256 == "unknown-hash"
 
 ## 🛠️ Technical Context
 - **Backend:** FastAPI (Python 3.12+)
@@ -74,6 +81,8 @@
 - Nextflow program for scripting
 - Queue and queue worker implemented
 - I/O Metrics implementation
+
+
 
 ### Setup
 - [x] Lock files
