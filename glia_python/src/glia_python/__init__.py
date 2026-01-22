@@ -2,7 +2,7 @@ import functools
 from collections.abc import Callable
 from typing import Any
 
-from .job_tracker import JobMetrics, JobTracker
+from .tracker import JobMetrics, JobTracker
 
 __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 
