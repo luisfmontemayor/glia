@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 from glia_python.JobMetrics import JobMetrics
-from glia_python.network import send_telemetry
+from glia_python.network import push_telemetry
 
 
 def create_sample_metrics() -> JobMetrics:
@@ -29,14 +29,14 @@ def create_sample_metrics() -> JobMetrics:
 
 # 1. Glia is able to serialise and send data to db endpoint
 @patch("glia_python.network.httpx.post")
-def test_send_telemetry_success(mock_post):
+def test_push_telemetry_success(mock_post):
     """Verify that metrics are correctly serialized and sent."""
     metrics = create_sample_metrics()
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
     mock_post.return_value = mock_response
 
-    success: bool = send_telemetry(metrics, api_url="http://localhost:8000")
+    success: bool = push_telemetry(metrics, api_url="http://localhost:8000")
 
     assert success is True
 
@@ -51,12 +51,12 @@ def test_send_telemetry_success(mock_post):
 
 
 # 2. Db push fails if no URL or env var are given
-def test_send_telemetry_no_config():
+def test_push_telemetry_no_config():
     metrics = create_sample_metrics()
 
     # Execute with no URL and no Env Var
     with patch.dict("os.environ", {}, clear=True):
-        success = send_telemetry(metrics)
+        success = push_telemetry(metrics)
 
     assert success is False
 
@@ -64,14 +64,14 @@ def test_send_telemetry_no_config():
 # 3. Glia reads GLIA_API_URL from environment variable if used
 @patch("os.getenv")
 @patch("glia_python.network.httpx.post")
-def test_send_telemetry_uses_env_var(mock_post, mock_getenv):
+def test_push_telemetry_uses_env_var(mock_post, mock_getenv):
     metrics: JobMetrics = create_sample_metrics()
     mock_getenv.return_value = "http://env-var-url:9000/"
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
     mock_post.return_value = mock_response
 
-    success: bool = send_telemetry(metrics)
+    success: bool = push_telemetry(metrics)
 
     assert success is True
     mock_getenv.assert_called_once_with("GLIA_API_URL")
@@ -82,7 +82,7 @@ def test_send_telemetry_uses_env_var(mock_post, mock_getenv):
 
 # 4. Verify that HTTP status errors are caught and do not crash.
 @patch("glia_python.network.httpx.post")
-def test_send_telemetry_http_error(mock_post):
+def test_push_telemetry_http_error(mock_post):
     metrics: JobMetrics = create_sample_metrics()
     # Simulate a 400 Bad Request
     mock_response = MagicMock()
@@ -94,7 +94,7 @@ def test_send_telemetry_http_error(mock_post):
     mock_post.return_value = mock_response
 
     # Execute (Should not raise exception)
-    success: bool = send_telemetry(metrics, api_url="http://some-url")
+    success: bool = push_telemetry(metrics, api_url="http://some-url")
 
     assert success is False
     mock_post.assert_called_once()
@@ -102,11 +102,11 @@ def test_send_telemetry_http_error(mock_post):
 
 # 5. Verify that network timeouts are caught and do not crash the app.
 @patch("glia_python.network.httpx.post")
-def test_send_telemetry_fail_fast(mock_post):
+def test_push_telemetry_fail_fast(mock_post):
     metrics: JobMetrics = create_sample_metrics()
 
     mock_post.side_effect = httpx.TimeoutException("Connection timed out")
 
-    success: bool = send_telemetry(metrics, api_url="http://bad-url")
+    success: bool = push_telemetry(metrics, api_url="http://bad-url")
 
     assert success is False

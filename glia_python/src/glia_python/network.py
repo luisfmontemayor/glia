@@ -33,15 +33,11 @@ def _to_payload(metrics: JobMetrics) -> dict[str, Any]:
     }
 
 
-def send_telemetry(
+def push_telemetry(
     metrics: JobMetrics, api_url: str | None = None, timeout: float = 2.0
 ) -> bool:
     """
-    Push telemetry to the backend.
-
-    Features:
     - Auto-config: Reads GLIA_API_URL env var if api_url is not provided.
-    - Fail Fast: Short timeout (default 2s) to avoid hanging the main job.
     - Suppress Errors: Returns False on failure instead of crashing.
     """
     target_url = api_url or os.getenv("GLIA_API_URL")
