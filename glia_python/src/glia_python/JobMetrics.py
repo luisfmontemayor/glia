@@ -25,18 +25,25 @@ class JobMetrics:
     def __str__(self) -> str:
         start_str = self.started_at.strftime("%Y-%m-%d %H:%M:%S UTC")
         end_str = self.ended_at.strftime("%H:%M:%S UTC")
+        start_human = self.started_at.strftime("%d%m%y %H%M%S")
+        end_human = self.ended_at.strftime("%d%m%y %H%M%S")
         argv_str = " ".join(self.argv)
         return (
             f"\n--- Glia Telemetry ---\n"
             f"Run ID:     {self.run_id}\n"
-            f"User:       {self.user_name} on {self.hostname}\n"
-            f"OS:         {self.os_info}\n"
-            f"Program:    {self.program_name} ({self.script_sha256[:8]}...)\n"
-            f"Arguments:  {argv_str}\n"
-            f"Time:       {start_str} -> {end_str}\n"
+            f"Program Name:     {self.program_name}\n"
+            f"User Name:     {self.user_name}\n"
+            f"Script SHA256:     {self.script_sha256}\n"
+            f"Hostname:     {self.hostname}\n"
+            f"OS Info:     {self.os_info}\n"
+            f"Script Path:     {self.script_path}\n"
+            f"Arguments:     {argv_str}\n"
             f"Wall Time:  {self.wall_time_sec:.4f} sec\n"
-            f"CPU Time:   {self.cpu_time_sec:.4f} sec ({self.cpu_percent}% avg)\n"
-            f"Peak RAM:   {self.max_rss_mb:.2f} MB\n"
+            f"Started At:     {start_str} ({start_human})\n"
+            f"Ended At:       {end_str} ({end_human})\n"
+            f"CPU Time:  {self.cpu_time_sec:.4f} sec\n"
+            f"CPU Usage:  {self.cpu_percent:.2f}%\n"
+            f"Max Resident Set Size (RAM):   {self.max_rss_mb:.2f} MB\n"
             f"Exit Code:  {self.exit_code_int}\n"
             f"User-defined Metadata:    {self.meta}"
         )
