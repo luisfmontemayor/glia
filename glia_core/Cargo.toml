@@ -1,0 +1,26 @@
+[package]
+name    = "glia_core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "glia_core"
+# cdylib -> shared library for Python (.so/.pyd)
+# rlib -> CLI binary 
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+reqwest    = { version = "0.11", features = ["blocking", "json"] }
+serde      = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+pyo3        = { version = "0.23", features = ["extension-module"], optional = true }
+extendr-api = { version = "0.6", optional = true }
+
+[dev-dependencies]
+mockito = "1.6"
+
+[features]
+default = ["python"]
+python  = ["dep:pyo3"]
+r       = ["dep:extendr-api"]

@@ -8,6 +8,7 @@ python = "3.12.0"
 r      = "4.4.1"
 ruff   = "0.14.8"
 uv     = "0.9.17"
+rust   = "1.93.0"
 
 [env]
 _.file     = ".env"
@@ -22,6 +23,16 @@ GLIA_DEV_MODE = true
 [tasks.alembic]
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
+
+[tasks."rust:build"]
+description = "Build the Rust library and binary"
+dir         = "glia_core"
+run         = "cargo build --release"
+
+[tasks."rust:develop"]
+description = "Build and install the Rust wheel into the current Python environment"
+dir         = "glia_core"
+run         = "maturin develop --release"
 
 # Nomenclature
 ## Services
