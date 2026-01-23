@@ -14,3 +14,5 @@ pyo3       = { version = "0.23", features = ["extension-module"] }
 reqwest    = { version = "0.11", features = ["blocking", "json"] }
 serde      = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+extendr-api = { version = "0.6", optional = true }
+r       = ["dep:extendr-api"]
