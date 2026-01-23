@@ -55,6 +55,8 @@
 
 
 #######
+- [ ] Sync python interpreter everywhere
+- [ ] downgrade to 3.10 for better interop
 - [ ] change python version comment to use with mise run sync python or whatever it is
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
 - [ ] store memory as kb instead of mb
