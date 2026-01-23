@@ -10,9 +10,14 @@ name = "glia_core"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pyo3       = { version = "0.23", features = ["extension-module"] }
 reqwest    = { version = "0.11", features = ["blocking", "json"] }
 serde      = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+pyo3        = { version = "0.23", features = ["extension-module"], optional = true }
 extendr-api = { version = "0.6", optional = true }
+
+[features]
+default = ["python"]
+python  = ["dep:pyo3"]
 r       = ["dep:extendr-api"]
