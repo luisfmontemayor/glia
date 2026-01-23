@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Start db container and check status, no cred setup"
+mise run db:up && mise run db:status-wait && mise run db:migrate

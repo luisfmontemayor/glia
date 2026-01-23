@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Wipe volume, restart DB, and re-apply migrations"
+docker compose -f backend/compose.yml down -v && mise run spinup:db

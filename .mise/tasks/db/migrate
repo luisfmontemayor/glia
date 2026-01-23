@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Apply pending migrations to the database"
+mise run alembic upgrade head

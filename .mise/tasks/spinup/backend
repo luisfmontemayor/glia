@@ -1,0 +1,4 @@
+#!/bin/bash
+#MISE alias="sb"
+#MISE description="Start database and API server"
+mise run spinup:db && mise run spinup:api

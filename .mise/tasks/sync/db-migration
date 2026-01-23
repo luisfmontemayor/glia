@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Apply pending migrations"
+mise run db:migration-plan && mise run db:migrate

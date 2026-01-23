@@ -1,0 +1,2 @@
+#!/bin/bash
+mise run db:status-wait && uv run pytest backend/test --color=yes

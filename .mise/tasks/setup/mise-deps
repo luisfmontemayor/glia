@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Program deps"
+mise install

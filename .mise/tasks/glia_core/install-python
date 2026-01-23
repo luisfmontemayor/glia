@@ -1,0 +1,4 @@
+#!/bin/bash
+#MISE description="Build/Install Python extension"
+#MISE dir="glia_core"
+maturin develop --release

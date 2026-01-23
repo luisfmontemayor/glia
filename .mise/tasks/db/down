@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Stop Postgres container"
+docker compose -f backend/compose.yml down

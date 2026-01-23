@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Sync python versions in pyproject.toml files"
+scripts/sync_python_versions_in_pyprojects.py

@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Full database lifecycle"
+mise run db:setup-creds && mise run spinup:db

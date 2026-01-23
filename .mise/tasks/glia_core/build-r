@@ -1,0 +1,4 @@
+#!/bin/bash
+#MISE description="Build for R (excluding Python)"
+#MISE dir="glia_core"
+cargo build --release --no-default-features --features r
