@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE dir="glia_core"
+cargo test --lib

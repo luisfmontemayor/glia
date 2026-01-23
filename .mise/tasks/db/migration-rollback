@@ -1,0 +1,3 @@
+#!/bin/bash
+#MISE description="Rollback the last migration"
+mise run alembic downgrade -1

@@ -1,0 +1,14 @@
+#!/bin/bash
+#MISE description="Poll the database until it accepts connections"
+MAX_TRIES=15
+COUNT=0
+until mise run db:status > /dev/null 2>&1; do
+  COUNT=$((COUNT + 1))
+  if [ $COUNT -ge $MAX_TRIES ]; then
+    mise run db:status
+    exit 1
+  fi
+  printf "."
+  sleep 1
+done
+echo "\n[SUCCESS] Database is ready."
