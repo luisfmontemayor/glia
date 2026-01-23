@@ -26,9 +26,9 @@ def upgrade() -> None:
     op.create_table(
         "jobs",
         sa.Column("run_id", sa.Uuid(), nullable=False),
-        sa.Column("program_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("user_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("script_sha256", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("program_name", sqlmodel.AutoString(), nullable=False),
+        sa.Column("user_name", sqlmodel.AutoString(), nullable=False),
+        sa.Column("script_sha256", sqlmodel.AutoString(), nullable=False),
         sa.Column("started_at", sa.DateTime(), nullable=False),
         sa.Column("ended_at", sa.DateTime(), nullable=False),
         sa.Column("exit_code_int", sa.Integer(), nullable=False),
