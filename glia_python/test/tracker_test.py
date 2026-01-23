@@ -134,6 +134,8 @@ def test_tracker_initial_context():
     initial_data = {"env": "staging"}
     with JobTracker(context=initial_data) as tracker:
         pass
+
+    assert tracker.metrics is not None 
     assert tracker.metrics.meta["env"] == "staging"
 
 

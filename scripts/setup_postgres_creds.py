@@ -19,7 +19,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def get_verified_password() -> str:
-    password = cli.gum_input("Enter Postgres Password:", password=True)
+    password: str | None = cli.gum_input("Enter Postgres Password:", password=True)
 
     if not password:
         print("Password cannot be empty.", file=sys.stderr)
@@ -37,13 +37,13 @@ def get_verified_password() -> str:
 def get_postgres_config() -> dict[str, str]:
     print("Configuring Postgres credentials...")
 
-    user = cli.gum_input("Enter Postgres User:", value="glia_user")
-    if not user or user == "":
+    user = cli.gum_input("Enter Postgres User:", value="glia_user") or ""
+    if not user:
         print("Error: no user returned. Exiting.", file=sys.stderr)
         sys.exit(1)
 
-    db_name = cli.gum_input("Enter Postgres DB Name:", value="glia_db")
-    if not db_name or db_name == "":
+    db_name = cli.gum_input("Enter Postgres DB Name:", value="glia_db") or ""
+    if not db_name:
         print("Error: no database name returned. Exiting.", file=sys.stderr)
         sys.exit(1)
 
