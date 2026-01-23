@@ -19,43 +19,52 @@
 - [x] Implement the Decorator (`@glia.track`) for function-level monitoring.
 - [x] Add support for **Custom Values** (allowing users to pass a dictionary of extra metrics/tags).
 
-## Phase 3: Python Network Layer
-*Goal: Serialize the telemetry and push it to the running Backend API.*
-- [x] Add dependency: `httpx` (for robust HTTP requests).
-- [x] Create the Payload Builder: Map `SystemTracker` data to the JSON schema defined in the Backend.
-- [x] Implement `send_telemetry()`:
-  - [x] Configuration handling (API URL via env vars or config file).
-  - [x] Error handling (Suppress connection errors to prevent crashing the main job).
-  - [x] Timeout management (fail fast if the backend is unreachable).
+## Phase 3: Shared Core & Python Network Layer
+*Goal: Move network logic to a high-performance Rust core and bind it to Python.*
+- [x] Initialize `glia_core` Rust crate.
+- [x] **Core Logic**: Implement `perform_push` using `reqwest` (blocking client).
+  - [x] Automatic URL formatting and JSON serialization.
+  - [x] Timeout handling and error mapping.
+- [x] **Python Bindings**: Implement `pyo3` wrapper.
+  - [x] Map Rust `PushResult` to Python class.
+  - [x] Expose `push_telemetry` function to Python.
+- [x] **Integration**: Update `glia_python` to use `glia_core` instead of `httpx`.
 
-## Phase 4: The R Client Implementation (`glia-r`)
-*Goal: Replicate the Python architecture (Metrics -> DX -> Push).*
-- [ ] Initialize `glia-r` package structure.
-- [ ] **Sub-Phase 1: Metrics Foundation**
-    - [ ] Add dependencies: `processx` (or base `gc`/`proc.time`), `jsonlite`.
+## Phase 4: The R Client Implementation (`glia_r`)
+*Goal: Replicate the Python DX while leveraging the existing Rust core for networking.*
+- [x] Initialize `glia_r` package structure using `rextendr`.
+- [x] **Sub-Phase 1: Rust Integration (The "Glue")**
+    - [x] Configure `glia_core` to support R builds (feature flags `python` vs `r`).
+    - [x] Write R-specific Rust wrapper `r_module.rs` (Extendr).
+    - [ ] Link `glia_r` to `glia_core` via local path dependency in `Cargo.toml`.
+    - [ ] Verify `glia_r` compilation excludes Python symbols.
+- [ ] **Sub-Phase 2: Metrics Foundation (Pure R)**
+    - [ ] Add dependencies: `processx` (or base `gc`/`proc.time`) via `DESCRIPTION`.
     - [ ] Implement `SystemTracker` (R6 or S3 class).
-        - [ ] Capture **RAM** (Using `gc()` reset/diff or `OS` calls).
+        - [ ] Capture **RAM** (Using `gc()` reset/diff or OS calls).
         - [ ] Capture **CPU/Wall Time** (Using `proc.time()`).
         - [ ] Capture **Metadata** (R version, Platform, User).
-- [ ] **Sub-Phase 2: Developer Experience (DX)**
-    - [ ] Implement `glia_init()` / `glia_tracker` (Context object).
-    - [ ] Implement Function Wrapper (equivalent to Python Decorator).
 - [ ] **Sub-Phase 3: Network Layer**
-    - [ ] Add dependency: `httr2`.
-    - [ ] Implement `glia_send()` to push JSON payload.
+    - [ ] Expose `push_telemetry` from `glia_core` to R namespace.
+    - [ ] Implement `glia_send()` wrapper in R to call the Rust function.
+- [ ] **Sub-Phase 4: Developer Experience & Management**
+    - [ ] Implement `glia_init()` / `glia_tracker` (Context object).
+    - [ ] Setup declarative dependency management (`renv` + `DESCRIPTION`).
 
-## Phase 5: End-to-End Verification
-*Goal: Verify that ephemeral jobs actually populate the database.*
-- [ ] Run the Python client in a script against `localhost:8000`.
-- [ ] Run the R client in a script against `localhost:8000`.
-- [ ] Verify Data Integrity:
-  - [ ] Check if `JSONB` custom fields are queried correctly.
-  - [ ] Confirm "Peak RAM" numbers look realistic compared to OS monitors.
-
+## Phase 5: Monorepo Orchestration & Verification
+*Goal: robust build tools and end-to-end testing.*
+- [x] Modularize `mise` tasks (split `mise.toml` into `.mise/tasks/*` scripts).
+- [x] Configure "Polyglot" builds:
+    - [x] `rust:develop` for Python.
+    - [x] `rust:build-r` for R.
+- [ ] **End-to-End Verification**:
+  - [ ] Run the Python client in a script against `localhost:8000`.
+  - [ ] Run the R client in a script against `localhost:8000`.
+  - [ ] Verify Data Integrity (JSONB fields, RAM accuracy).
 
 
 #######
-- [ ] Sync python interpreter everywhere
+- [ ] Add client build and installs to mise
 - [ ] downgrade to 3.10 for better interop
 - [ ] change python version comment to use with mise run sync python or whatever it is
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
