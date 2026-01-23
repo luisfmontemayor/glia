@@ -6,6 +6,7 @@ requires-python = ">=3.12.0"
 members = [
     "glia",
     "glia-common",
+    "glia-core",
     "glia-python",
 ]
 
@@ -329,10 +330,17 @@ version = "0.1.0"
 source = { editable = "libs/python/glia_common" }
 
 [[package]]
+name = "glia-core"
+version = "0.1.0"
+source = { editable = "glia_core" }
+
+[[package]]
 name = "glia-python"
 version = "0.1.0"
 source = { editable = "glia_python" }
 dependencies = [
+    { name = "glia-common" },
+    { name = "glia-core" },
     { name = "httpx" },
     { name = "psutil" },
     { name = "pytest" },
@@ -340,6 +348,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "glia-common", editable = "libs/python/glia_common" },
+    { name = "glia-core", editable = "glia_core" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "psutil", specifier = ">=7.2.1" },
     { name = "pytest", specifier = "==9.0.2" },

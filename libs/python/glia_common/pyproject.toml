@@ -1,5 +1,5 @@
 [project]
-name            = "glia-common"
+name            = "glia_common"
 version         = "0.1.0"
 description     = "Shared utilities for Glia python scripts"
 requires-python = ">=3.12.0"
