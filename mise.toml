@@ -21,6 +21,7 @@ GLIA_DEV_MODE = true
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
 
+# TODO: add glia_core to this
 [tasks.full-setup]
 description = "Plug-and-play setup from scratch: dependencies then local database"
 run = """
