@@ -8,7 +8,13 @@ dependencies    = [
     "httpx>=0.28.1",
     "psutil>=7.2.1",
     "pytest==9.0.2",
+    "glia_common",
+    "glia_core",
 ]
+
+[tool.uv.sources]
+glia_common = { workspace = true }
+glia_core = { workspace = true }
 
 [build-system]
 requires      = ["uv_build>=0.9.17,<0.10.0"]
