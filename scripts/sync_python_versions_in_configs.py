@@ -7,6 +7,8 @@ from pathlib import Path
 from sys import stderr
 
 VERSION_FILE: Path = Path(".python-version")
+IGNORED_DIRS: set[str] = {".venv", "node_modules", ".git", "dist", "build"}
+IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("glia_core/Cargo.toml")}
 
 
 def get_python_version(version_file: Path = VERSION_FILE) -> str:
@@ -22,7 +24,17 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
             rf'\1">={version}"',
         ),
         (
+            Path("pyproject.toml"),
+            r'(?s)(\[tool\.ty\.environment\][^\[]*?python-version\s*=\s*)"[^"]*"',
+            rf'\1"{version.rstrip(".0")}"',
+        ),
+        (
             Path("glia_python/pyproject.toml"),
+            r'(requires-python\s*=\s*)"[^"]*"',
+            rf'\1">={version}"',
+        ),
+        (
+            Path("glia_core/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),
@@ -32,11 +44,6 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
             rf'\1">={version}"',
         ),
         (
-            Path("pyproject.toml"),
-            r'(?s)(\[tool\.ty\.environment\][^\[]*?python-version\s*=\s*)"[^"]*"',
-            rf'\1"{version.rstrip(".0")}"',
-        ),
-        (
             Path("mise.toml"),
             r'(python\s*=\s*)"[^"]*"',
             rf'\1"{version}"',
@@ -44,19 +51,16 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
     ]
 
 
-def check_untracked_toml_files(tracked_paths: set[Path]) -> None:
-    ignored_dirs: set[str] = {".venv", "node_modules", ".git", "dist", "build"}
-    ignored_files: set[Path] = {
-        Path("ruff.toml"),
-    }
-
+def check_untracked_toml_files(
+    tracked_paths: set[Path], ignored_dirs=IGNORED_DIRS, ignored_tomls=IGNORED_TOMLS
+) -> None:
     all_toml_files: set[Path] = set()
     for path in Path(".").rglob("*.toml"):
         if any(ignored in path.parts for ignored in ignored_dirs):
             continue
         all_toml_files.add(path)
 
-    untracked: set[Path] = all_toml_files - ignored_files - tracked_paths
+    untracked: set[Path] = all_toml_files - ignored_tomls - tracked_paths
 
     if untracked:
         print(
@@ -81,6 +85,7 @@ def sync_python_versions(version_file: Path = VERSION_FILE) -> None:
         path_to_transforms.setdefault(path, []).append((pattern, replacement))
 
     tracked_paths: set[Path] = set(path_to_transforms.keys())
+    check_untracked_toml_files(tracked_paths)
 
     for file_path, transforms in path_to_transforms.items():
         if not file_path.exists():
@@ -98,8 +103,6 @@ def sync_python_versions(version_file: Path = VERSION_FILE) -> None:
             print(f"Updated: {file_path}", file=stderr)
         else:
             print(f"File already updated: {file_path}", file=stderr)
-
-    check_untracked_toml_files(tracked_paths)
 
 
 if __name__ == "__main__":
