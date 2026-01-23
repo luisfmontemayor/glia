@@ -1,13 +1,6 @@
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-
-root_dir = Path(__file__).parent.parent
-sys.path.append(str(root_dir / "backend"))
-sys.path.append(str(root_dir / "src"))
-
 
 from backend.main import app
 from glia_python import Glia
@@ -28,8 +21,8 @@ def test_end_to_end_telemetry_flow():
         return server.post(path, json=json)
 
     with patch("glia_python.network.httpx.post", side_effect=mock_post):
-        with Glia.tracker(program_name="e2e_job", context={"e2e": "true"}) as tracker:
-            x = 1 + 1
+        with Glia.tracker(program_name="e2e_job", context={"e2e": "true"}) as _tracker:
+            _x = 1 + 1
 
     response = server.get("/jobs/")
     assert response.status_code == 200
@@ -41,4 +34,4 @@ def test_end_to_end_telemetry_flow():
     assert latest_job["program_name"] == "e2e_job"
     assert latest_job["meta"]["e2e"] == "true"
 
-    print("\n✅ E2E Success: Client data successfully reached the Backend DB!")
+    print("\nE2E Success: Client data successfully reached the Backend DB")
