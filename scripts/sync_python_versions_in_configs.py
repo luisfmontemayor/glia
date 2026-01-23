@@ -1,6 +1,11 @@
 #!/usr/bin/env -S uv run -q
 # Written by Luis Felipe Montemayor, sometime around January of 2026
 # https://open.spotify.com/track/2hkJ7fYPM5V27pjxiPG2gg?si=f7a42e6525d44707
+"""
+Run by `mise run sync:python-version`
+Version is hardcoded in glia/.python-version
+"""
+
 import re
 import sys
 from pathlib import Path

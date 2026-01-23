@@ -1,7 +1,7 @@
 [project]
 name            = "Glia"
 version         = "0.1.0"
-requires-python = ">=3.12.0"
+requires-python = ">=3.12.0" # Updated with mise run sync:python-version, and version is hardcoded in glia/.python-version
 
 dependencies = [
     "alembic>=1.17.2",

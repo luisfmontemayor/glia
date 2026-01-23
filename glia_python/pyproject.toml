@@ -3,7 +3,7 @@ name            = "glia_python"
 version         = "0.1.0"
 description     = "Lightweight Python client for the Glia"
 authors         = [{ name = "luisfmontemayor", email = "lfelipemonte@gmail.com" }]
-requires-python = ">=3.12.0"                                                       # Also listed in mise.toml and glia/pyproject.toml in [tool.ty] and [project]
+requires-python = ">=3.12.0" # Updated with mise run sync:python-version, and version is hardcoded in glia/.python-version
 dependencies    = [
     "httpx>=0.28.1",
     "psutil>=7.2.1",
