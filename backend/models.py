@@ -22,7 +22,7 @@ class JobBase(SQLModel):
         index=True,
         description="Defaults to function being tracked, can be user defined",
     )
-    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), index=True))
     ended_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     wall_time_sec: float = Field()
     cpu_time_sec: float = Field()
