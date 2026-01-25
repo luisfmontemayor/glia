@@ -1,0 +1,8 @@
+description = "Bundle, Document, and Install the gliar package"
+dir = "gliar"
+depends = ["gliar/bundle"]
+
+[run]
+code = """
+Rscript -e 'rextendr::document(); devtools::install()'
+"""
