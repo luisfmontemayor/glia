@@ -3,4 +3,5 @@
 #MISE description="Run all deps installation tasks"
 mise run setup:mise-deps && \
 mise run setup:python-deps && \
+mise run setup:r-deps && \
 mise run sync:lazygit

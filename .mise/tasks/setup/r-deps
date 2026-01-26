@@ -1,0 +1,2 @@
+run = "Rscript -e 'if (!requireNamespace(\"renv\", quietly = TRUE)) install.packages(\"renv\"); renv::restore()'"
+sources = ["R/renv.lock"]
