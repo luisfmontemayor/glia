@@ -1,0 +1,9 @@
+TARGET_DIR = ./rust/target
+LIBDIR = $(TARGET_DIR)/release
+STATLIB = $(LIBDIR)/libgliar_rs.a
+PKG_LIBS = -L$(LIBDIR) -lgliar_rs
+
+$(SHLIB): $(STATLIB)
+
+$(STATLIB):
+	cd rust && cargo build --release
