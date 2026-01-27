@@ -1,4 +1,0 @@
-#!/bin/bash
-#MISE description="Sync lazygit config"
-sources = ["lazygit.yml"]
-cp --force lazygit.yml .git/lazygit.yml

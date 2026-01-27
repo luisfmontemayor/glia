@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="View Postgres logs"
-docker compose -f backend/compose.yml logs -f

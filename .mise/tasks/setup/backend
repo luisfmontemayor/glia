@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Full backend setup"
-mise run setup:db && mise run spinup:api

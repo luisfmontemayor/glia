@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Check if DB is accepting connections"
-docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1"

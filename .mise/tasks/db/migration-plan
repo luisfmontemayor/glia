@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Generate a new migration script"
-mise run alembic revision --autogenerate -m

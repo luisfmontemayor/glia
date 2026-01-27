@@ -1,0 +1,9 @@
+[tasks."glia_core:install-python"]
+description = "Build/Install Python extension"
+dir         = "glia_core"
+run         = "maturin develop --release"
+
+[tasks."glia_core:build-r"]
+description = "Build R extension"
+dir         = "glia_core"
+run         = "cargo build --release --no-default-features --features r"
