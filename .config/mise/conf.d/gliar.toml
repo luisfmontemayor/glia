@@ -1,13 +1,24 @@
 [tasks."gliar:bundle"]
-description = "Vendor glia_core into the R package using rsync"
+description = "Sync minimal Rust core files to gliar/src/rust"
 dir = "gliar"
-sources = ["../glia_core/src/**/*.rs", "../glia_core/Cargo.toml"]
+sources = [
+    "../glia_core/Cargo.toml",
+    "../glia_core/Cargo.lock",
+    "../glia_core/src/**/*.rs",
+]
 run = """
-mkdir -p src/glia_core
-rsync -a --delete \
-    --exclude 'target' \
-    --exclude '.git' \
-    ../glia_core/ src/glia_core/
+mkdir -p src/rust/src
+
+cp ../glia_core/Cargo.toml src/rust/
+cp ../glia_core/Cargo.lock src/rust/
+
+# We strictly copy .rs files. This excludes python cache, venvs, and build artifacts.
+rsync -a --delete ../glia_core/src/ src/rust/src/
+
+if ! grep -q '"staticlib"' src/rust/Cargo.toml; then
+    echo "Patching Cargo.toml for static linking..."
+    sed -i 's/crate-type = \\[.*\\]/crate-type = ["staticlib", "cdylib", "rlib"]/' src/rust/Cargo.toml
+fi
 """
 
 [tasks."gliar:build"]
