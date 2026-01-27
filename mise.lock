@@ -7,6 +7,11 @@ backend = "aqua:charmbracelet/gum"
 "platforms.macos-x64" = { checksum = "sha256:cd66576aeebe6cd19c771863c7e8d696e0e1d5387d1e7075666baa67c2052e53", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Darwin_x86_64.tar.gz"}
 "platforms.windows-x64" = { checksum = "sha256:b2be80531c6babc8d4e0e6ca95773d58118a2e1582ae006aace08dbc55503072", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Windows_x86_64.zip"}
 
+[[tools.pandoc]]
+version = "3.6.3"
+backend = "github:jgm/pandoc"
+"platforms.linux-x64" = { checksum = "blake3:1c3aca1d54e9dfa4b9194f6e8481fbe668dcb1900e29befa0bedc79858537e76", url = "https://github.com/jgm/pandoc/releases/download/3.6.3/pandoc-3.6.3-linux-amd64.tar.gz", url_api = "https://api.github.com/repos/jgm/pandoc/releases/assets/227689145"}
+
 [[tools.python]]
 version = "3.12.0"
 backend = "core:python"
