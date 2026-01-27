@@ -1,6 +1,8 @@
+.env
 .vscode/launch.json
 __pycache__/
 llm-project-summary.txt
 scripts/copyDescription.sh
-.env
 glia_core/target
+gliar/src/glia_core
+gliar/renv
