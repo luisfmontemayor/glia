@@ -1,0 +1,12 @@
+description = "Vendor glia_core into the R package source and clean artifacts"
+dir = "gliar"
+sources = ["../glia_core/src/**/*.rs", "../glia_core/Cargo.toml"]
+
+code = """
+echo "📦 Syncing glia_core..."
+mkdir -p src/glia_core
+rsync -a --delete \
+    --exclude 'target' \
+    --exclude '.git' \
+    ../glia_core/ src/glia_core/
+"""
