@@ -1,12 +1,9 @@
-description = "Vendor glia_core into the R package source and clean artifacts"
-dir = "gliar"
-sources = ["../glia_core/src/**/*.rs", "../glia_core/Cargo.toml"]
-
-code = """
-echo "📦 Syncing glia_core..."
+#!/bin/bash
+#MISE description="Vendor glia_core into the R package using rsync"
+#MISE dir="gliar"
+#MISE sources=["../glia_core/src/**/*.rs", "../glia_core/Cargo.toml"]
 mkdir -p src/glia_core
 rsync -a --delete \
     --exclude 'target' \
     --exclude '.git' \
     ../glia_core/ src/glia_core/
-"""
