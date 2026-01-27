@@ -1,0 +1,12 @@
+description = "Sync R dependencies from DESCRIPTION using renv + pak"
+dir = "gliar"
+sources = ["DESCRIPTION"] 
+outputs = ["renv.lock"]
+run = """
+Rscript -e '
+  if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv");  
+  #options(renv.config.pak.enabled = TRUE);
+  renv::install(dependencies = TRUE);
+  renv::snapshot(prompt = FALSE);
+'
+"""
