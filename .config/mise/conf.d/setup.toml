@@ -8,30 +8,31 @@ dir = "gliar"
 sources = ["DESCRIPTION"]
 outputs = ["renv.lock"]
 run = """
-# 1. Quick check: Are we in the right place?
-if [[ "$(basename "$PWD")" != "gliar" ]]; then
-  echo "❌ Error: Not in 'gliar' directory. Current: $(pwd)"
-  exit 1
+CURRENT_DIR_NAME=$(basename "$(pwd)")
+
+if [ "$CURRENT_DIR_NAME" != "gliar" ]; then
+    printf "Error: Not in 'gliar' directory. Current: %s\\n" "$(pwd)"
+    exit 1
 fi
 
 Rscript -e '
-  if (!file.exists("renv/activate.R")) {
-      renv::init(bare = TRUE, restart = FALSE)
-  }
+if (!file.exists("renv/activate.R")) {
+    renv::init(bare = TRUE, restart = FALSE)
+}
 
-  stat <- renv::status()
+stat <- renv::status()
 
-  if (stat$synchronized) {
+if (isTRUE(stat$synchronized)) {
     message("Project is already synchronized. Skipping install.")
-  } else {
+} else {
     options(renv.config.pak.enabled = TRUE)
     renv::consent(provided = TRUE)
-    
     renv::install()
     renv::snapshot(prompt = FALSE)
-  }
+}
 '
 """
+
 
 [tasks."setup:db"]
 description = "Full database lifecycle"
