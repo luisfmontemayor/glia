@@ -6,4 +6,4 @@ PKG_LIBS = -L$(LIBDIR) -lgliar_rs
 $(SHLIB): $(STATLIB)
 
 $(STATLIB):
-	cd rust && cargo build --release
+	cd rust && cargo build --release --no-default-features --features r
