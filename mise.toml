@@ -17,12 +17,12 @@ PYTHONPATH              = "{{config_root}}/scripts:$PYTHONPATH"
 VERSION                 = "0.1.0"
 GLIA_DEV_MODE           = true
 RENV_CONFIG_PAK_ENABLED = true
+RENV_PATHS_LIBRARY      = "renv/library"
 
 [tasks.alembic]
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
 
-# TODO: add glia_core to this
 [tasks.full-setup]
 description = "Plug-and-play setup from scratch: dependencies then local database"
 run = """
