@@ -7,17 +7,20 @@ Description: Lightweight R client for pushing system telemetry to the Glia backe
 License: MIT
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 SystemRequirements: Cargo, Rustc
 Imports:
     R6 (>= 2.5.1),
     jsonlite (>= 1.8.0),
     processx (>= 3.8.0),
     httr2 (>= 0.2.0),
-    rlang
+    rlang,
+    ps,
+    uuid
 Suggests:
     testthat (>= 3.0.0),
     rextendr,
     devtools,
     pak,
     usethis
+Config/rextendr/version: 0.4.2
