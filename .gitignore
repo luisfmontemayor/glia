@@ -6,3 +6,9 @@ scripts/copyDescription.sh
 glia_core/target
 gliar/src/glia_core
 gliar/renv
+gliar/src/rust/
+gliar/src/*.o
+gliar/src/*.so
+gliar/src/*.dll
+gliar/src/symbols.rds
+gliar/src/glia_core/
