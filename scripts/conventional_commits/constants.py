@@ -1,8 +1,16 @@
 # Written by Luis Felipe Montemayor, sometime around December of 2025
 
-COMMIT_TYPES = ["feat", "fix", "refactor", "test", "chore"]
-SCOPE_CATEGORIES = {"backend", "glia_python", "glia_core", "gliar", "infrastructural", "scripts", "libs"}
-INFRA_FILES = {
+COMMIT_TYPES: list[str] = ["feat", "fix", "refactor", "test", "chore"]
+SCOPE_CATEGORIES: set[str] = {
+    "backend",
+    "glia_python",
+    "glia_core",
+    "gliar",
+    "infrastructural",
+    "scripts",
+    "libs",
+}
+INFRA_FILES: set[str] = {
     "mise.toml",
     "mise.lock",
     "pyproject.toml",
@@ -12,5 +20,5 @@ INFRA_FILES = {
     ".gitignore",
     "lazygit.yml",
 }
-INFRA_DIRS = {".git", ".vscode"}
+INFRA_DIRS: set[str] = {".git", ".vscode"}
 NO_SCOPE_STR = "None"
