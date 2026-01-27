@@ -1,5 +1,0 @@
-
-#MISE description = "Bundle, Document, and Install the gliar package"
-#MISE dir = "gliar"
-#mise depends = ["gliar/bundle"]
-Rscript -e 'rextendr::document(); devtools::install()'

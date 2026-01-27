@@ -1,0 +1,10 @@
+[tasks."test:glia_core"]
+dir = "glia_core"
+run = "cargo test --lib"
+
+[tasks."test:backend"]
+depends = ["db:status-wait"]
+run     = "uv run pytest backend/test --color=yes"
+
+[tasks."test:glia_python"]
+run = "uv run pytest glia_python/test --color=yes"

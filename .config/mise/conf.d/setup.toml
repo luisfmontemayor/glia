@@ -1,0 +1,57 @@
+[tasks."setup:backend"]
+description = "Full backend setup"
+depends     = ["setup:db", "spinup:api"]
+
+[tasks."setup:r-deps"]
+description = "Sync R dependencies from DESCRIPTION using renv + pak"
+dir = "gliar"
+sources = ["DESCRIPTION"]
+outputs = ["renv.lock"]
+run = """
+# 1. Quick check: Are we in the right place?
+if [[ "$(basename "$PWD")" != "gliar" ]]; then
+  echo "❌ Error: Not in 'gliar' directory. Current: $(pwd)"
+  exit 1
+fi
+
+Rscript -e '
+  if (!file.exists("renv/activate.R")) {
+      renv::init(bare = TRUE, restart = FALSE)
+  }
+
+  stat <- renv::status()
+
+  if (stat$synchronized) {
+    message("Project is already synchronized. Skipping install.")
+  } else {
+    options(renv.config.pak.enabled = TRUE)
+    renv::consent(provided = TRUE)
+    
+    renv::install()
+    renv::snapshot(prompt = FALSE)
+  }
+'
+"""
+
+[tasks."setup:db"]
+description = "Full database lifecycle"
+depends     = ["db:setup-creds", "spinup:db"]
+
+[tasks."setup:deps"]
+alias = "sd"
+description = "Run all deps installation tasks"
+depends = [
+  "setup:mise-deps",
+  "setup:python-deps",
+  "setup:r-deps",
+  "sync:lazygit",
+]
+
+[tasks."setup:mise-deps"]
+description = "Program deps"
+run         = "mise install"
+
+[tasks."setup:python-deps"]
+alias       = "spd"
+description = "Python deps"
+run         = "uv sync && uv lock"

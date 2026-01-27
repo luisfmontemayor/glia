@@ -1,0 +1,17 @@
+[tasks."gliar:bundle"]
+description = "Vendor glia_core into the R package using rsync"
+dir = "gliar"
+sources = ["../glia_core/src/**/*.rs", "../glia_core/Cargo.toml"]
+run = """
+mkdir -p src/glia_core
+rsync -a --delete \
+    --exclude 'target' \
+    --exclude '.git' \
+    ../glia_core/ src/glia_core/
+"""
+
+[tasks."gliar:build"]
+description = "Bundle, Document, and Install the gliar package"
+dir         = "gliar"
+depends     = ["gliar:bundle"]
+run         = "Rscript -e 'rextendr::document(); devtools::install()'"
