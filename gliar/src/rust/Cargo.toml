@@ -1,5 +1,5 @@
 [package]
-name    = "gliar"
+name = "gliar"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,5 +7,5 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-glia_core   = { path = "../glia_core", features = ["r"] }
+glia_core = { path = "../glia_core", features = ["r"] }
 extendr-api = "0.6"

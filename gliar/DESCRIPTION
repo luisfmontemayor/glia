@@ -9,13 +9,13 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 SystemRequirements: Cargo, Rustc
-Imports: 
+Imports:
     R6 (>= 2.5.1),
     jsonlite (>= 1.8.0),
     processx (>= 3.8.0),
     httr2 (>= 0.2.0),
     rlang
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     rextendr,
     devtools,
