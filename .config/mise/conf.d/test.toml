@@ -8,3 +8,9 @@ run     = "uv run pytest backend/test --color=yes"
 
 [tasks."test:glia_python"]
 run = "uv run pytest glia_python/test --color=yes"
+
+[tasks."test:gliar"]
+description = "Run R package tests"
+dir = "gliar"
+depends = ["gliar:build"]
+run = "Rscript -e 'devtools::test()'"
