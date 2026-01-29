@@ -22,5 +22,7 @@ Suggests:
     rextendr,
     devtools,
     pak,
-    usethis
+    usethis,
+    mockery
 Config/rextendr/version: 0.4.2
+Config/testthat/edition: 3
