@@ -8,3 +8,8 @@ pub fn push_telemetry(json_payload: String, url: String, timeout: f64) -> Robj {
         Err(e) => list!(status = 0, body = e).into(),
     }
 }
+
+extendr_module! {
+    mod glia_core; 
+    fn push_telemetry;
+}
