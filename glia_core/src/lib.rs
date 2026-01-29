@@ -20,9 +20,3 @@ fn glia_core_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(feature = "r")]
 use extendr_api::prelude::*;
-
-#[cfg(feature = "r")]
-extendr_module! {
-    mod gliar;
-    fn r_module::push_telemetry;
-}
