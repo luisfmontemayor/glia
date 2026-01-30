@@ -1,0 +1,4 @@
+[tasks."spindown:backend"]
+alias       = "sdb"
+description = "Start database and API server"
+run         = "mise run db:down && mise run api:down"
