@@ -1,0 +1,53 @@
+[tasks."db:status"]
+description = "Check if DB is accepting connections"
+run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1" > /dev/null'
+
+[tasks."db:migration-plan"]
+description = "Generate a new migration script"
+run         = "mise run alembic revision --autogenerate -m"
+
+[tasks."db:down"]
+description = "Stop Postgres container"
+run         = "docker compose -f backend/compose.yml down"
+
+[tasks."db:migrate"]
+description = "Apply pending migrations to the database"
+run         = "mise run alembic upgrade head"
+
+[tasks."db:status-wait"]
+description = "Poll the database until it accepts connections"
+depends = ["db:status"]
+run = """
+MAX_TRIES=15
+COUNT=0
+until mise run db:status > /dev/null 2>&1; do
+  COUNT=$((COUNT + 1))
+  if [ $COUNT -ge $MAX_TRIES ]; then
+    mise run db:status
+    exit 1
+  fi
+  printf "."
+  sleep 1
+done
+echo "\n[SUCCESS] Database is ready."
+"""
+
+[tasks."db:migration-rollback"]
+description = "Rollback the last migration"
+run         = "mise run alembic downgrade -1"
+
+[tasks."db:setup-creds"]
+description = "Setup credentials and container"
+run         = "setup_postgres_creds.py"
+
+[tasks."db:up"]
+description = "Start Postgres container"
+run         = "docker compose -f backend/compose.yml up -d"
+
+[tasks."db:reset"]
+description = "Wipe volume, restart DB, and re-apply migrations"
+run         = "docker compose -f backend/compose.yml down -v && mise run spinup:db"
+
+[tasks."db:logs"]
+description = "View Postgres logs"
+run         = "docker compose -f backend/compose.yml logs -f"
