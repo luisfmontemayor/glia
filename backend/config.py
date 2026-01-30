@@ -1,5 +1,8 @@
+from glia_common.logs import setup_logger
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = setup_logger("backend")
 
 
 class Settings(BaseSettings):
@@ -12,8 +15,9 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    API_PORT: int
 
     _DATABASE_URL: str | None = None
 

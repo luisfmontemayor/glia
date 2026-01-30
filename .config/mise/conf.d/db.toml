@@ -1,6 +1,6 @@
 [tasks."db:status"]
 description = "Check if DB is accepting connections"
-run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1"'
+run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1" > /dev/null'
 
 [tasks."db:migration-plan"]
 description = "Generate a new migration script"

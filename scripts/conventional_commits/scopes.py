@@ -63,7 +63,7 @@ def add_scope_category(filepath: str) -> str:
     filename = path.name
 
     if is_infra_file(filename, filepath=path):
-        return "infrastructural"
+        return f"infrastructural/{filename}"
 
     if category in SCOPE_CATEGORIES:
         if category == "scripts":

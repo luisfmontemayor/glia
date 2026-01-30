@@ -23,3 +23,7 @@ echo "\n[SUCCESS] API is ready."
 [tasks."api:up"]
 description = "Start API server"
 run         = "uv run fastapi dev backend/main.py"
+
+[tasks."api:down"]
+description = "Stop API server"
+run         = "lsof -t -i:${API_PORT:-8000} | xargs -r kill -15"

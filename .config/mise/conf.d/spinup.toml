@@ -1,12 +1,12 @@
 [tasks."spinup:backend"]
 alias       = "sb"
 description = "Start database and API server"
-depends     = ["spinup:db", "spinup:api"]
+run         = "mise spinup:db && mise run spinup:api"
 
 [tasks."spinup:db"]
 description = "Start db container and check status, no cred setup"
-depends     = ["db:up", "db:status-wait", "db:migrate"]
+run         = "mise run db:up && mise run db:status-wait && mise run db:migrate"
 
 [tasks."spinup:api"]
 description = "Start up API server and check status"
-depends     = ["api:up", "api:status-wait"]
+run         = "mise run api:up && mise run api:status-wait"
