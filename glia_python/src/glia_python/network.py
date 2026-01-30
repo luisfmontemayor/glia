@@ -7,7 +7,7 @@ import glia_core
 from glia_core import PushResult
 from glia_python.JobMetrics import JobMetrics
 
-logger = setup_logger("glia")
+logger = setup_logger("glia_python")
 
 
 def push_telemetry(
