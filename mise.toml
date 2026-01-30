@@ -12,14 +12,11 @@ rust   = "1.93.0"
 pandoc = "3.6.3"
 
 [env]
-_.file                     = ".env"
-_.path                     = ["./scripts"]
-PYTHONPATH                 = "{{config_root}}/scripts:$PYTHONPATH"
-VERSION                    = "0.1.0"
-GLIA_DEV_MODE              = true
-RENV_CONFIG_PAK_ENABLED    = true
-RENV_PATHS_LIBRARY         = "renv/library"
-RENV_CONFIG_REPOS_OVERRIDE = "https://cloud.r-project.org"
+_.file        = ".env"
+_.path        = ["./scripts"]
+PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
+VERSION       = "0.1.0"
+GLIA_DEV_MODE = true
 
 RENV_CONFIG_PAK_ENABLED    = true
 RENV_PATHS_LIBRARY         = "renv/library"
