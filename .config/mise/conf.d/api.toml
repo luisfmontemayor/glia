@@ -1,0 +1,29 @@
+[tasks."api:status"]
+description = "Check API status"
+run         = "curl -sf -o /dev/null http://localhost:8000/health/ready"
+
+[tasks."api:status-wait"]
+description = "Poll the API until it responds"
+depends = ["api:status"]
+run = """
+MAX_TRIES=15
+COUNT=0
+until mise run api:status > /dev/null 2>&1; do
+  COUNT=$((COUNT + 1))
+  if [ $COUNT -ge $MAX_TRIES ]; then
+    mise run api:status
+    exit 1
+  fi
+  printf "."
+  sleep 1
+done
+echo "\n[SUCCESS] API is ready."
+"""
+
+[tasks."api:up"]
+description = "Start API server"
+run         = "uv run fastapi dev backend/main.py"
+
+[tasks."api:down"]
+description = "Stop API server"
+run         = "lsof -t -i:${API_PORT:-8000} | xargs -r kill -15"
