@@ -1,5 +1,15 @@
+[tasks."gliar:build-clean"]
+description = "Clean build artifacts without breaking R package structure"
+dir = "gliar"
+run = """
+rm -f src/*.so src/*.o src/*.dll
+rm -f R/extendr.R
+touch NAMESPACE
+rm -rf src/rust/target
+"""
+
 [tasks."gliar:bundle"]
-description = "Sync minimal Rust core files to gliar/src/rust"
+description = "Sync minimal Rust core files and patch Cargo.toml for R"
 dir = "gliar"
 sources = [
     "../glia_core/Cargo.toml",
@@ -7,22 +17,41 @@ sources = [
     "../glia_core/src/**/*.rs",
 ]
 run = """
-mkdir -p src/rust/src
+mise run gliar:build-clean
 
+mkdir -p src/rust/src
 cp ../glia_core/Cargo.toml src/rust/
 cp ../glia_core/Cargo.lock src/rust/
-
-# We strictly copy .rs files. This excludes python cache, venvs, and build artifacts.
 rsync -a --delete ../glia_core/src/ src/rust/src/
 
-if ! grep -q '"staticlib"' src/rust/Cargo.toml; then
-    echo "Patching Cargo.toml for static linking..."
-    sed -i 's/crate-type = \\[.*\\]/crate-type = ["staticlib", "cdylib", "rlib"]/' src/rust/Cargo.toml
-fi
+echo "Patching Cargo.toml for static linking..." &>2
+sed -i 's/crate-type = \\[[^]]*\\]/crate-type = ["staticlib"]/' src/rust/Cargo.toml
+
+echo "Patching Rust module name to 'gliar'..." &>2
+sed -i 's/mod glia_core;/mod gliar;/' src/rust/src/r_module.rs
 """
 
 [tasks."gliar:build"]
-description = "Bundle, Document, and Install the gliar package"
-dir         = "gliar"
-depends     = ["gliar:bundle"]
-run         = "Rscript -e 'rextendr::document(); devtools::install()'"
+#env = { "R_PAK_SYSREQS" = "false", "RENV_CONFIG_PAK_ENABLED" = "false" }
+description = "Build and install the R package with Rust extensions"
+dir = "gliar"
+sources = [
+    "src/rust/src/**/*.rs",
+    "R/**/*.R",
+    "DESCRIPTION",
+    "src/rust/Cargo.toml",
+]
+run = """
+mise run gliar:bundle
+
+Rscript -e "
+  options(pak.sysreqs = FALSE);
+  
+  if (!requireNamespace('renv', quietly=TRUE)) install.packages('renv');
+  renv::install();
+  renv::snapshot(prompt = FALSE);
+  renv::restore(prompt = FALSE);
+  rextendr::document();
+  devtools::install(upgrade = 'never', quick = TRUE);
+  "
+"""
