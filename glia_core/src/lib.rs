@@ -17,6 +17,3 @@ fn glia_core_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(python_module::push_telemetry, m)?)?;
     Ok(())
 }
-
-#[cfg(feature = "r")]
-use extendr_api::prelude::*;
