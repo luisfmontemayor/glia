@@ -12,9 +12,9 @@ rm -rf src/rust/target
 description = "Sync minimal Rust core files and patch Cargo.toml for R"
 dir = "gliar"
 sources = [
-    "../glia_core/Cargo.toml",
-    "../glia_core/Cargo.lock",
-    "../glia_core/src/**/*.rs",
+  "../glia_core/Cargo.toml",
+  "../glia_core/Cargo.lock",
+  "../glia_core/src/**/*.rs",
 ]
 run = """
 mise run gliar:build-clean
@@ -36,10 +36,10 @@ sed -i 's/mod glia_core;/mod gliar;/' src/rust/src/r_module.rs
 description = "Build and install the R package with Rust extensions"
 dir = "gliar"
 sources = [
-    "src/rust/src/**/*.rs",
-    "R/**/*.R",
-    "DESCRIPTION",
-    "src/rust/Cargo.toml",
+  "src/rust/src/**/*.rs",
+  "R/**/*.R",
+  "DESCRIPTION",
+  "src/rust/Cargo.toml",
 ]
 run = """
 mise run gliar:bundle
