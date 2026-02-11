@@ -8,7 +8,7 @@ A telemetry suite for technical data teams working on joint linux systems.
 ## Getting started
 1. If you don't have `mise` installed: [Install mise](https://mise.jdx.dev/getting-started.html), a tool for managing installed language runtimes and environment variables.
 2. [Install Docker](https://www.docker.com/get-started/)
-3. Install the following dependencies: `libgit2-dev`, `libsecret-1-dev`, `libxml2-dev`, `libfribidi-dev`, `libharfbuzz-dev`, `libtiff-dev` and `libwebp-dev`
+3. Install the following dependencies: `libgit2-dev`, `libsecret-1-dev`, `libxml2-dev`, `libfribidi-dev`, `libharfbuzz-dev`, `libtiff-dev`, `libwebp-dev` and `libssl-dev`
 
 
 ### Getting Started
