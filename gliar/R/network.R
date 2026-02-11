@@ -6,8 +6,8 @@ GliaClient <- R6::R6Class("GliaClient",
     timeout = NULL,
 
     initialize = function(
-        base_url = Sys.getenv("GLIA_API_URL", "http://localhost:8000"),
-        timeout = 10.0
+      base_url = Sys.getenv("GLIA_API_URL", "http://localhost:8000"),
+      timeout = 10.0
     ) {
       self$base_url <- base_url
       self$timeout <- as.numeric(timeout)
@@ -21,9 +21,11 @@ GliaClient <- R6::R6Class("GliaClient",
       result <- tryCatch({
         gliar::push_telemetry(json_str, self$base_url, self$timeout)
       }, error = function(e) {
-        warning(paste("glia_core Error:", e$message))
-        return(list(status = 0))
+        warning(paste("Rust FFI Error:", e$message))
+        return(NULL)
       })
+
+      if (is.null(result)) return(FALSE)
 
       if (result$status >= 200 && result$status < 300) {
         return(TRUE)
