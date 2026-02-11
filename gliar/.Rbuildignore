@@ -1,2 +1,6 @@
 ^renv$
 ^renv\.lock$
+^src/rust/target$
+^gliar\.toml$
+^\.config$
+^\.mise.*$
