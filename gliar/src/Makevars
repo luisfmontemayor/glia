@@ -1,7 +1,7 @@
 TARGET_DIR = ./rust/target
 LIBDIR = $(TARGET_DIR)/release
 STATLIB = $(LIBDIR)/libglia_core.a
-PKG_LIBS = -L$(LIBDIR) -lglia_core
+PKG_LIBS = -L$(LIBDIR) -Wl,--whole-archive -lglia_core -Wl,--no-whole-archive -lpthread -ldl -lm -lssl -lcrypto -lrt
 
 $(SHLIB): $(STATLIB)
 
