@@ -3,7 +3,4 @@ description = "Build/Install Python extension"
 dir         = "glia_core"
 run         = "maturin develop --release"
 
-[tasks."glia_core:build-r"]
-description = "Build R extension"
-dir         = "glia_core"
-run         = "cargo build --release --no-default-features --features r"
+# R built and installation is handled by gliar/src/Makevars
