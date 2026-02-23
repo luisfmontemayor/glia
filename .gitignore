@@ -13,3 +13,4 @@ gliar/src/*.dll
 gliar/src/symbols.rds
 gliar/src/glia_core/
 gliar/.Renviron
+.env.r
