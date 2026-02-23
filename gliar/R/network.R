@@ -6,10 +6,22 @@ GliaClient <- R6::R6Class("GliaClient",
     timeout = NULL,
 
     initialize = function(
-      base_url = Sys.getenv("API_PUSH_URL", "http://localhost:8000/ingest"),
+      base_url = NULL,
       timeout = 10.0
     ) {
-      self$base_url <- base_url
+      target_url <- base_url
+      if (is.null(target_url) || target_url == "") {
+        target_url <- Sys.getenv("API_PUSH_URL")
+      }
+
+      if (is.null(target_url) || target_url == "") {
+        stop(
+          "Glia Error: API_PUSH_URL environment variable is not set and no base_url was provided. ",
+          "Telemetry cannot be sent without a target endpoint."
+        )
+      }
+
+      self$base_url <- target_url
       self$timeout <- as.numeric(timeout)
     },
 
