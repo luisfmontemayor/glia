@@ -6,7 +6,7 @@ GliaClient <- R6::R6Class("GliaClient",
     timeout = NULL,
 
     initialize = function(
-      base_url = Sys.getenv("GLIA_API_URL", "http://localhost:8000"),
+      base_url = Sys.getenv("API_URL", "http://localhost:8000"),
       timeout = 10.0
     ) {
       self$base_url <- base_url
