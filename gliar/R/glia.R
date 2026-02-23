@@ -26,7 +26,8 @@
 #'   tags = list(team = "data-science", priority = "high")
 #' )
 #' }
-glia_init <- function(api_url = Sys.getenv("API_INGEST_URL"),
+# TODO: adapt to base URL env var
+glia_init <- function(api_url = "http://localhost:8000",
                       app_name = NULL,
                       app_version = NULL,
                       tags = list()) {
@@ -107,16 +108,21 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
   on.exit({
     metrics <- tracker$capture(exit_code = exit_code)
 
-    final_name <- name %||% .glia_env$app_name
-    if (!is.null(final_name)) {
-      metrics$program_name <- final_name
+    if (is.null(metrics$script_path) || length(metrics$script_path) == 0) {
+      metrics$script_path <- "R_session"
+    } else {
+      metrics$script_path <- as.character(metrics$script_path)
     }
-    
-    metrics$program_version <- version %||% .glia_env$app_version
+
+    final_name <- name %||% .glia_env$app_name %||% metrics$script_path
+    metrics$program_name <- as.character(final_name)
+
+    metrics$program_version <- as.character(
+      version %||% .glia_env$app_version %||% "0.0.0"
+    )
 
     .glia_env$client$send_job_run(metrics)
   })
-
   tryCatch({
     rlang::eval_tidy(expr_quo)
   }, error = function(e) {
