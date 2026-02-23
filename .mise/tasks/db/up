@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Start Postgres container"
-docker compose -f backend/compose.yml up -d

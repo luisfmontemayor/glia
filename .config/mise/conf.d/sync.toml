@@ -1,0 +1,12 @@
+[tasks."sync:python-versions"]
+description = "Sync python versions in pyproject.toml files"
+run         = "scripts/sync_python_versions_in_configs.py && uv lock --upgrade"
+
+[tasks."sync:lazygit"]
+description = "Sync lazygit config"
+sources     = ["lazygit.yml"]
+run         = "cp --force lazygit.yml .git/lazygit.yml"
+
+[tasks."sync:db-migration"]
+description = "Apply pending migrations"
+depends     = ["db:migration-plan", "db:migrate"]

@@ -4,6 +4,7 @@
 
 import sys
 from pathlib import Path
+from typing import Literal
 
 from glia_common import cli, system
 
@@ -26,7 +27,7 @@ def confirm_stage_all():
 
 
 def list_staged_files() -> list[str]:
-    output = system.run_command(["git", "diff", "--cached", "--name-only"])
+    output: str | None = system.run_command(["git", "diff", "--cached", "--name-only"])
     if not output:
         return []
     return output.split("\n")
@@ -36,8 +37,8 @@ def stage_all_files():
     system.run_command(["git", "add", "--all"], capture=False)
 
 
-def get_staged_files():
-    staged_files = list_staged_files()
+def get_staged_files() -> list[str]:
+    staged_files: list[str] = list_staged_files()
     if not staged_files:
         if confirm_stage_all():
             stage_all_files()
@@ -54,27 +55,11 @@ def is_infra_file(
     )
 
 
-def get_common_path(scopes: list[str]) -> str | None:
-    if not scopes:
-        return None
-
-    split_scopes = [s.split("/") for s in scopes]
-    common_parts = []
-
-    for parts in zip(*split_scopes, strict=False):
-        if all(p == parts[0] for p in parts):
-            common_parts.append(parts[0])
-        else:
-            break
-
-    return "/".join(common_parts) if common_parts else None
-
-
 def add_scope_category(filepath: str) -> str:
     path = Path(filepath)
     parts = path.parts
 
-    category = parts[0] if parts else ""
+    category: str | Literal[""] = parts[0] if parts else ""
     filename = path.name
 
     if is_infra_file(filename, filepath=path):
@@ -103,16 +88,30 @@ def add_scope_category(filepath: str) -> str:
 
 
 def get_staged_scopes():
-    unique_staged_scopes = [add_scope_category(f) for f in get_staged_files()]
-    possible_scope_choices = []
-    possible_scope_choices.extend(list(set(unique_staged_scopes)))
+    unique_staged_scopes: set[str] = {add_scope_category(f) for f in get_staged_files()}
+    extended_scopes: set[str] = set(unique_staged_scopes)
+    for scope in unique_staged_scopes:
+        if scope == NO_SCOPE_STR or "infrastructural" in scope:
+            continue
 
-    common_scope = get_common_path(unique_staged_scopes)
-    if common_scope and common_scope not in possible_scope_choices:
-        possible_scope_choices.insert(0, common_scope)
+        parts: list[str] = scope.split("/")
+        if len(parts) > 1:
+            extended_scopes.add(parts[0])
 
-    possible_scope_choices = sorted(possible_scope_choices)
-    if NO_SCOPE_STR not in possible_scope_choices:
-        possible_scope_choices.append(NO_SCOPE_STR)
+    def scope_sort_key(s):
+        # Primary Key: Boolean flag.
+        # False (0) -> Normal scopes (First)
+        # True  (1) -> NO_SCOPE_STR (Last)
+        is_none: bool = s == NO_SCOPE_STR
 
-    return possible_scope_choices
+        parts: list[str] = s.split("/")
+        root: str = parts[0]
+
+        # Tuple comparison order:
+        # 1. is_none (0 vs 1)
+        # 2. root (Group alphabetically)
+        # 3. length (Shortest first within group)
+        # 4. string (Tie-breaker)
+        return (is_none, root, len(s), s)
+
+    return sorted(list(extended_scopes), key=scope_sort_key)

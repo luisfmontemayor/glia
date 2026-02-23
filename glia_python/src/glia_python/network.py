@@ -14,12 +14,12 @@ def push_telemetry(
     metrics: JobMetrics, api_url: str | None = None, timeout: float = 2.0
 ) -> bool:
     """
-    - Auto-config: Reads GLIA_API_URL env var if api_url is not provided.
+    - Auto-config: Reads API_INGEST_URL env var if api_url is not provided.
     - Suppress Errors: Returns False on failure instead of crashing (Fail Silent).
     """
-    target_url: str | None = api_url or os.getenv("GLIA_API_URL")
+    target_url: str | None = api_url or os.getenv("API_INGEST_URL")
     if not target_url:
-        logger.warning("[Glia] No GLIA_API_URL configured. Telemetry dropped.")
+        logger.warning("[Glia] No API_INGEST_URL configured. Telemetry dropped.")
         return False
 
     try:

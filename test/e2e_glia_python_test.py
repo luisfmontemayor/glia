@@ -1,4 +1,6 @@
-from unittest.mock import patch
+import json
+import uuid
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -6,32 +8,47 @@ from backend.main import app
 from glia_python import Glia
 
 
-def test_end_to_end_telemetry_flow():
+def test_end_to_end_telemetry_flow(monkeypatch):
     """
     Simulates a full run:
-    1. User runs code with Glia Client.
-    2. Client sends data (intercepted).
-    3. Backend receives data and saves to DB.
-    4. We query the DB to verify integrity.
+    1. Synchronous environment for the synchronous Glia client.
+    2. Unique ID to prevent stale data collisions.
+    3. Correct API_INGEST_URL environment variable.
     """
-    server = TestClient(app)
+    with TestClient(app) as server:
+        unique_id = uuid.uuid4().hex[:6]
+        unique_name = f"e2e_{unique_id}"
+        monkeypatch.setenv("API_INGEST_URL", "http://localhost:8000/ingest")
 
-    def mock_post(url, json, timeout):
-        path = "/" + url.split("/", 3)[-1]
-        return server.post(path, json=json)
+        def mock_glia_core_push(json_payload, target_url, timeout):
+            path = "/" + target_url.split("/", 3)[-1]
 
-    with patch("glia_python.network.httpx.post", side_effect=mock_post):
-        with Glia.tracker(program_name="e2e_job", context={"e2e": "true"}) as _tracker:
-            _x = 1 + 1
+            response = server.post(path, json=json.loads(json_payload))
 
-    response = server.get("/jobs/")
-    assert response.status_code == 200
+            mock_result = MagicMock()
+            mock_result.status = response.status_code
+            mock_result.body = response.text
+            return mock_result
 
-    jobs = response.json()
-    assert len(jobs) > 0
+        with patch(
+            "glia_python.network.glia_core.push_telemetry",
+            side_effect=mock_glia_core_push,
+        ):
+            with Glia.tracker(program_name=unique_name, context={"e2e": "true"}):
+                _x = 1 + 1
 
-    latest_job = jobs[-1]
-    assert latest_job["program_name"] == "e2e_job"
-    assert latest_job["meta"]["e2e"] == "true"
+        response = server.get("/telemetry")
+        assert response.status_code == 200
 
-    print("\nE2E Success: Client data successfully reached the Backend DB")
+        jobs = response.json()
+        assert len(jobs) > 0
+
+        current_job = next(
+            (j for j in reversed(jobs) if unique_id in j["program_name"]), None
+        )
+
+        assert current_job is not None, f"Job with {unique_id} not found in DB"
+        assert f"pytest:{unique_name}" in current_job["program_name"]
+        assert current_job["meta"]["e2e"] == "true"
+
+    print(f"\n✅ E2E Success: Verified job {unique_name}")

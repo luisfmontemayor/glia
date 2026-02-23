@@ -6,7 +6,8 @@ edition = "2021"
 [lib]
 name = "glia_core"
 # cdylib -> shared library for Python (.so/.pyd)
-# rlib -> CLI binary 
+# rlib -> for cargo test and CLI binary
+# staticlib -> for R package (static C build), added on bundling
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]

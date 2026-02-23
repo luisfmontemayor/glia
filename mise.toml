@@ -9,9 +9,10 @@ r      = "4.4.1"
 ruff   = "0.14.8"
 uv     = "0.9.17"
 rust   = "1.93.0"
+pandoc = "3.6.3"
 
 [env]
-_.file        = ".env"
+_.file        = [".env", ".env.r"]
 _.path        = ["./scripts"]
 PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
 VERSION       = "0.1.0"
@@ -24,15 +25,8 @@ RENV_CONFIG_REPOS_OVERRIDE = "https://cloud.r-project.org"
 API_PORT      = "8000"
 POSTGRES_PORT = "5432"
 POSTGRES_HOST = "localhost"
+API_INGEST_URL = "http://{{ env.POSTGRES_HOST }}:{{ env.API_PORT }}/ingest"
 
 [tasks.alembic]
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
-
-# TODO: add glia_core to this
-[tasks.full-setup]
-description = "Plug-and-play setup from scratch: dependencies then local database"
-run = """
-mise run setup:deps && \
-mise run setup:backend
-"""
