@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_HOST: str
     POSTGRES_PORT: int
-    API_PUSH_PORT: int
+    API_PORT: int
 
     _DATABASE_URL: str | None = None
 
