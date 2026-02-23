@@ -16,7 +16,7 @@ _.file        = ".env"
 _.path        = ["./scripts"]
 PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
 VERSION       = "0.1.0"
-DEV_MODE = true
+GLIA_DEV_MODE = true
 
 RENV_CONFIG_PAK_ENABLED    = true
 RENV_PATHS_LIBRARY         = "renv/library"
@@ -31,9 +31,9 @@ API_INGEST_URL = "https://{{ env.POSTGRES_HOST }}:{{ env.API_PORT }}/ingest"
 description = "Internal helper for alembic commands"
 run         = "uv run alembic -c backend/alembic.ini"
 
-[tasks.full-setup]
+[tasks."setup:full"]
 description = "Plug-and-play setup from scratch: dependencies then local database"
 run = """
 mise run setup:deps && \
-mise run setup:backend
+mise run setup:db
 """
