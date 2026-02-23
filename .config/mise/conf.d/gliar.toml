@@ -55,3 +55,9 @@ Rscript -e "
   devtools::install(upgrade = 'never', quick = TRUE);
   "
 """
+
+[tasks."gliar:install"]
+description = "Compile Rust code and install gliar package locally"
+dir         = "gliar"
+depends     = ["setup:r-deps"]
+run         = "Rscript -e 'devtools::install(quick = TRUE)'"
