@@ -1,4 +1,0 @@
-#!/bin/bash
-#MISE description="Python deps"
-#MISE alias="spd"
-uv sync && uv lock

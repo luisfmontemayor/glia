@@ -1,0 +1,59 @@
+[tasks."setup:mise-deps"]
+description = "Program deps"
+run         = "mise install"
+
+[tasks."setup:python-deps"]
+alias       = "spd"
+description = "Python deps"
+run         = "uv sync && uv lock"
+
+[tasks."setup:r-deps"]
+description = "Sync R dependencies from DESCRIPTION using renv + pak"
+dir = "gliar"
+sources = ["DESCRIPTION", "renv.lock"]
+outputs = ["renv.lock"]
+run = """
+CURRENT_DIR_NAME=$(basename "$(pwd)")
+
+if [ "$CURRENT_DIR_NAME" != "gliar" ]; then
+    printf "Error: Not in 'gliar' directory. Current: %s\\n" "$(pwd)"
+    exit 1
+fi
+
+Rscript -e '
+if (!file.exists("renv/activate.R")) {
+    renv::init(bare = TRUE, restart = FALSE)
+}
+
+stat <- renv::status()
+
+if (isTRUE(stat$synchronized)) {
+    message("Project is already synchronized. Skipping install.")
+} else {
+    options(renv.config.pak.enabled = TRUE)
+    renv::consent(provided = TRUE)
+    renv::install()
+    renv::snapshot(prompt = FALSE)
+}
+
+lib_path <- normalizePath(renv::paths$library(), mustWork = FALSE)
+cat(paste0("R_LIBS_USER=", lib_path, "\\n"), file = "../.env.r")
+message(paste("[Glia] Configured R_LIBS_USER ->", lib_path))
+'
+"""
+
+[tasks."setup:deps"]
+alias       = "sd"
+description = "Run all deps installation tasks"
+run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-deps && mise sync:lazygit"
+
+[tasks."setup:db"]
+description = "Full database lifecycle"
+run         = "mise db:setup-creds"
+
+[tasks."setup:all"]
+description = "Plug-and-play setup from scratch: dependencies then local database"
+run = """
+mise run setup:deps && \
+mise run setup:db
+"""

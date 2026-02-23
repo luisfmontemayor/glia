@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Setup credentials and container"
-setup_postgres_creds.py

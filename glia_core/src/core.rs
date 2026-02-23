@@ -11,6 +11,7 @@ pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<P
         .build()
         .map_err(|e| e.to_string())?;
 
+    // TODO let ingest be passed from param and not acted upon
     let endpoint = format!("{}/ingest", url.trim_end_matches('/'));
 
     let resp = client.post(&endpoint)

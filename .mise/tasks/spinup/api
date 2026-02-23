@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Start up API server and check status"
-mise run api:up && mise run api:status-wait

@@ -1,3 +1,0 @@
-#!/bin/bash
-#MISE description="Check API status"
-curl -sf -o /dev/null http://localhost:8000/health/ready

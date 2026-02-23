@@ -16,6 +16,9 @@ dependencies = [
     "pytest-asyncio>=1.3.0",
     "httpx>=0.28.1",
     "python-dotenv>=1.2.1",
+    "glia_common",
+    "glia_python",
+    "glia_core",
 ]
 
 [tool.uv.workspace]
@@ -23,6 +26,8 @@ members = ["glia_python", "glia_core", "libs/python/glia_common"]
 
 [tool.uv.sources]
 glia_common = { workspace = true, editable = true }
+glia_python = { workspace = true, editable = true }
+glia_core = { workspace = true, editable = true }
 
 [tool.ty.environment]
 python-version = "3.12"
