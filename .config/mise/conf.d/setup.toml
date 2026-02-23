@@ -10,7 +10,7 @@ run         = "uv sync && uv lock"
 [tasks."setup:r-deps"]
 description = "Sync R dependencies from DESCRIPTION using renv + pak"
 dir = "gliar"
-sources = ["DESCRIPTION"]
+sources = ["DESCRIPTION", "renv.lock"]
 outputs = ["renv.lock"]
 run = """
 CURRENT_DIR_NAME=$(basename "$(pwd)")
