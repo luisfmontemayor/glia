@@ -6,7 +6,7 @@ run         = "mise run db:up && mise run db:status-wait && mise run db:migrate"
 description = "Start up API server and check status"
 run         = "mise run api:up && mise run api:status-wait"
 
-[tasks."spinup:backend"]
+[tasks."spinup:all"]
 alias       = "sb"
 description = "Start database and API server"
 run         = "mise spinup:db && mise run spinup:api"

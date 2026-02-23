@@ -35,6 +35,10 @@ if (isTRUE(stat$synchronized)) {
     renv::install()
     renv::snapshot(prompt = FALSE)
 }
+
+lib_path <- .libPaths()[1]
+write(paste0("R_LIBS_USER=", lib_path), file = ".Renviron", append = FALSE)
+message("[Glia] Auto-configured R_LIBS_USER in .Renviron")
 '
 """
 
@@ -45,8 +49,4 @@ run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-de
 
 [tasks."setup:db"]
 description = "Full database lifecycle"
-run         = "mise db:setup-creds && mise spinup:db"
-
-[tasks."setup:backend"]
-description = "Full backend setup"
-run         = "mise setup:db && mise spinup:api"
+run         = "mise db:setup-creds"
