@@ -25,7 +25,7 @@ RENV_CONFIG_REPOS_OVERRIDE = "https://cloud.r-project.org"
 API_PORT      = "8000"
 POSTGRES_PORT = "5432"
 POSTGRES_HOST = "localhost"
-API_PUSH_URL = "https://{{ env.POSTGRES_HOST }}:{{ env.API_PORT }}/ingest"
+API_INGEST_URL = "https://{{ env.POSTGRES_HOST }}:{{ env.API_PORT }}/ingest"
 
 [tasks.alembic]
 description = "Internal helper for alembic commands"

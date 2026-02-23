@@ -13,13 +13,13 @@ def test_end_to_end_telemetry_flow(monkeypatch):
     Simulates a full run:
     1. Synchronous environment for the synchronous Glia client.
     2. Unique ID to prevent stale data collisions.
-    3. Correct API_PUSH_URL environment variable.
+    3. Correct API_INGEST_URL environment variable.
     """
     with TestClient(app) as server:
         # 1. SETUP:
         unique_id = uuid.uuid4().hex[:6]
         unique_name = f"e2e_{unique_id}"
-        monkeypatch.setenv("API_PUSH_URL", "http://localhost:8000/ingest")
+        monkeypatch.setenv("API_INGEST_URL", "http://localhost:8000/ingest")
 
         # 2. MOCK: Must be a regular 'def' (synchronous)
         def mock_glia_core_push(json_payload, target_url, timeout):
