@@ -10,7 +10,7 @@ SystemTracker <- R6::R6Class("SystemTracker",
     cpu_start = NULL,
     run_id = NULL,
     user_meta = NULL,
-    script_path = NULL,
+    script_path = "R_session", # Default to string instead of NULL
     
     initialize = function(context = list()) {
       self$process <- ps::ps_handle()
@@ -21,7 +21,11 @@ SystemTracker <- R6::R6Class("SystemTracker",
       args <- commandArgs(trailingOnly = FALSE)
       file_arg <- grep("--file=", args, value = TRUE)
       if (length(file_arg) > 0) {
-        self$script_path <- sub("--file=", "", file_arg)
+        # Ensure we only take one and it is a character string
+        path <- sub("--file=", "", file_arg[1])
+        if (nchar(path) > 0) {
+          self$script_path <- path
+        }
       }
     },
     
@@ -50,31 +54,35 @@ SystemTracker <- R6::R6Class("SystemTracker",
       rss_bytes <- ps::ps_memory_info(self$process)[["rss"]]
       max_rss_mb <- rss_bytes / (1024^2)
       
-      sha <- "unknown-hash"
-      if (!is.null(self$script_path) && file.exists(self$script_path)) {
+      # SHA fallback to empty string or known placeholder
+      sha <- "" 
+      if (!is.null(self$script_path) && 
+          self$script_path != "R_session" && 
+          file.exists(self$script_path)) {
         sha <- digest::digest(self$script_path, file = TRUE, algo = "sha256")
       }
       
       prog_name <- "r_client"
-      if (!is.null(self$script_path)) {
+      if (!is.null(self$script_path) && self$script_path != "R_session") {
         prog_name <- basename(self$script_path)
       }
 
+      # Return the list, ensuring all character fields are actual strings
       list(
-        run_id = self$run_id,
-        program_name = prog_name,
-        user_name = Sys.info()[["user"]],
-        script_sha256 = sha,
-        hostname = Sys.info()[["nodename"]],
-        os_info = paste(Sys.info()[["sysname"]], Sys.info()[["release"]]),
-        script_path = self$script_path,
-        argv = commandArgs(trailingOnly = TRUE),
-        wall_time_sec = wall_time,
+        run_id = as.character(self$run_id),
+        program_name = as.character(prog_name),
+        user_name = as.character(Sys.info()[["user"]]),
+        script_sha256 = as.character(sha),
+        hostname = as.character(Sys.info()[["nodename"]]),
+        os_info = as.character(paste(Sys.info()[["sysname"]], Sys.info()[["release"]])),
+        script_path = as.character(self$script_path),
+        argv = as.character(commandArgs(trailingOnly = TRUE)),
+        wall_time_sec = as.numeric(wall_time),
         started_at = format(self$start_time, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
         ended_at = format(end_time, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
-        cpu_time_sec = cpu_consumed,
-        cpu_percent = round(cpu_percent, 2),
-        max_rss_mb = round(max_rss_mb, 2),
+        cpu_time_sec = as.numeric(cpu_consumed),
+        cpu_percent = round(as.numeric(cpu_percent), 2),
+        max_rss_mb = round(as.numeric(max_rss_mb), 2),
         exit_code_int = as.integer(exit_code),
         meta = self$user_meta
       )
