@@ -8,7 +8,7 @@ from .config import settings
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEV_MODE,
+    echo=settings.GLIA_DEV_MODE,
     future=True,
     pool_pre_ping=True,
 )
