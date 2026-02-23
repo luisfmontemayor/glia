@@ -10,8 +10,8 @@
 #' Configures the package-level client that will be used for all tracking.
 #' This should be called once when your application or script starts.
 #'
-#' @param api_url The URL of the Glia API backend. Defaults to the `API_URL`
-#'   environment variable or "http://localhost:8000".
+#' @param api_url The URL of the Glia API backend. Defaults to the `API_PUSH_URL`
+#'   environment variable or "http://localhost:8000/ingest".
 #' @param app_name A global name for the application or project being tracked.
 #' @param app_version A global version for the application.
 #' @param tags A named list of global tags to be included with every tracked event.
@@ -26,7 +26,7 @@
 #'   tags = list(team = "data-science", priority = "high")
 #' )
 #' }
-glia_init <- function(api_url = Sys.getenv("API_URL"),
+glia_init <- function(api_url = Sys.getenv("API_PUSH_URL"),
                       app_name = NULL,
                       app_version = NULL,
                       tags = list()) {
@@ -34,7 +34,7 @@ glia_init <- function(api_url = Sys.getenv("API_URL"),
   if (api_url == "") {
     stop(
       "[Glia Error] API endpoint not found. \n",
-      "Please set the API_URL environment variable (e.g., in mise.toml) ",
+      "Please set the API_PUSH_URL environment variable (e.g., in mise.toml) ",
       "or provide it directly to glia_init(api_url = '...').",
       call. = FALSE
     )

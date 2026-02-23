@@ -36,7 +36,7 @@ def test_push_telemetry_success(mock_post):
     mock_response.raise_for_status.return_value = None
     mock_post.return_value = mock_response
 
-    success: bool = push_telemetry(metrics, api_url="http://localhost:8000")
+    success: bool = push_telemetry(metrics, api_url="http://localhost:8000/ingest")
 
     assert success is True
 
@@ -61,7 +61,7 @@ def test_push_telemetry_no_config():
     assert success is False
 
 
-# 3. Glia reads API_URL from environment variable if used
+# 3. Glia reads API_PUSH_URL from environment variable if used
 @patch("os.getenv")
 @patch("glia_python.network.httpx.post")
 def test_push_telemetry_uses_env_var(mock_post, mock_getenv):
@@ -74,7 +74,7 @@ def test_push_telemetry_uses_env_var(mock_post, mock_getenv):
     success: bool = push_telemetry(metrics)
 
     assert success is True
-    mock_getenv.assert_called_once_with("API_URL")
+    mock_getenv.assert_called_once_with("API_PUSH_URL")
     mock_post.assert_called_once()
     call_args = mock_post.call_args
     assert call_args.args[0] == "http://env-var-url:9000/jobs/"
