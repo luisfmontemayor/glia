@@ -12,8 +12,7 @@ run = "uv run pytest glia_python/test --color=yes"
 [tasks."test:gliar"]
 description = "Run R package tests"
 dir         = "gliar"
-depends     = ["gliar:build"]
-run         = "Rscript -e 'devtools::test()'"
+run         = "Rscript -e 'res <- testthat::test_local(); df <- as.data.frame(res); if (sum(df$failed) + sum(df$error) > 0) q(status = 1)'"
 
 [tasks."test:e2e"]
 description = "Tests client run, push to db, db write and query for integrity"
