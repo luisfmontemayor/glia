@@ -11,6 +11,22 @@ run = "uv run pytest glia_python/test --color=yes"
 
 [tasks."test:gliar"]
 description = "Run R package tests"
-dir = "gliar"
-depends = ["gliar:build"]
-run = "Rscript -e 'devtools::test()'"
+dir         = "gliar"
+depends     = ["gliar:build"]
+run         = "Rscript -e 'devtools::test()'"
+
+[tasks."test:e2e"]
+description = "Tests client run, push to db, db write and query for integrity"
+dir         = "."
+run         = "uv run pytest test/e2e_glia_python_test.py"
+
+[tasks."test:all"]
+description = "Run all tests"
+dir = "."
+run = """
+mise test:glia_core && \
+mise test:backend && \
+mise test:glia_python && \
+mise test:gliar && \
+mise test:e2e
+"""
