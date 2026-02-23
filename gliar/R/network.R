@@ -31,7 +31,7 @@ GliaClient <- R6::R6Class("GliaClient",
       json_str <- as.character(jsonlite::toJSON(payload, auto_unbox = TRUE))
 
       result <- tryCatch({
-        gliar::push_telemetry(json_str, self$base_url, self$timeout)
+        push_telemetry(json_str, self$base_url, self$timeout)
       }, error = function(e) {
         warning(paste("Rust FFI Error:", e$message))
         return(NULL)
