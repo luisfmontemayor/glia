@@ -3,6 +3,7 @@
 export(glia_init)
 export(glia_track)
 export(glia_wrap)
+export(push_telemetry)
 import(rlang)
 importFrom(R6,R6Class)
 importFrom(digest,digest)
