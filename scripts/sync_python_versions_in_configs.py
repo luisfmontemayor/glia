@@ -12,9 +12,8 @@ from pathlib import Path
 from sys import stderr
 
 VERSION_FILE: Path = Path(".python-version")
-IGNORED_DIRS: set[str] = {".venv", "node_modules", ".git", "dist", "build"}
-IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("glia_core/Cargo.toml")}
-
+IGNORED_DIRS: set[str] = {".venv", "node_modules", ".git", "dist", "build", "gliar", ".config/mise/conf.d/"}
+IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("glia_core/Cargo.toml")} | {p for p in Path(".config/mise/conf.d/").rglob("*.toml")}
 
 def get_python_version(version_file: Path = VERSION_FILE) -> str:
     version: str = version_file.read_text().strip()
