@@ -5,14 +5,12 @@
 
 #######
 
-- [ ] // TODO let ingest be passed from param and not acted upon, in core.rs
+
+- [ ] cli gui 
 - [ ] Readme needs r installation path mapping 
 - [ ] change walltime to ms not secs and make into int
 - [ ] health check: is it legit  
 - [ ] cloud, by using the sandbpx software for aws, k8 and ansible
-- [ ] cli gui 
-- [ ] mise scope, with immediately after being mise/mise.toml or mise/gliar for example
-- [ ] add readme to scope
 - [ ] downgrade to 3.10 for better interop
 - [ ] change python version comment to use with mise run sync python or whatever it is
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
@@ -20,12 +18,9 @@
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 - [ ] An interactive mode
-
-
-
-
-
-
+- [ ] API_INJEST_URL to GLIA_INJEST_URL
+- [ ] remove return from R
+- [ ] backend migrations fix, so that scope doesn't include hash  but ends at backend/migrations/versions
 
 
 
@@ -37,6 +32,14 @@
 - **Database:** PostgreSQL (Optimized for high-frequency writes)
 - **Infrastructure:** Docker / Compose
 - **Tooling:** `uv` (Python), `mise` (Env management), `conventional commits`
+
+## Technical Enemies:
+- The client having too much observer effect error
+- Errors because of far too large pool of jobs
+- Data missing because of intermittent connection
+- Data missing because of overwhelmed backend
+
+
 
 ### v0 Scope
 - 2 Clients: Python and R (Single script model).
