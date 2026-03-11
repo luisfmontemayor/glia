@@ -11,10 +11,7 @@ pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<P
         .build()
         .map_err(|e| e.to_string())?;
 
-    // TODO let ingest be passed from param and not acted upon
-    let endpoint = format!("{}/ingest", url.trim_end_matches('/'));
-
-    let resp = client.post(&endpoint)
+    let resp = client.post(url)
         .header("Content-Type", "application/json")
         .body(json_payload.to_string())
         .send()
@@ -76,7 +73,7 @@ mod tests {
     #[test]
     // 3. Network failure path: ensure function returns Err when host is unreachable
     fn test_perform_push_unreachable_host() {
-        let result = perform_push("{}", "http://invalid.local", 0.1);
+        let result = perform_push("{}", "http://invalid.local/injest", 0.1);
         assert!(result.is_err());
     }
 }
