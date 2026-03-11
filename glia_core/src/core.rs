@@ -31,7 +31,7 @@ mod tests {
     // 1. Success path: ensure payload reaches endpoint and returns 200 OK
     fn test_perform_push_success() {
         let mut server = mockito::Server::new();
-        let url = server.url();
+        let url = format!("{}/ingest", server.url());
 
         let _mock = server.mock("POST", "/ingest")
             .with_status(200)
@@ -53,7 +53,7 @@ mod tests {
     // 2. Server failure path: ensure function returns Ok even if server responds with 500
     fn test_perform_push_server_error() {
         let mut server = mockito::Server::new();
-        let url = server.url();
+        let url = format!("{}/ingest", server.url());
 
         // Mock a 500 Internal Server Error
         let _mock = server.mock("POST", "/ingest")
