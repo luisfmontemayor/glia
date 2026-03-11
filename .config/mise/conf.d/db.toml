@@ -29,7 +29,7 @@ until mise run db:status > /dev/null 2>&1; do
   printf "."
   sleep 1
 done
-echo "\n[SUCCESS] Database is ready."
+echo "[SUCCESS] Database is ready."
 """
 
 [tasks."db:migration-rollback"]
