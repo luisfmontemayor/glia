@@ -62,6 +62,12 @@ def add_scope_category(filepath: str) -> str:
     category: str | Literal[""] = parts[0] if parts else ""
     filename = path.name
 
+    if len(parts) >= 3 and parts[0] == ".config" and parts[1] == "mise":
+        return f"mise/{filename}"
+
+    if "mise" in filename:
+        return filename
+
     if is_infra_file(filename, filepath=path):
         return f"infrastructural/{filename}"
 

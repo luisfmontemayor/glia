@@ -11,8 +11,6 @@ SCOPE_CATEGORIES: set[str] = {
     "libs",
 }
 INFRA_FILES: set[str] = {
-    "mise.toml",
-    "mise.lock",
     "pyproject.toml",
     "uv.lock",
     "ruff.toml",
@@ -20,5 +18,5 @@ INFRA_FILES: set[str] = {
     ".gitignore",
     "lazygit.yml",
 }
-INFRA_DIRS: set[str] = {".git", ".vscode"}
+INFRA_DIRS: set[str] = {".git", ".vscode", ".config/mise/conf.d/"}
 NO_SCOPE_STR = "None"
