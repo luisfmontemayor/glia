@@ -9,4 +9,6 @@ run         = "cp --force lazygit.yml .git/lazygit.yml"
 
 [tasks."sync:db-migration"]
 description = "Apply pending migrations"
-depends     = ["db:migration-plan", "db:migrate"]
+depends     = "db:status-wait"
+run         = "mise run db:migration-plan && mise run db:migrate"
+
