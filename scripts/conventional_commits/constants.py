@@ -18,5 +18,9 @@ INFRA_FILES: set[str] = {
     ".gitignore",
     "lazygit.yml",
 }
+MISE_FILES: set[str] = {
+    "mise.toml",
+    "mise.lock",
+}
 INFRA_DIRS: set[str] = {".git", ".vscode", ".config/mise/conf.d/"}
 NO_SCOPE_STR = "None"
