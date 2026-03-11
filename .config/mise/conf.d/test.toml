@@ -4,7 +4,7 @@ depends = ["api:status-wait"]
 run     = "cargo test --lib"
 
 [tasks."test:backend"]
-depends = ["db:status-wait"]
+depends = "sync:db-migration"
 run     = "uv run pytest backend/test --color=yes"
 
 [tasks."test:glia_python"]
