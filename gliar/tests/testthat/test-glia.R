@@ -18,7 +18,7 @@ ns <- asNamespace("gliar")
 if (bindingIsLocked("SystemTracker", ns)) unlockBinding("SystemTracker", ns)
 
 test_that("glia_track executes code and sends metrics on success", {
-  glia_init(api_url = "http://test-api")
+  glia_init(api_url = "http://test-api/injest")
   mock_client <- mock(TRUE)
 
   assign("client", list(send_job_run = mock_client), envir = gliar:::.glia_env)
@@ -33,7 +33,7 @@ test_that("glia_track executes code and sends metrics on success", {
 })
 
 test_that("glia_wrap handles function tracking correctly", {
-  glia_init(api_url = "http://test-api")
+  glia_init(api_url = "http://test-api/injest")
   mock_client <- mock(TRUE)
   assign("client", list(send_job_run = mock_client), envir = gliar:::.glia_env)
   assign("SystemTracker", create_mock_tracker(), envir = ns)
