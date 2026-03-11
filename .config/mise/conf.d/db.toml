@@ -4,7 +4,12 @@ run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$
 
 [tasks."db:migration-plan"]
 description = "Generate a new migration script"
-run         = "mise run alembic revision --autogenerate -m"
+run = """
+mise run alembic check || \
+echo -n "Enter migration message: "; 
+read msg; 
+mise run alembic revision --autogenerate -m "$msg"
+"""
 
 [tasks."db:down"]
 description = "Stop Postgres container"
