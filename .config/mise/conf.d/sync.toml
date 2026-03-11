@@ -12,3 +12,6 @@ description = "Apply pending migrations"
 depends     = "db:status-wait"
 run         = "mise run db:migration-plan && mise run db:migrate"
 
+[tasks."sync"]
+description = "Fully synchronize the local dev environment"
+run         = "mise run sync:python-versions && mise run sync:lazygit && mise run sync:db-migration"
