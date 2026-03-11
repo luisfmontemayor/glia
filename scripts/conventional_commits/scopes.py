@@ -68,11 +68,14 @@ def add_scope_category(filepath: str) -> str:
     category: str | Literal[""] = parts[0] if parts else ""
     filename = path.name
 
-    if parts[:-1] == (".config", "mise", "conf.d"):
-        return f"mise/{filename.rstrip('.toml')}"
+    if filename == "README.md":
+        return "README"
 
     if filename in MISE_FILES:
         return filename
+
+    if parts[:-1] == (".config", "mise", "conf.d"):
+        return f"mise/{filename.rstrip('.toml')}"
 
     if is_infra_file(filename, filepath=path):
         return f"infrastructural/{filename}"
