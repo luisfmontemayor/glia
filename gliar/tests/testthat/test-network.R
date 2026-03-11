@@ -4,9 +4,9 @@ library(gliar)
 
 test_that("GliaClient sends valid payload successfully", {
   mock_ffi <- mock(list(status = 200, body = "OK"))
-  client <- GliaClient$new(base_url = "http://test-api")
+  client <- GliaClient$new(base_url = "http://test-api/injest")
   
-  stub(client$send_job_run, "gliar::push_telemetry", mock_ffi)
+  stub(client$send_job_run, "push_telemetry", mock_ffi)
   
   payload <- list(run_id = "123", cpu_percent = 50)
   success <- client$send_job_run(payload)
@@ -17,7 +17,7 @@ test_that("GliaClient sends valid payload successfully", {
 test_that("GliaClient handles backend errors gracefully", {
   mock_ffi <- mock(list(status = 500, body = "Internal Server Error"))
   client <- GliaClient$new()
-  stub(client$send_job_run, "gliar::push_telemetry", mock_ffi)
+  stub(client$send_job_run, "push_telemetry", mock_ffi)
   
   expect_warning(
     client$send_job_run(list(data = 1)),
@@ -28,7 +28,7 @@ test_that("GliaClient handles backend errors gracefully", {
 test_that("GliaClient handles FFI/Rust panics gracefully", {
   mock_ffi <- mock(stop("Rust Panic"))
   client <- GliaClient$new()
-  stub(client$send_job_run, "gliar::push_telemetry", mock_ffi)
+  stub(client$send_job_run, "push_telemetry", mock_ffi)
   
   expect_warning(
     client$send_job_run(list(data = 1)),
