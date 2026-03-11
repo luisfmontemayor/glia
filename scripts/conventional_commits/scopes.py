@@ -8,7 +8,13 @@ from typing import Literal
 
 from glia_common import cli, system
 
-from .constants import INFRA_DIRS, INFRA_FILES, NO_SCOPE_STR, SCOPE_CATEGORIES
+from .constants import (
+    INFRA_DIRS,
+    INFRA_FILES,
+    MISE_FILES,
+    NO_SCOPE_STR,
+    SCOPE_CATEGORIES,
+)
 
 
 def changed_files_exist():
@@ -65,7 +71,7 @@ def add_scope_category(filepath: str) -> str:
     if parts[:-1] == (".config", "mise", "conf.d"):
         return f"mise/{filename.rstrip('.toml')}"
 
-    if "mise" in filename:
+    if filename in MISE_FILES:
         return filename
 
     if is_infra_file(filename, filepath=path):
