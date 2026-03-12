@@ -72,7 +72,7 @@ impl GliaClient {
                                 *freq.entry(err.clone()).or_insert(0) += 1;
                                 
                                 if debug_mode {
-                                    eprintln!("[GLIA DEBUG] Telemetry push failed: {}", err);
+                                    eprintln!("[GLIA_CORE DEBUG] Telemetry push failed: {}", err);
                                 }
                             }
                         }
@@ -118,7 +118,7 @@ impl GliaClient {
 
 /// A canary function to test FFI panic handling.
 pub fn trigger_panic() {
-    panic!("INTENTIONAL PANIC: Testing FFI boundary safety.");
+    panic!("[GLIA_CORE] INTENTIONAL PANIC: Testing FFI boundary safety.");
 }
 
 #[cfg(test)]

@@ -30,8 +30,8 @@ pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> Robj 
 
     match result {
         Ok(Ok(_)) => list!(success = true).into(),
-        Ok(Err(e)) => list!(success = false, error = e).into(),
-        Err(_) => list!(success = false, error = "Rust panicked during queue_telemetry").into(),
+        Ok(Err(e)) => list!(success = false, error = format!("[GLIA_CORE] {}", e)).into(),
+        Err(_) => list!(success = false, error = "[GLIA_CORE] Rust panicked during queue_telemetry").into(),
     }
 }
 
@@ -59,7 +59,7 @@ pub fn flush_queue() -> Robj {
     match result {
         Ok(Some(summary)) => summary.into(),
         Ok(None) => list!(failed_jobs = 0, common_errors = list()).into(),
-        Err(_) => list!(success = false, error = "Rust panicked during flush_queue").into(),
+        Err(_) => list!(success = false, error = "[GLIA_CORE] Rust panicked during flush_queue").into(),
     }
 }
 
