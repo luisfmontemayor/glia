@@ -30,22 +30,29 @@ GliaClient <- R6::R6Class("GliaClient",
 
       json_str <- as.character(jsonlite::toJSON(payload, auto_unbox = TRUE))
 
-      result <- tryCatch({
-        # Rust FFI
-        push_telemetry(json_str, self$base_url, self$timeout)
+      tryCatch({
+        # Rust FFI (Non-blocking)
+        res <- queue_telemetry(json_str, self$base_url, self$timeout)
+        if (is.list(res) && isTRUE(res$success)) {
+          return(TRUE)
+        } else {
+          warning(paste("[Glia] Failed to queue telemetry:", res$error))
+          return(FALSE)
+        }
       }, error = function(e) {
-        warning(paste("Rust FFI Error:", e$message))
+        warning(paste("[Glia] Could not queue telemetry:", e$message))
+        return(FALSE)
+      })
+    },
+
+    flush = function() {
+      tryCatch({
+        # Rust FFI (Blocking)
+        flush_queue()
+      }, error = function(e) {
+        warning(paste("[Glia] Error during flush:", e$message))
         return(NULL)
       })
-
-      if (is.null(result)) return(FALSE)
-
-      if (result$status >= 200 && result$status < 300) {
-        return(TRUE)
-      } else {
-        warning(paste("Glia Backend Error:", result$status, "-", result$body))
-        return(FALSE)
-      }
     }
   )
 )
