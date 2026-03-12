@@ -10,7 +10,7 @@ static CLIENT: Lazy<Mutex<Option<GliaClient>>> = Lazy::new(|| Mutex::new(None));
 fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
     let mut client_lock = CLIENT.lock().unwrap();
     if client_lock.is_none() {
-        let limit = env::var("GLIA_LOCAL_QUEUE_LIMIT")
+        let limit = env::var("GLIA_CORE_QUEUE_LIMIT")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(1000);
