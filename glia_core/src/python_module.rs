@@ -1,18 +1,53 @@
 use pyo3::prelude::*;
-use crate::core;
+use crate::core::GliaClient;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+use std::env;
 
-#[pyclass(name = "PushResult")]
-pub struct PyPushResult {
-    #[pyo3(get)]
-    pub status: u16,  // HTTP Code (200, 404, 500)
-    #[pyo3(get)]
-    pub body: String, // Server response or Error detail
+static CLIENT: Lazy<Mutex<Option<GliaClient>>> = Lazy::new(|| Mutex::new(None));
+
+fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
+    let mut client_lock = CLIENT.lock().unwrap();
+    if client_lock.is_none() {
+        let limit = env::var("GLIA_LOCAL_QUEUE_LIMIT")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(1000);
+        *client_lock = Some(GliaClient::new(limit));
+    }
+    client_lock
 }
 
 #[pyfunction]
-pub fn push_telemetry(json_payload: String, url: String, timeout: f64) -> PyResult<PyPushResult> {
-    match core::perform_push(&json_payload, &url, timeout) {
-        Ok(res) => Ok(PyPushResult { status: res.status, body: res.body }),
-        Err(e) => Err(pyo3::exceptions::PyConnectionError::new_err(e)),
+#[pyo3(signature = (json_payload, url, timeout=1.0))]
+pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> PyResult<()> {
+    let client_lock = get_client();
+    let client = client_lock.as_ref().unwrap();
+    client.queue_telemetry(&json_payload, &url, timeout)
+        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))
+}
+
+#[pyfunction]
+pub fn flush_queue() -> PyResult<PyFlushSummary> {
+    let client_lock = CLIENT.lock().unwrap();
+    if let Some(client) = client_lock.as_ref() {
+        let summary = client.flush();
+        Ok(PyFlushSummary {
+            failed_jobs: summary.failed_jobs,
+            common_errors: summary.common_errors,
+        })
+    } else {
+        Ok(PyFlushSummary {
+            failed_jobs: 0,
+            common_errors: Vec::new(),
+        })
     }
+}
+
+#[pyclass(name = "FlushSummary")]
+pub struct PyFlushSummary {
+    #[pyo3(get)]
+    pub failed_jobs: usize,
+    #[pyo3(get)]
+    pub common_errors: Vec<(String, usize)>,
 }
