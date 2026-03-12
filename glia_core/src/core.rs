@@ -44,6 +44,86 @@ static STATS: Lazy<Stats> = Lazy::new(|| Stats {
     failed_count: AtomicUsize::new(0),
     error_frequency: Mutex::new(HashMap::new()),
 });
+
+static CHANNEL: Lazy<(Sender<TelemetryMessage>, Receiver<TelemetryMessage>)> = Lazy::new(|| {
+    let limit_str = env::var("GLIA_LOCAL_QUEUE_LIMIT")
+        .expect("FATAL: GLIA_LOCAL_QUEUE_LIMIT environment variable must be set");
+    let limit = limit_str.parse::<usize>()
+        .expect("FATAL: GLIA_LOCAL_QUEUE_LIMIT must be a valid positive integer");
+    
+    let (s, r) = bounded(limit);
+    spawn_worker(r.clone());
+    (s, r)
+});
+
+fn spawn_worker(receiver: Receiver<TelemetryMessage>) {
+    thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to create tokio runtime");
+
+        rt.block_on(async move {
+            let client = reqwest::Client::new();
+            let debug_mode = env::var("GLIA_DEBUG").is_ok();
+            
+            while let Ok(msg) = receiver.recv() {
+                let res = client.post(&msg.url)
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration::from_secs_f64(msg.timeout_sec))
+                    .body(msg.payload)
+                    .send()
+                    .await;
+
+                let error_msg = match res {
+                    Ok(resp) if resp.status().is_success() => None,
+                    Ok(resp) => Some(format!("HTTP {}", resp.status())),
+                    Err(e) => Some(e.to_string()),
+                };
+
+                if let Some(err) = error_msg {
+                    STATS.failed_count.fetch_add(1, Ordering::SeqCst);
+                    let mut freq = STATS.error_frequency.lock().unwrap();
+                    *freq.entry(err.clone()).or_insert(0) += 1;
+                    
+                    if debug_mode {
+                        eprintln!("[GLIA DEBUG] Telemetry push failed: {}", err);
+                    }
+                }
+            }
+        });
+    });
+}
+
+/// Fire-and-forget telemetry push. Enqueues the payload to a background worker.
+pub fn push_telemetry(json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
+    let (sender, _) = &*CHANNEL;
+    sender.send(TelemetryMessage {
+        payload: json_payload.to_string(),
+        url: url.to_string(),
+        timeout_sec,
+    }).map_err(|e| e.to_string())
+}
+
+/// Blocks until all enqueued telemetry messages have been processed.
+/// Returns a summary of failures encountered since the last flush.
+pub fn perform_flush() -> FlushSummary {
+    let (sender, _) = &*CHANNEL;
+    while !sender.is_empty() {
+        thread::sleep(Duration::from_millis(10));
+    }
+
+    let failed_jobs = STATS.failed_count.swap(0, Ordering::SeqCst);
+    let mut freq_map = STATS.error_frequency.lock().unwrap();
+    let mut common_errors: Vec<_> = freq_map.drain().collect();
+    
+    // Sort by frequency descending
+    common_errors.sort_by(|a, b| b.1.cmp(&a.1));
+
+    FlushSummary {
+        failed_jobs,
+        common_errors,
+    }
 }
 
 #[cfg(test)]
