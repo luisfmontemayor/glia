@@ -10,6 +10,10 @@ use std::sync::Mutex;
 pub struct PushResult {
     pub status: u16,
     pub body: String,
+struct TelemetryMessage {
+    payload: String,
+    url: String,
+    timeout_sec: f64,
 }
 
 pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<PushResult, String> {
@@ -17,6 +21,10 @@ pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<P
         .timeout(Duration::from_secs_f64(timeout_sec))
         .build()
         .map_err(|e| e.to_string())?;
+pub struct FlushSummary {
+    pub failed_jobs: usize,
+    pub common_errors: Vec<(String, usize)>,
+}
 
     let resp = client.post(url)
         .header("Content-Type", "application/json")
