@@ -1,79 +1,191 @@
 use std::time::Duration;
+use crossbeam_channel::{bounded, Sender, Receiver};
+use std::thread;
+use std::env;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
-pub struct PushResult {
-    pub status: u16,
-    pub body: String,
+pub enum TelemetryMessage {
+    Data {
+        payload: String,
+        url: String,
+        timeout_sec: f64,
+    },
+    Flush(Sender<()>),
 }
 
-pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<PushResult, String> {
-    let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs_f64(timeout_sec))
-        .build()
-        .map_err(|e| e.to_string())?;
+pub struct FlushSummary {
+    pub failed_jobs: usize,
+    pub common_errors: Vec<(String, usize)>,
+}
 
-    let resp = client.post(url)
-        .header("Content-Type", "application/json")
-        .body(json_payload.to_string())
-        .send()
-        .map_err(|e| e.to_string())?;
+struct Stats {
+    failed_count: AtomicUsize,
+    error_frequency: Mutex<HashMap<String, usize>>,
+}
 
-    Ok(PushResult {
-        status: resp.status().as_u16(),
-        body: resp.text().unwrap_or_default(),
-    })
+pub struct GliaClient {
+    sender: Sender<TelemetryMessage>,
+    stats: Arc<Stats>,
+    _worker_handle: thread::JoinHandle<()>,
+}
+
+impl GliaClient {
+    pub fn new(limit: usize) -> Self {
+        let (s, r) = bounded(limit);
+        let stats = Arc::new(Stats {
+            failed_count: AtomicUsize::new(0),
+            error_frequency: Mutex::new(HashMap::new()),
+        });
+
+        let stats_clone = Arc::clone(&stats);
+        let handle = thread::spawn(move || {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("Failed to create tokio runtime");
+
+            rt.block_on(async move {
+                let client = reqwest::Client::new();
+                let debug_mode = env::var("GLIA_DEBUG").is_ok();
+                
+                while let Ok(msg) = r.recv() {
+                    match msg {
+                        TelemetryMessage::Data { payload, url, timeout_sec } => {
+                            let res = client.post(&url)
+                                .header("Content-Type", "application/json")
+                                .timeout(Duration::from_secs_f64(timeout_sec))
+                                .body(payload)
+                                .send()
+                                .await;
+
+                            let error_msg = match res {
+                                Ok(resp) if resp.status().is_success() => None,
+                                Ok(resp) => Some(format!("HTTP {}", resp.status())),
+                                Err(e) => Some(e.to_string()),
+                            };
+
+                            if let Some(err) = error_msg {
+                                stats_clone.failed_count.fetch_add(1, Ordering::SeqCst);
+                                let mut freq = stats_clone.error_frequency.lock().unwrap();
+                                *freq.entry(err.clone()).or_insert(0) += 1;
+                                
+                                if debug_mode {
+                                    eprintln!("[GLIA_CORE DEBUG] Telemetry push failed: {}", err);
+                                }
+                            }
+                        }
+                        TelemetryMessage::Flush(ack_sender) => {
+                            let _ = ack_sender.send(());
+                        }
+                    }
+                }
+            });
+        });
+
+        Self {
+            sender: s,
+            stats,
+            _worker_handle: handle,
+        }
+    }
+
+    pub fn queue_telemetry(&self, json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
+        self.sender.try_send(TelemetryMessage::Data {
+            payload: json_payload.to_string(),
+            url: url.to_string(),
+            timeout_sec,
+        }).map_err(|e| e.to_string())
+    }
+
+    pub fn flush(&self) -> FlushSummary {
+        let (ack_sender, ack_receiver) = bounded(1);
+        if self.sender.send(TelemetryMessage::Flush(ack_sender)).is_ok() {
+            let _ = ack_receiver.recv();
+        }
+
+        let failed_jobs = self.stats.failed_count.swap(0, Ordering::SeqCst);
+        let mut freq_map = self.stats.error_frequency.lock().unwrap();
+        let common_errors: Vec<_> = freq_map.drain().collect();
+
+        FlushSummary {
+            failed_jobs,
+            common_errors,
+        }
+    }
+}
+
+/// A canary function to test FFI panic handling.
+pub fn trigger_panic() {
+    panic!("[GLIA_CORE] INTENTIONAL PANIC: Testing FFI boundary safety.");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn setup_client(limit: usize) -> GliaClient {
+        GliaClient::new(limit)
+    }
+
     #[test]
-    // 1. Success path: ensure payload reaches endpoint and returns 200 OK
-    fn test_perform_push_success() {
-        let mut server = mockito::Server::new();
-        let url = format!("{}/ingest", server.url());
-
-        let _mock = server.mock("POST", "/ingest")
-            .with_status(200)
-            .with_header("content-type", "application/json")
-            .with_body("{\"status\": \"success\"}")
-            .create();
-
-        let payload = r#"{"run_id": "123", "cpu_percent": 50.0}"#;
-        let result = perform_push(payload, &url, 1.0);
-
+    fn test_queue_overflow() {
+        // Create a client with a very small queue
+        let client = setup_client(2);
         
-        assert!(result.is_ok());
-        let push_result = result.unwrap();
-        assert_eq!(push_result.status, 200);
-        assert_eq!(push_result.body, "{\"status\": \"success\"}");
+        // Fill the queue
+        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
+        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
+        
+        // The third one should fail because the channel is bounded and full
+        let result = client.queue_telemetry("{}", "http://localhost", 1.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("full"));
     }
 
     #[test]
-    // 2. Server failure path: ensure function returns Ok even if server responds with 500
-    fn test_perform_push_server_error() {
+    fn test_queue_telemetry_success() {
+        let client = setup_client(100);
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
-        // Mock a 500 Internal Server Error
-        let _mock = server.mock("POST", "/ingest")
-            .with_status(500)
-            .with_body("Internal Error")
+        let mock = server.mock("POST", "/ingest")
+            .with_status(200)
+            .with_body("ok")
             .create();
 
-        let payload = "{}";
-        let result = perform_push(payload, &url, 1.0);
-
-        assert!(result.is_ok()); // The function itself succeeds (network-wise)
-        let push_result = result.unwrap();
-        assert_eq!(push_result.status, 500);
-        assert_eq!(push_result.body, "Internal Error");
+        let result = client.queue_telemetry("{}", &url, 1.0);
+        assert!(result.is_ok());
+        
+        let summary = client.flush();
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert();
     }
 
     #[test]
-    // 3. Network failure path: ensure function returns Err when host is unreachable
-    fn test_perform_push_unreachable_host() {
-        let result = perform_push("{}", "http://invalid.local/injest", 0.1);
-        assert!(result.is_err());
+    fn test_queue_telemetry_server_error() {
+        let client = setup_client(100);
+        let mut server = mockito::Server::new();
+        let url = format!("{}/ingest", server.url());
+
+        let mock = server.mock("POST", "/ingest")
+            .with_status(500)
+            .create();
+
+        let _ = client.queue_telemetry("{}", &url, 1.0);
+        let summary = client.flush();
+        
+        assert_eq!(summary.failed_jobs, 1);
+        assert!(summary.common_errors.iter().any(|(e, _)| e.contains("HTTP 500")));
+        mock.assert();
+    }
+
+    #[test]
+    fn test_queue_telemetry_unreachable_host() {
+        let client = setup_client(100);
+        let _ = client.queue_telemetry("{}", "http://invalid.local", 0.1);
+        let summary = client.flush();
+        assert_eq!(summary.failed_jobs, 1);
     }
 }
