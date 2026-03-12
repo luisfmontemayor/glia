@@ -5,7 +5,7 @@
 
 #######
 
-
+- [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [ ] cli gui 
 - [ ] Readme needs r installation path mapping 
 - [ ] change walltime to ms not secs and make into int
