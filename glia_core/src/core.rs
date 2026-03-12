@@ -7,39 +7,22 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-pub struct PushResult {
-    pub status: u16,
-    pub body: String,
 struct TelemetryMessage {
     payload: String,
     url: String,
     timeout_sec: f64,
 }
 
-pub fn perform_push(json_payload: &str, url: &str, timeout_sec: f64) -> Result<PushResult, String> {
-    let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs_f64(timeout_sec))
-        .build()
-        .map_err(|e| e.to_string())?;
 pub struct FlushSummary {
     pub failed_jobs: usize,
     pub common_errors: Vec<(String, usize)>,
 }
 
-    let resp = client.post(url)
-        .header("Content-Type", "application/json")
-        .body(json_payload.to_string())
-        .send()
-        .map_err(|e| e.to_string())?;
 struct Stats {
     failed_count: AtomicUsize,
     error_frequency: Mutex<HashMap<String, usize>>,
 }
 
-    Ok(PushResult {
-        status: resp.status().as_u16(),
-        body: resp.text().unwrap_or_default(),
-    })
 static STATS: Lazy<Stats> = Lazy::new(|| Stats {
     failed_count: AtomicUsize::new(0),
     error_frequency: Mutex::new(HashMap::new()),
@@ -95,7 +78,7 @@ fn spawn_worker(receiver: Receiver<TelemetryMessage>) {
     });
 }
 
-/// Fire-and-forget telemetry push. Enqueues the payload to a background worker.
+/// TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 pub fn push_telemetry(json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
     let (sender, _) = &*CHANNEL;
     sender.send(TelemetryMessage {
@@ -106,7 +89,6 @@ pub fn push_telemetry(json_payload: &str, url: &str, timeout_sec: f64) -> Result
 }
 
 /// Blocks until all enqueued telemetry messages have been processed.
-/// Returns a summary of failures encountered since the last flush.
 pub fn perform_flush() -> FlushSummary {
     let (sender, _) = &*CHANNEL;
     while !sender.is_empty() {
@@ -115,10 +97,7 @@ pub fn perform_flush() -> FlushSummary {
 
     let failed_jobs = STATS.failed_count.swap(0, Ordering::SeqCst);
     let mut freq_map = STATS.error_frequency.lock().unwrap();
-    let mut common_errors: Vec<_> = freq_map.drain().collect();
-    
-    // Sort by frequency descending
-    common_errors.sort_by(|a, b| b.1.cmp(&a.1));
+    let common_errors: Vec<_> = freq_map.drain().collect();
 
     FlushSummary {
         failed_jobs,
@@ -133,50 +112,56 @@ mod tests {
     #[test]
     // 1. Success path: ensure payload reaches endpoint and returns 200 OK
     fn test_push_telemetry_success() {
+        env::set_var("GLIA_LOCAL_QUEUE_LIMIT", "1000");
+        
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
-        let _mock = server.mock("POST", "/ingest")
+        let mock = server.mock("POST", "/ingest")
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body("{\"status\": \"success\"}")
             .create();
 
         let payload = r#"{"run_id": "123", "cpu_percent": 50.0}"#;
-        let result = perform_push(payload, &url, 1.0);
+        let result = push_telemetry(payload, &url, 1.0);
 
-        
         assert!(result.is_ok());
-        let push_result = result.unwrap();
-        assert_eq!(push_result.status, 200);
-        assert_eq!(push_result.body, "{\"status\": \"success\"}");
+        let summary = perform_flush();
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert();
     }
 
     #[test]
     // 2. Server failure path: ensure function returns Ok even if server responds with 500
-    fn test_perform_push_server_error() {
+    fn test_push_telemetry_server_error() {
+        env::set_var("GLIA_LOCAL_QUEUE_LIMIT", "1000");
+        
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
-        // Mock a 500 Internal Server Error
-        let _mock = server.mock("POST", "/ingest")
+        let mock = server.mock("POST", "/ingest")
             .with_status(500)
             .with_body("Internal Error")
             .create();
 
         let payload = "{}";
-        let result = perform_push(payload, &url, 1.0);
+        let result = push_telemetry(payload, &url, 1.0);
 
-        assert!(result.is_ok()); // The function itself succeeds (network-wise)
-        let push_result = result.unwrap();
-        assert_eq!(push_result.status, 500);
-        assert_eq!(push_result.body, "Internal Error");
+        assert!(result.is_ok()); // The function itself succeeds (enqueueing-wise)
+        let summary = perform_flush();
+        assert_eq!(summary.failed_jobs, 1);
+        assert!(summary.common_errors.iter().any(|(e, _)| e.contains("HTTP 500")));
+        mock.assert();
     }
 
     #[test]
-    // 3. Network failure path: ensure function returns Err when host is unreachable
-    fn test_perform_push_unreachable_host() {
-        let result = perform_push("{}", "http://invalid.local/injest", 0.1);
-        assert!(result.is_err());
+    // 3. Network failure path: ensure function returns Ok because it's fire-and-forget
+    fn test_push_telemetry_unreachable_host() {
+        env::set_var("GLIA_LOCAL_QUEUE_LIMIT", "1000");
+        let result = push_telemetry("{}", "http://invalid.local/injest", 0.1);
+        assert!(result.is_ok());
+        let summary = perform_flush();
+        assert_eq!(summary.failed_jobs, 1);
     }
 }
