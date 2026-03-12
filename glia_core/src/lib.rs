@@ -19,5 +19,6 @@ fn glia_core_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFlushSummary>()?;
     m.add_function(wrap_pyfunction!(queue_telemetry, m)?)?;
     m.add_function(wrap_pyfunction!(flush_queue, m)?)?;
+    m.add_function(wrap_pyfunction!(trigger_panic, m)?)?;
     Ok(())
 }

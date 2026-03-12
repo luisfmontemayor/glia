@@ -92,7 +92,7 @@ impl GliaClient {
     }
 
     pub fn queue_telemetry(&self, json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
-        self.sender.send(TelemetryMessage::Data {
+        self.sender.try_send(TelemetryMessage::Data {
             payload: json_payload.to_string(),
             url: url.to_string(),
             timeout_sec,
@@ -116,17 +116,37 @@ impl GliaClient {
     }
 }
 
+/// A canary function to test FFI panic handling.
+pub fn trigger_panic() {
+    panic!("INTENTIONAL PANIC: Testing FFI boundary safety.");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn setup_client() -> GliaClient {
-        GliaClient::new(100)
+    fn setup_client(limit: usize) -> GliaClient {
+        GliaClient::new(limit)
+    }
+
+    #[test]
+    fn test_queue_overflow() {
+        // Create a client with a very small queue
+        let client = setup_client(2);
+        
+        // Fill the queue
+        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
+        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
+        
+        // The third one should fail because the channel is bounded and full
+        let result = client.queue_telemetry("{}", "http://localhost", 1.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("full"));
     }
 
     #[test]
     fn test_queue_telemetry_success() {
-        let client = setup_client();
+        let client = setup_client(100);
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
@@ -145,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_queue_telemetry_server_error() {
-        let client = setup_client();
+        let client = setup_client(100);
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
@@ -163,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_queue_telemetry_unreachable_host() {
-        let client = setup_client();
+        let client = setup_client(100);
         let _ = client.queue_telemetry("{}", "http://invalid.local", 0.1);
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 1);
