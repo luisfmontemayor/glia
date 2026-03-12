@@ -5,7 +5,7 @@
 \title{Initialize the Glia client}
 \usage{
 glia_init(
-  api_url = Sys.getenv("API_INGEST_URL"),
+  api_url = "http://localhost:8000",
   app_name = NULL,
   app_version = NULL,
   tags = list()
