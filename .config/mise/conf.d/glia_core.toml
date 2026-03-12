@@ -1,6 +1,6 @@
 [tasks."glia_core:install-python"]
 description = "Build/Install Python extension"
 dir         = "glia_core"
-run         = "maturin develop --release"
+run         = "maturin develop --release && cd .. && uv pip install -e glia_core"
 
 # R built and installation is handled by gliar/src/Makevars
