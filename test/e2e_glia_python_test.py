@@ -20,19 +20,14 @@ def test_end_to_end_telemetry_flow(monkeypatch):
         unique_name = f"e2e_{unique_id}"
         monkeypatch.setenv("API_INGEST_URL", "http://localhost:8000/ingest")
 
-        def mock_glia_core_push(json_payload, target_url, timeout):
+        def mock_glia_core_queue(json_payload, target_url, timeout):
             path = "/" + target_url.split("/", 3)[-1]
-
-            response = server.post(path, json=json.loads(json_payload))
-
-            mock_result = MagicMock()
-            mock_result.status = response.status_code
-            mock_result.body = response.text
-            return mock_result
+            server.post(path, json=json.loads(json_payload))
+            return None
 
         with patch(
-            "glia_python.network.glia_core.push_telemetry",
-            side_effect=mock_glia_core_push,
+            "glia_python.network.glia_core.queue_telemetry",
+            side_effect=mock_glia_core_queue,
         ):
             with Glia.tracker(program_name=unique_name, context={"e2e": "true"}):
                 _x = 1 + 1
