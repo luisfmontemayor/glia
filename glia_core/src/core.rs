@@ -31,11 +31,19 @@ pub struct FlushSummary {
         .body(json_payload.to_string())
         .send()
         .map_err(|e| e.to_string())?;
+struct Stats {
+    failed_count: AtomicUsize,
+    error_frequency: Mutex<HashMap<String, usize>>,
+}
 
     Ok(PushResult {
         status: resp.status().as_u16(),
         body: resp.text().unwrap_or_default(),
     })
+static STATS: Lazy<Stats> = Lazy::new(|| Stats {
+    failed_count: AtomicUsize::new(0),
+    error_frequency: Mutex::new(HashMap::new()),
+});
 }
 
 #[cfg(test)]
