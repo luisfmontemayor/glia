@@ -34,7 +34,7 @@ glia_init <- function(api_url = "http://localhost:8000",
   
   if (api_url == "") {
     stop(
-      "[Glia Error] API endpoint not found. \n",
+      "[GLIAR] API endpoint not found. \n",
       "Please set the API_INGEST_URL environment variable (e.g., in mise.toml) ",
       "or provide it directly to glia_init(api_url = '...').",
       call. = FALSE
@@ -56,7 +56,7 @@ glia_init <- function(api_url = "http://localhost:8000",
     }
   }, onexit = TRUE)
   
-  message(paste("[Glia] Initialized tracking to:", api_url))
+  message(paste("[GLIAR] Initialized tracking to:", api_url))
   invisible(NULL)
 }
 
@@ -198,7 +198,7 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
 #' }
 glia_wrap <- function(f, name = NULL, version = NULL, tags = list(), description = NULL) {
   if (!is.function(f)) {
-    stop("`f` must be a function.", call. = FALSE)
+    stop("[GLIAR] `f` must be a function.", call. = FALSE)
   }
 
   if (is.null(name)) {
