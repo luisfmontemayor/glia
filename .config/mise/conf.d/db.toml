@@ -2,10 +2,13 @@
 description = "Check if DB is accepting connections"
 run         = 'docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -q -c "SELECT 1" > /dev/null'
 
+[tasks."db:migration-check"]
+description = "Check if there are pending model changes not yet in a migration"
+run = "mise run alembic check"
+
 [tasks."db:migration-plan"]
-description = "Generate a new migration script"
+description = "Generate a new migration script (Interactive)"
 run = """
-mise run alembic check || \
 echo -n "Enter migration message: "; 
 read msg; 
 mise run alembic revision --autogenerate -m "$msg"
