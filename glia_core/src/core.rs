@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     // 1. Success path: ensure payload reaches endpoint and returns 200 OK
-    fn test_perform_push_success() {
+    fn test_push_telemetry_success() {
         let mut server = mockito::Server::new();
         let url = format!("{}/ingest", server.url());
 
