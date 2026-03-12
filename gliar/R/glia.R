@@ -45,9 +45,27 @@ glia_init <- function(api_url = "http://localhost:8000",
   .glia_env$app_name <- app_name
   .glia_env$app_version <- app_version
   .glia_env$tags <- tags
+
+  # Register finalizer to flush on exit
+  reg.finalizer(.glia_env, function(e) {
+    if (exists("client", envir = e) && !is.null(e$client)) {
+      client <- e$client
+      if (is.function(client$flush)) {
+        client$flush()
+      }
+    }
+  }, onexit = TRUE)
   
   message(paste("[Glia] Initialized tracking to:", api_url))
   invisible(NULL)
+}
+
+#' Flush all pending telemetry
+#' @export
+glia_flush <- function() {
+  if (!is.null(.glia_env$client)) {
+    .glia_env$client$flush()
+  }
 }
 #' Track an R expression
 #'
@@ -91,8 +109,8 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
   }
 
   expr_quo <- rlang::enquo(expr)
-
   all_tags <- c(.glia_env$tags, tags)
+  
   context <- list(
     name = name %||% .glia_env$app_name,
     version = version %||% .glia_env$app_version,
@@ -105,8 +123,10 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
   tracker$start()
 
   exit_code <- 0
-  on.exit({
-    metrics <- tracker$capture(exit_code = exit_code)
+  
+  # Helper to send metrics
+  send_metrics <- function(code) {
+    metrics <- tracker$capture(exit_code = code)
 
     if (is.null(metrics$script_path) || length(metrics$script_path) == 0) {
       metrics$script_path <- "R_session"
@@ -122,9 +142,24 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
     )
 
     .glia_env$client$send_job_run(metrics)
+  }
+
+  # Ensure metrics are sent even on unexpected errors/interrupts
+  # but try to do it explicitly for the success path to avoid race with glia_flush()
+  state <- new.env(parent = emptyenv())
+  state$sent <- FALSE
+  
+  on.exit({
+    if (!state$sent) {
+      send_metrics(exit_code)
+    }
   })
+
   tryCatch({
-    rlang::eval_tidy(expr_quo)
+    res <- rlang::eval_tidy(expr_quo)
+    state$sent <- TRUE
+    send_metrics(0)
+    res
   }, error = function(e) {
     exit_code <<- 1
     stop(e)
