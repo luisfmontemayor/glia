@@ -35,7 +35,7 @@ SystemTracker <- R6::R6Class("SystemTracker",
     },
     
     capture = function(exit_code = 0) {
-      if (is.null(self$start_time)) stop("Tracker not started.")
+      if (is.null(self$start_time)) stop("[GLIAR] Tracker not started.")
       
       end_time <- Sys.time()
       cpu_end <- ps::ps_cpu_times(self$process)

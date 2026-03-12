@@ -20,10 +20,10 @@ test_that("GliaClient handles queueing errors gracefully", {
   mock_ffi <- mock(list(success = FALSE, error = "Queue Full"))
   client <- GliaClient$new()
   stub(client$send_job_run, "queue_telemetry", mock_ffi)
-  
+
   expect_warning(
     success <- client$send_job_run(list(data = 1)),
-    "\\[Glia\\] Failed to queue telemetry: Queue Full"
+    "\\[GLIAR\\] Failed to queue telemetry: Queue Full"
   )
   expect_false(success)
 })
@@ -32,9 +32,9 @@ test_that("GliaClient handles FFI/Rust errors gracefully", {
   mock_ffi <- mock(stop("FFI Error"))
   client <- GliaClient$new()
   stub(client$send_job_run, "queue_telemetry", mock_ffi)
-  
+
   expect_warning(
     client$send_job_run(list(data = 1)),
-    "\\[Glia\\] Could not queue telemetry: FFI Error"
+    "\\[GLIAR\\] Could not queue telemetry: FFI Error"
   )
 })

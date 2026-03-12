@@ -16,7 +16,7 @@ GliaClient <- R6::R6Class("GliaClient",
 
       if (is.null(target_url) || target_url == "") {
         stop(
-          "Glia Error: API_INGEST_URL environment variable is not set and no base_url was provided. ",
+          "[GLIAR] API_INGEST_URL environment variable is not set and no base_url was provided. ",
           "Telemetry cannot be sent without a target endpoint."
         )
       }
@@ -36,11 +36,11 @@ GliaClient <- R6::R6Class("GliaClient",
         if (is.list(res) && isTRUE(res$success)) {
           return(TRUE)
         } else {
-          warning(paste("[Glia] Failed to queue telemetry:", res$error))
+          warning(paste("[GLIAR] Failed to queue telemetry:", res$error))
           return(FALSE)
         }
       }, error = function(e) {
-        warning(paste("[Glia] Could not queue telemetry:", e$message))
+        warning(paste("[GLIAR] Could not queue telemetry:", e$message))
         return(FALSE)
       })
     },
@@ -50,7 +50,7 @@ GliaClient <- R6::R6Class("GliaClient",
         # Rust FFI (Blocking)
         flush_queue()
       }, error = function(e) {
-        warning(paste("[Glia] Error during flush:", e$message))
+        warning(paste("[GLIAR] Error during flush:", e$message))
         return(NULL)
       })
     }
