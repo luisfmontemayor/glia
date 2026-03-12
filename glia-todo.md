@@ -5,6 +5,7 @@
 
 #######
 
+- [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
 - [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [ ] cli gui 
 - [ ] Readme needs r installation path mapping 
