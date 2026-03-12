@@ -19,7 +19,7 @@ def push_telemetry(
     """
     target_url: str | None = api_url or os.getenv("API_INGEST_URL")
     if not target_url:
-        logger.warning("[Glia] No API_INGEST_URL configured. Telemetry dropped.")
+        logger.warning("[GLIA_PYTHON] No API_INGEST_URL configured. Telemetry dropped.")
         return False
 
     try:
@@ -28,5 +28,5 @@ def push_telemetry(
         return True
 
     except Exception as e:
-        logger.warning(f"[Glia] Unexpected error during telemetry queuing: {e}")
+        logger.warning(f"[GLIA_PYTHON] Unexpected error during telemetry queuing: {e}")
         return False
