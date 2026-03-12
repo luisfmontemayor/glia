@@ -11,18 +11,20 @@ test_that("R Client E2E: telemetry reaches backend", {
   
   base_url <- sub("/ingest/?$", "", raw_url)
   base_url <- sub("/$", "", base_url)
+  ingest_url <- paste0(base_url, "/ingest")
   
   unique_id <- substr(uuid::UUIDgenerate(), 1, 6)
   unique_name <- paste0("e2e_r_", unique_id)
   
-  glia_init(api_url = base_url, app_name = unique_name)
+  glia_init(api_url = ingest_url, app_name = unique_name)
   
   glia_track({
     res <- 1 + 1
     Sys.sleep(0.1)
   }, tags = list(e2e = "true", client = "R"))
   
-  Sys.sleep(1.0)
+  # Wait for background worker to finish
+  glia_flush()
   
   resp <- request(base_url) |> 
     req_url_path("/telemetry") |> 
