@@ -1,0 +1,128 @@
+#!/usr/bin/env -S uv run -q
+# Written by Luis Felipe Montemayor, sometime around March of 2026
+import json
+import os
+import re
+import subprocess
+
+from glia_common.logs import setup_logger
+
+logger = setup_logger("GLIA_BENCHMARKER")
+
+ITERATIONS_LIST = [100, 200, 500, 800, 1000]
+
+BENCHMARKS = [
+    {
+        "name": "Client-to-Core (Python)",
+        "cmd": "python benchmark_client2core.py",
+    },
+    {
+        "name": "Client-to-Core (R)",
+        "cmd": "Rscript benchmark_client2core.r",
+    },
+    {"name": "Backend-to-DB", "cmd": "python benchmark_core2db.py"},
+    {"name": "Backend-to-DB (Core)", "cmd": "python benchmark_core2db_core.py"},
+]
+
+
+def run_benchmark(cmd: str, iterations: int):
+    """
+    Executes a benchmark script with specific load parameters via environment.
+    Captures stdstreams to extract the evaluation report.
+    """
+    env = os.environ.copy()
+    env["GLIA_CORE_QUEUE_LIMIT"] = str(iterations)
+    env["GLIA_LOCAL_QUEUE_LIMIT"] = str(iterations * 10)
+    env["GLIA_PERFORMANCE_TEST"] = "true"
+
+    try:
+        # We use shell=True to support pytest/Rscript directly as provided in BENCHMARKS
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            env=env,
+            check=False,  # Allow parsing even if assertions fail in performance tests
+        )
+
+        output = result.stdout
+        # Extract the JSON report from the standard stream
+        match = re.search(r"REPORT_START(\{.*?\})REPORT_END", output)
+        if match:
+            return json.loads(match.group(1))
+
+        logger.error(f"Failed to find REPORT block in output for command: {cmd}")
+        if result.stderr:
+            logger.debug(f"Command error: {result.stderr.strip()}")
+        return None
+
+    except Exception as e:
+        logger.error(f"Unexpected error executing {cmd}: {e}")
+        return None
+
+
+def main():
+    # Increase log level to see DEBUG if needed
+    # logger.setLevel(logging.DEBUG)
+
+    results = {}
+
+    for b in BENCHMARKS:
+        benchmark_name = b["name"]
+        results[benchmark_name] = {"latency": [], "throughput": []}
+
+        for iterations in ITERATIONS_LIST:
+            # Printing the current test being performed using the glia_common logger
+            logger.info(f"Performing Test: {benchmark_name} | Load: {iterations}")
+
+            report = run_benchmark(b["cmd"], iterations)
+
+            if report and "latency_ms" in report:
+                results[benchmark_name]["latency"].append(report["latency_ms"])
+                results[benchmark_name]["throughput"].append(report.get("throughput", "ERR"))
+            else:
+                results[benchmark_name]["latency"].append("ERR")
+                results[benchmark_name]["throughput"].append("ERR")
+
+    # Generate the aligned Evaluation Report
+    logger.info("=" * 80)
+    logger.info("📈 GLIA INFLECTION POINT CHARACTERIZATION")
+    logger.info("=" * 80)
+
+    # Define a fixed width for each column
+    col_width = 12
+    header_width = 18
+
+    # Format the independent variables (ITERATIONS_LIST) once
+    independent_str = "".join([f"{str(x):>{col_width}}" for x in ITERATIONS_LIST])
+
+    for name, metrics in results.items():
+        logger.info(f"Benchmark:   {name}")
+
+        # Format Latency
+        formatted_latencies = []
+        for val in metrics["latency"]:
+            if isinstance(val, (int, float)):
+                formatted_latencies.append(f"{val:>{col_width}.2f}")
+            else:
+                formatted_latencies.append(f"{str(val):>{col_width}}")
+
+        # Format Throughput
+        formatted_throughputs = []
+        for val in metrics["throughput"]:
+            if isinstance(val, (int, float)):
+                formatted_throughputs.append(f"{val:>{col_width}.2f}")
+            else:
+                formatted_throughputs.append(f"{str(val):>{col_width}}")
+
+        latency_str = "".join(formatted_latencies)
+        throughput_str = "".join(formatted_throughputs)
+
+        logger.info(f"{'Latency (ms):':<{header_width}}{latency_str}")
+        logger.info(f"{'Throughput (j/s):':<{header_width}}{throughput_str}")
+        logger.info(f"{'Independent:':<{header_width}}{independent_str}")
+        logger.info("-" * 80)
+
+if __name__ == "__main__":
+    main()
