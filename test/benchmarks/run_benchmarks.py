@@ -4,8 +4,10 @@ import json
 import os
 import re
 import subprocess
+import sys
 
 from glia_common.logs import setup_logger
+from glia_common.system import run_command
 
 logger = setup_logger("GLIA_BENCHMARKER")
 
@@ -23,6 +25,22 @@ BENCHMARKS = [
     {"name": "Backend-to-DB", "cmd": "python benchmark_core2db.py"},
     {"name": "Backend-to-DB (Core)", "cmd": "python benchmark_core2db_core.py"},
 ]
+
+
+def check_infrastructure():
+    """Checks if the API and Database are ready using mise tasks."""
+    logger.info("Verifying Infrastructure (API & DB)...")
+    
+    # api:status returns 0 if healthy, which run_command returns as "0" when capture=False
+    status = run_command(["mise", "run", "api:status"], capture=False)
+    
+    if status != "0":
+        logger.error("Infrastructure check FAILED.")
+        logger.error("Ensure the API is running ('mise api:up') and the database is accessible.")
+        return False
+    
+    logger.info("Infrastructure is healthy. Proceeding with benchmarks.")
+    return True
 
 
 def run_benchmark(cmd: str, iterations: int):
@@ -63,14 +81,14 @@ def run_benchmark(cmd: str, iterations: int):
 
 
 def main():
-    # Increase log level to see DEBUG if needed
-    # logger.setLevel(logging.DEBUG)
+    if not check_infrastructure():
+        sys.exit(1)
 
-    results = {}
+    performance_profile = {}
 
     for b in BENCHMARKS:
         benchmark_name = b["name"]
-        results[benchmark_name] = {"latency": [], "throughput": []}
+        performance_profile[benchmark_name] = {"latency": [], "throughput": []}
 
         for iterations in ITERATIONS_LIST:
             # Printing the current test being performed using the glia_common logger
@@ -79,11 +97,11 @@ def main():
             report = run_benchmark(b["cmd"], iterations)
 
             if report and "latency_ms" in report:
-                results[benchmark_name]["latency"].append(report["latency_ms"])
-                results[benchmark_name]["throughput"].append(report.get("throughput", "ERR"))
+                performance_profile[benchmark_name]["latency"].append(report["latency_ms"])
+                performance_profile[benchmark_name]["throughput"].append(report.get("throughput", "ERR"))
             else:
-                results[benchmark_name]["latency"].append("ERR")
-                results[benchmark_name]["throughput"].append("ERR")
+                performance_profile[benchmark_name]["latency"].append("ERR")
+                performance_profile[benchmark_name]["throughput"].append("ERR")
 
     # Generate the aligned Evaluation Report
     logger.info("=" * 80)
@@ -97,7 +115,7 @@ def main():
     # Format the independent variables (ITERATIONS_LIST) once
     independent_str = "".join([f"{str(x):>{col_width}}" for x in ITERATIONS_LIST])
 
-    for name, metrics in results.items():
+    for name, metrics in performance_profile.items():
         logger.info(f"Benchmark:   {name}")
 
         # Format Latency
