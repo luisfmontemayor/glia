@@ -24,6 +24,7 @@ Suggests:
     devtools (>= 2.4.0),
     pak (>= 0.6.0),
     usethis (>= 2.1.0),
-    mockery (>= 0.4.2)
+    mockery (>= 0.4.2),
+    argparse (>= 2.3.1)
 Config/rextendr/version: 0.4.2
 Config/testthat/edition: 3
