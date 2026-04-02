@@ -31,10 +31,23 @@ echo "Patching Rust module name to 'gliar'..." &>2
 sed -i 's/mod glia_core;/mod gliar;/' src/rust/src/r_module.rs
 """
 
-[tasks."gliar:build"]
-#env = { "R_PAK_SYSREQS" = "false", "RENV_CONFIG_PAK_ENABLED" = "false" }
-description = "Build and install the R package with Rust extensions"
+[tasks."gliar:sync-deps"]
+description = "Sync R dependencies (Slow: run only when DESCRIPTION changes)"
 dir = "gliar"
+sources = ["DESCRIPTION", "renv.lock"]
+run = """
+Rscript -e "
+  options(pak.sysreqs = FALSE);
+  if (!requireNamespace('renv', quietly=TRUE)) install.packages('renv');
+  renv::install();
+  renv::snapshot(prompt = FALSE);
+  "
+"""
+
+[tasks."gliar:build"]
+description = "Fast build of the R package with Rust extensions"
+dir = "gliar"
+depends = ["gliar:sync-deps"]
 sources = [
   "src/rust/src/**/*.rs",
   "R/**/*.R",
@@ -43,16 +56,9 @@ sources = [
 ]
 run = """
 mise run gliar:bundle
-
 Rscript -e "
-  options(pak.sysreqs = FALSE);
-  
-  if (!requireNamespace('renv', quietly=TRUE)) install.packages('renv');
-  renv::install();
-  renv::snapshot(prompt = FALSE);
-  renv::restore(prompt = FALSE);
   rextendr::document();
-  devtools::install(upgrade = 'never', quick = TRUE);
+  devtools::install(upgrade = FALSE, quick = TRUE);
   "
 """
 
