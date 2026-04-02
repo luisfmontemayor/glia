@@ -111,13 +111,12 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
   expr_quo <- rlang::enquo(expr)
   all_tags <- c(.glia_env$tags, tags)
   
+  # Flatten context for the 'meta' field
   context <- list(
-    name = name %||% .glia_env$app_name,
     version = version %||% .glia_env$app_version,
-    description = description,
-    tags = all_tags
+    description = description
   )
-  context <- context[!sapply(context, is.null)]
+  context <- c(context[!sapply(context, is.null)], all_tags)
 
   tracker <- SystemTracker$new(context = context)
   tracker$start()
@@ -136,10 +135,6 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
 
     final_name <- name %||% .glia_env$app_name %||% metrics$script_path
     metrics$program_name <- as.character(final_name)
-
-    metrics$program_version <- as.character(
-      version %||% .glia_env$app_version %||% "0.0.0"
-    )
 
     .glia_env$client$send_job_run(metrics)
   }

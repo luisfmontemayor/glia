@@ -23,7 +23,8 @@ def push_telemetry(
         return False
 
     try:
-        json_payload = metrics.model_dump_json()
+        # The backend now only accepts batches (list of jobs)
+        json_payload = f"[{metrics.model_dump_json()}]"
         glia_core.queue_telemetry(json_payload, target_url, timeout)
         return True
 
