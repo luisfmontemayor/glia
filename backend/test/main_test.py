@@ -4,11 +4,12 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from glia_common.cli import run_command
-from httpx import ASGITransport, AsyncClient
-from sqlmodel import text
+from httpx import AsyncClient
+from sqlmodel import delete
 
+from backend.config import settings
 from backend.database import engine
-from backend.main import app
+from backend.models import Job
 
 
 def test_api_status():
@@ -16,50 +17,46 @@ def test_api_status():
 
 
 @pytest_asyncio.fixture
-async def cleanup_client():
-    job_id = str(uuid4())
+async def ingest_cleanup_client():
+    job_ids = [str(uuid4()) for _ in range(3)]
     async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",  # URL set up by httpx for testing through ASGITransport
+        base_url=f"http://localhost:{settings.API_PORT}",
     ) as client:
-        yield client, job_id
+        yield client, job_ids
 
-    print(f"\n[CLEANUP] Removing Job ID: {job_id}")
+    print(f"\n[CLEANUP] Removing Job IDs: {job_ids}")
     async with engine.begin() as conn:
-        await conn.execute(
-            statement=text("DELETE FROM jobs WHERE run_id = :id"),
-            parameters={"id": job_id},
-        )
+        await conn.execute(delete(Job).where(Job.run_id.in_(job_ids)))
 
 
 @pytest.mark.asyncio
-async def test_db_ingest(cleanup_client):
-    client, job_id = cleanup_client
+async def test_ingest(ingest_cleanup_client):
+    client, job_ids = ingest_cleanup_client
+    payloads = [
+        {
+            "run_id": job_id,
+            "program_name": f"pytest_runner_{i}.py",
+            "user_name": "ci_bot",
+            "hostname": "test-host",
+            "os_info": "Linux-Test",
+            "script_sha256": f"hash_{i}",
+            "started_at": datetime.now(UTC).isoformat(),
+            "ended_at": datetime.now(UTC).isoformat(),
+            "wall_time_sec": 0.1,
+            "exit_code_int": 0,
+            "cpu_time_sec": 1.2,
+            "cpu_percent": 15.5,
+            "max_rss_mb": 256.0,
+            "meta": {"batch_index": i},
+        }
+        for i, job_id in enumerate(job_ids)
+    ]
 
-    payload = {
-        "run_id": job_id,
-        "program_name": "pytest_runner.py",
-        "user_name": "ci_bot",
-        "hostname": "test-host",
-        "os_info": "Linux-Test",
-        "script_sha256": "uncracked_hash_123",
-        "started_at": datetime.now(UTC).isoformat(),
-        "ended_at": datetime.now(UTC).isoformat(),
-        "wall_time_sec": 0.0001,
-        "exit_code_int": 0,
-        "cpu_time_sec": 1.2,
-        "cpu_percent": 15.5,
-        "max_rss_mb": 256.0,
-        "meta": {"region": "eu-west-2", "test_run": True},
-    }
-
-    response = await client.post("/ingest", json=payload)
-
-    if response.status_code != 201:
-        print(f"API Error Response: {response.text}")
+    response = await client.post("/ingest", json=payloads)
 
     assert response.status_code == 201
-
     data = response.json()
-    assert data["program_name"] == "pytest_runner.py"
-    print(f"[SUCCESS] Ingested and verified Job ID: {job_id}")
+    assert isinstance(data, list)
+    assert len(data) == 3
+    for i, job in enumerate(data):
+        assert job["run_id"] == job_ids[i]

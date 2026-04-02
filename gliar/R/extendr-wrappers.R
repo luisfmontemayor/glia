@@ -17,5 +17,8 @@ queue_telemetry <- function(json_payload, url, timeout) .Call(wrap__queue_teleme
 #' @export
 flush_queue <- function() .Call(wrap__flush_queue)
 
+#' @export
+trigger_panic <- function() invisible(.Call(wrap__trigger_panic))
+
 
 # nolint end

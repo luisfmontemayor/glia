@@ -28,7 +28,8 @@ GliaClient <- R6::R6Class("GliaClient",
     send_job_run = function(payload) {
       if (is.null(payload)) return(FALSE)
 
-      json_str <- as.character(jsonlite::toJSON(payload, auto_unbox = TRUE))
+      # The backend now only accepts batches (list of jobs)
+      json_str <- paste0("[", as.character(jsonlite::toJSON(payload, auto_unbox = TRUE)), "]")
 
       tryCatch({
         # Rust FFI (Non-blocking)

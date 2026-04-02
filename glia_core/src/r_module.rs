@@ -58,7 +58,7 @@ pub fn flush_queue() -> Robj {
 
     match result {
         Ok(Some(summary)) => summary.into(),
-        Ok(None) => list!(failed_jobs = 0, common_errors = list()).into(),
+        Ok(None) => list!(failed_jobs = 0, common_errors = list!()).into(),
         Err(_) => list!(success = false, error = "[GLIA_CORE] Rust panicked during flush_queue").into(),
     }
 }
