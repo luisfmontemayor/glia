@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException, status
 from sqlalchemy.engine import Result
 from sqlmodel import select, text
 
-from backend.config import settings
+from backend.config import logger, settings
 from backend.database import SessionDep, engine
 from backend.models import Job, JobCreate, JobRead
 
@@ -40,27 +40,30 @@ async def readiness_check(session: SessionDep):
         ) from e
 
 
-@app.post("/ingest", response_model=JobRead, status_code=status.HTTP_201_CREATED)
+@app.post("/ingest", response_model=list[JobRead], status_code=status.HTTP_201_CREATED)
 async def ingest_telemetry(
-    telemetry_in: JobCreate,
+    telemetry_in: list[JobCreate],
     session: SessionDep,
 ):
     try:
-        job_instance: Job = Job.model_validate(telemetry_in)
-        session.add(instance=job_instance)
+        job_instances = [Job.model_validate(t) for t in telemetry_in]
+        session.add_all(job_instances)
         await session.commit()
-        await session.refresh(instance=job_instance)
-        return job_instance
+        # Refreshing all might be slow and cause issues if session state is tricky
+        for job in job_instances:
+            await session.refresh(job)
+        return job_instances
     except Exception as e:
         await session.rollback()
+        logger.error(f"Error persisting telemetry: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to persist telemetry data.",
+            detail=f"Failed to persist telemetry data: {str(e)}",
         ) from e
 
 
 @app.get("/telemetry", response_model=list[JobRead])
 async def list_telemetry(session: SessionDep, limit: int = 100):
-    statement = select(Job).limit(limit)
+    statement = select(Job).order_by(Job.id.desc()).limit(limit)
     results: Result[tuple[Job]] = await session.execute(statement)
     return results.scalars().all()
