@@ -52,14 +52,10 @@ test_that("R Client E2E: telemetry reaches backend", {
   expect_match(as.character(found_job[["program_name"]]), unique_name)
   
   meta <- found_job[["meta"]]
-  tags <- meta[["tags"]] 
   
-  if (is.null(tags)) {
-    tags <- meta
-  }
-
-  expect_equal(as.character(tags[["e2e"]]), "true")
-  expect_equal(as.character(tags[["client"]]), "R")
+  # The model has meta as a flat dict[str, Any]
+  expect_equal(as.character(meta[["e2e"]]), "true")
+  expect_equal(as.character(meta[["client"]]), "R")
   
   expect_gt(as.numeric(found_job[["wall_time_sec"]]), 0)
   
