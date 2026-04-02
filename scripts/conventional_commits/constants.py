@@ -9,6 +9,7 @@ SCOPE_CATEGORIES: set[str] = {
     "infrastructural",
     "scripts",
     "libs",
+    "test",
 }
 INFRA_FILES: set[str] = {
     "pyproject.toml",
