@@ -1,15 +1,5 @@
 library(gliar)
 library(jsonlite)
-library(argparse)
-
-parser <- ArgumentParser(description = "Glia R Client Stress Test")
-
-parser$add_argument(
-  "--iterations",
-  type = "integer",
-  default = as.integer(Sys.getenv("GLIA_CORE_QUEUE_LIMIT", unset = "1000")),
-  help = "Number of iterations [default %(default)s]"
-)
 
 run_benchmark <- function(iterations) {
   stress_load <- iterations * 5
@@ -44,9 +34,14 @@ run_benchmark <- function(iterations) {
 }
 
 if (!interactive()) {
-  args <- parser$parse_args()
+  # Get iterations from environment variable, which run_benchmarks.py sets
+  iterations <- as.integer(Sys.getenv("GLIA_CORE_QUEUE_LIMIT", unset = "1000"))
   
-  glia_init()
-  
-  run_benchmark(args$iterations)
+  # Check if glia_init is available (it should be in gliar)
+  if (exists("glia_init")) {
+    glia_init()
+    run_benchmark(iterations)
+  } else {
+    stop("glia_init not found. Is gliar package loaded?")
+  }
 }
