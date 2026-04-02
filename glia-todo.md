@@ -1,4 +1,26 @@
+# Batch Ingestion Implementation
+- [x] **TDD: Create reproduction test case for batch ingestion**
+    - [x] Define expected behavior for `POST /ingest/batch`
+    - [x] Create test in `backend/test/main_test.py`
+- [x] **Backend: Data Modeling**
+    - [x] Define `JobBatchCreate` if necessary (or use `list[JobCreate]`)
+- [x] **Backend: Implementation**
+    - [x] Implement `POST /ingest/batch` endpoint in `backend/main.py`
+    - [x] Ensure atomic transactions for batch writes
+    - [x] Handle potential errors gracefully (partial success vs full rollback)
+    - [x] Refactor to **Batch-Only** (removed single item endpoint to prevent logic drift)
+- [x] **Clients Synchronization**
+    - [x] Update Python client to wrap single metrics in lists
+    - [x] Update R client to wrap single metrics in lists
+    - [x] Flatten R metadata structure to match Backend/Python schema
+- [x] **Validation**
+    - [x] Run backend tests
+    - [x] Verify database state after batch ingestion
+    - [x] Fix and verify E2E tests for both clients
+    - [x] Update benchmark scripts for batch compatibility
+
 # Make README pitch-ready
+- [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [ ] Readme needs r installation path mapping
 - [ ] cli gui 
  
@@ -60,7 +82,7 @@
 - [x] CCs 
 - [x] Basic dir structure
 - [x] Dependencies
-    - [ ]? Make a Makefile
+    - [x] Add cmake to mise tools
     - Manual installs
         - [x] Docker
         - [x] mise
@@ -70,13 +92,17 @@
             - [x] FastAPI
     - dev dependencies
         - [x] gum
-    - [ ] make dev dependencies
-- [ ] Docs
+    - [x] make dev dependencies (cmake, etc documented in README)
+- [x] Docs
     - [x] Basic README
-- [ ] Identify testing
-- [ ] Git
+- [x] Identify testing
+    - [x] Backend TDD
+    - [x] E2E Integration tests
+    - [x] Fixed broken mise task paths
+- [x] Git
     - [x] Merge branches protections, only stuff I approve can be merged
     - [x] merged branches get deleted
+    - [x] Consolidated atomic commit strategy
 
 ### Backend
 - [x] Data Schema
