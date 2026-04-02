@@ -81,7 +81,7 @@ def add_scope_category(filepath: str) -> str:
         return f"infrastructural/{filename}"
 
     if category in SCOPE_CATEGORIES:
-        if category == "scripts":
+        if category in ["scripts", "test"]:
             if len(parts) > 2:
                 return f"{category}/{parts[1]}"
             if len(parts) > 1:
