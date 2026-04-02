@@ -54,6 +54,9 @@ def run_benchmark(cmd: str, iterations: int):
     env["GLIA_PERFORMANCE_TEST"] = "true"
 
     try:
+        # Determine the directory of the current script to run commands from there
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
         # We use shell=True to support pytest/Rscript directly as provided in BENCHMARKS
         result = subprocess.run(
             cmd,
@@ -61,6 +64,7 @@ def run_benchmark(cmd: str, iterations: int):
             capture_output=True,
             text=True,
             env=env,
+            cwd=script_dir,
             check=False,  # Allow parsing even if assertions fail in performance tests
         )
 

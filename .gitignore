@@ -14,3 +14,5 @@ gliar/src/symbols.rds
 gliar/src/glia_core/
 gliar/.Renviron
 .env.r
+gliar/2
+test/benchmarks/renv/
