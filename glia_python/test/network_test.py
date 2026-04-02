@@ -46,8 +46,8 @@ def test_push_telemetry_success(mock_queue):
 
     json_payload = mock_queue.call_args.args[0]
     payload = json.loads(json_payload)
-    assert payload["run_id"] == "test-uuid"
-    assert payload["wall_time_sec"] == 10.0
+    assert payload[0]["run_id"] == "test-uuid"
+    assert payload[0]["wall_time_sec"] == 10.0
 
 
 @patch("os.getenv")
