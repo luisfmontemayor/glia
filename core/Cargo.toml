@@ -1,10 +1,10 @@
 [package]
-name    = "glia_core"
+name    = "core"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "glia_core"
+name = "core"
 # cdylib -> shared library for Python (.so/.pyd)
 # rlib -> for cargo test and CLI binary
 # staticlib -> for R package (static C build), added on bundling
