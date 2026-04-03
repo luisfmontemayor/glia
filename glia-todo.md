@@ -1,3 +1,16 @@
+# Glia Prefix Removal & Infrastructure Hardening
+- [x] **Refactor: Remove `glia_` prefix from components and variables**
+    - [x] Rename `glia_core` to `core`
+    - [x] Rename `glia_common` to `common`
+    - [x] Update imports in `glia_python`, `gliar`, `backend`, and `test`
+    - [x] Update `mise` tasks and `pyproject.toml` configurations
+- [x] **Mise: Improve Task Reliability**
+    - [x] Fix `api:status` to correctly return non-zero exit code on failure
+    - [x] Update `test:all` to wait for both API and DB readiness
+    - [x] Fix `status-wait` tasks to poll correctly during service startup (removed blocking `depends`)
+- [x] **Mise: API Status Formatting**
+    - [x] Improve `api:status` output with clear success/error messages
+
 # Batch Ingestion Implementation
 - [x] **TDD: Create reproduction test case for batch ingestion**
     - [x] Define expected behavior for `POST /ingest/batch`
