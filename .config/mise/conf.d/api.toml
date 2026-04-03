@@ -1,9 +1,12 @@
 [tasks."api:status"]
 description = "Check API status"
 run         = """
-curl -sf -o /dev/null http://localhost:8000/health/ready && \
-echo "SUCCESS: Backend API ready for requests" || \
-echo "ERROR: Backend API unable to take requests"  
+if curl -sf -o /dev/null http://localhost:8000/health/ready; then
+  echo "SUCCESS: Backend API ready for requests"
+else
+  echo "ERROR: Backend API unable to take requests"
+  exit 1
+fi
 """
 
 [tasks."api:status-wait"]
