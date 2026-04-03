@@ -4,7 +4,7 @@ COMMIT_TYPES: list[str] = ["feat", "fix", "refactor", "test", "chore"]
 SCOPE_CATEGORIES: set[str] = {
     "backend",
     "glia_python",
-    "glia_core",
+    "core",
     "gliar",
     "infrastructural",
     "scripts",

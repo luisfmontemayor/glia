@@ -16,15 +16,15 @@ async def test_end_to_end_telemetry_flow(monkeypatch):
     api_url = f"http://localhost:{settings.API_PORT}/ingest"
     monkeypatch.setenv("API_INGEST_URL", api_url)
 
-    # We don't need to mock glia_core.queue_telemetry anymore if we want a true E2E
-    # But since glia_core is a background worker, we need to ensure it flushes.
+    # We don't need to mock core.queue_telemetry anymore if we want a true E2E
+    # But since core is a background worker, we need to ensure it flushes.
     
     with Glia.tracker(program_name=unique_name, context={"e2e": "true"}):
         _x = 1 + 1
     
-    # Glia.tracker doesn't have an explicit flush, but glia_python.network uses glia_core
-    import glia_core
-    glia_core.flush_queue()
+    # Glia.tracker doesn't have an explicit flush, but glia_python.network uses core
+    import core
+    core.flush_queue()
 
     async with httpx.AsyncClient(base_url=f"http://localhost:{settings.API_PORT}") as client:
         response = await client.get("/telemetry")
@@ -41,4 +41,4 @@ async def test_end_to_end_telemetry_flow(monkeypatch):
         assert f"pytest:{unique_name}" in current_job["program_name"]
         assert current_job["meta"]["e2e"] == "true"
 
-    print(f"\n✅ E2E Success: Verified job {unique_name}")
+    print(f"\n[SUCCESS] E2E: Verified job {unique_name}")

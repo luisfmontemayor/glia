@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime
 
 import httpx
-from glia_common.logs import setup_logger
+from common.logs import setup_logger
 
 logger = setup_logger("GLIA_BACKEND STRESS TEST")
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--iterations",
         type=int,
-        default=int(os.environ.get("GLIA_CORE_QUEUE_LIMIT", "1000")),
+        default=int(os.environ.get("CORE_QUEUE_LIMIT", "1000")),
         help="Number of iterations to run",
     )
     parser.add_argument(

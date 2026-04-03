@@ -1,9 +1,9 @@
 # Written by Luis Felipe Montemayor, sometime around January of 2026
 import os
 
-from glia_common.logs import setup_logger
+from common.logs import setup_logger
 
-import glia_core
+import core
 from glia_python.JobMetrics import JobMetrics
 
 logger = setup_logger("glia_python")
@@ -25,7 +25,7 @@ def push_telemetry(
     try:
         # The backend now only accepts batches (list of jobs)
         json_payload = f"[{metrics.model_dump_json()}]"
-        glia_core.queue_telemetry(json_payload, target_url, timeout)
+        core.queue_telemetry(json_payload, target_url, timeout)
         return True
 
     except Exception as e:

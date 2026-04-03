@@ -1,31 +1,31 @@
-[tasks."test:glia_core"]
-dir     = "glia_core"
-depends = ["api:status-wait"]
+[tasks."test:core"]
+dir     = "core"
+depends = ["api:status-wait", "db:status-wait"]
 run     = "cargo test --lib"
 
 [tasks."test:backend"]
-depends = "sync:db-migration"
+depends = ["sync:db-migration", "api:status-wait"]
 run     = "uv run pytest backend/test --color=yes"
 
 [tasks."test:glia_python"]
-depends = ["api:status-wait"]
+depends = ["api:status-wait", "db:status-wait"]
 run     = "uv run pytest glia_python/test --color=yes"
 
 [tasks."test:gliar"]
 description = "Run R package tests"
-depends     = ["api:status-wait"]
+depends     = ["api:status-wait", "db:status-wait"]
 dir         = "gliar"
 run         = "Rscript -e 'res <- testthat::test_local(); df <- as.data.frame(res); if (sum(df$failed) + sum(df$error) > 0) q(status = 1)'"
 
 [tasks."test:e2e-glia_python"]
 description = "Tests client run, push to db, db write and query for integrity"
-depends     = ["api:status-wait"]
+depends     = ["api:status-wait", "db:status-wait"]
 run         = "uv run pytest test/e2e/e2e_glia_python_test.py"
 
 [tasks."test:e2e-gliar"]
 description = "E2E: R client run, push to db, and backend verification"
 dir = "gliar"
-depends = ["api:status-wait", "gliar:install"]
+depends = ["api:status-wait", "db:status-wait", "gliar:install"]
 run = """
 Rscript -e '
   source("renv/activate.R")
@@ -42,9 +42,9 @@ run         = "mise test:e2e-glia_python && mise test:e2e-gliar"
 
 [tasks."test:all"]
 description = "Run all tests"
-depends = ["api:status-wait"]
+depends = ["api:status-wait", "db:status-wait"]
 run = """
-mise test:glia_core && \
+mise test:core && \
 mise test:backend && \
 mise test:glia_python && \
 mise test:gliar && \

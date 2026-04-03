@@ -10,7 +10,7 @@ static CLIENT: Lazy<Mutex<Option<GliaClient>>> = Lazy::new(|| Mutex::new(None));
 fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
     let mut client_lock = CLIENT.lock().unwrap();
     if client_lock.is_none() {
-        let limit = env::var("GLIA_CORE_QUEUE_LIMIT")
+        let limit = env::var("CORE_QUEUE_LIMIT")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(1000);
@@ -30,8 +30,8 @@ pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> Robj 
 
     match result {
         Ok(Ok(_)) => list!(success = true).into(),
-        Ok(Err(e)) => list!(success = false, error = format!("[GLIA_CORE] {}", e)).into(),
-        Err(_) => list!(success = false, error = "[GLIA_CORE] Rust panicked during queue_telemetry").into(),
+        Ok(Err(e)) => list!(success = false, error = format!("[CORE] {}", e)).into(),
+        Err(_) => list!(success = false, error = "[CORE] Rust panicked during queue_telemetry").into(),
     }
 }
 
@@ -59,7 +59,7 @@ pub fn flush_queue() -> Robj {
     match result {
         Ok(Some(summary)) => summary.into(),
         Ok(None) => list!(failed_jobs = 0, common_errors = list!()).into(),
-        Err(_) => list!(success = false, error = "[GLIA_CORE] Rust panicked during flush_queue").into(),
+        Err(_) => list!(success = false, error = "[CORE] Rust panicked during flush_queue").into(),
     }
 }
 
@@ -72,7 +72,7 @@ pub fn trigger_panic() {
 }
 
 extendr_module! {
-    mod glia_core; 
+    mod core; 
     fn queue_telemetry;
     fn flush_queue;
     fn trigger_panic;
