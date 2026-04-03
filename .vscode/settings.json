@@ -8,8 +8,8 @@
     }
   },
   "python.analysis.extraPaths": [
-    "./libs/python/glia_common/src",
-    "./glia_core",  
+    "./libs/python/common/src",
+    "./core",  
     "./glia_python/src"
   ],
   "python.defaultInterpreterPath": "./.venv/bin/python",

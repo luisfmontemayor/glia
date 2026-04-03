@@ -1,5 +1,5 @@
-[tasks."test:glia_core"]
-dir     = "glia_core"
+[tasks."test:core"]
+dir     = "core"
 depends = ["api:status-wait"]
 run     = "cargo test --lib"
 
@@ -44,7 +44,7 @@ run         = "mise test:e2e-glia_python && mise test:e2e-gliar"
 description = "Run all tests"
 depends = ["api:status-wait"]
 run = """
-mise test:glia_core && \
+mise test:core && \
 mise test:backend && \
 mise test:glia_python && \
 mise test:gliar && \
