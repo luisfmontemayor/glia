@@ -13,7 +13,7 @@ from sys import stderr
 
 VERSION_FILE: Path = Path(".python-version")
 IGNORED_DIRS: set[str] = {".venv", "node_modules", ".git", "dist", "build", "gliar", ".config/mise/conf.d/"}
-IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("glia_core/Cargo.toml")} | {p for p in Path(".config/mise/conf.d/").rglob("*.toml")}
+IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("core/Cargo.toml")} | {p for p in Path(".config/mise/conf.d/").rglob("*.toml")}
 
 def get_python_version(version_file: Path = VERSION_FILE) -> str:
     version: str = version_file.read_text().strip()
@@ -38,12 +38,12 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
             rf'\1">={version}"',
         ),
         (
-            Path("glia_core/pyproject.toml"),
+            Path("core/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),
         (
-            Path("libs/python/glia_common/pyproject.toml"),
+            Path("libs/python/common/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),

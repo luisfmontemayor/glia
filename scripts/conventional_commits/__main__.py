@@ -7,7 +7,7 @@ import signal
 import subprocess
 import sys
 
-from glia_common import cli
+from common import cli
 
 from .constants import COMMIT_TYPES
 from .scopes import get_staged_scopes
