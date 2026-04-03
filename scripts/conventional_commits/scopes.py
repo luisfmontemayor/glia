@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Literal
 
-from glia_common import cli, system
+from common import cli, system
 
 from .constants import (
     INFRA_DIRS,

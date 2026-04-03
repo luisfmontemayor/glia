@@ -5,7 +5,7 @@ import signal
 import sys
 from pathlib import Path
 
-from glia_common import cli, system
+from common import cli, system
 
 ENV_FILE = Path(".env")
 PG_KEYS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"]
