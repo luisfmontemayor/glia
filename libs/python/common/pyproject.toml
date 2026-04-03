@@ -1,5 +1,5 @@
 [project]
-name            = "glia_common"
+name            = "common"
 version         = "0.1.0"
 description     = "Shared utilities for Glia python scripts"
 requires-python = ">=3.12.0" # Updated with mise run sync:python-version, and version is hardcoded in glia/.python-version
@@ -9,4 +9,4 @@ requires      = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/glia_common"]
+packages = ["src/common"]
