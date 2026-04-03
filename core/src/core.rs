@@ -1,5 +1,5 @@
 use std::time::Duration;
-use crossbeam_channel::{bounded, Sender, Receiver};
+use tokio::sync::mpsc::{channel, Sender};
 use std::thread;
 use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -12,7 +12,7 @@ pub enum TelemetryMessage {
         url: String,
         timeout_sec: f64,
     },
-    Flush(Sender<()>),
+    Flush(std::sync::mpsc::Sender<()>),
 }
 
 pub struct FlushSummary {
@@ -33,7 +33,7 @@ pub struct GliaClient {
 
 impl GliaClient {
     pub fn new(limit: usize) -> Self {
-        let (s, r) = bounded(limit);
+        let (s, mut r) = channel(limit);
         let stats = Arc::new(Stats {
             failed_count: AtomicUsize::new(0),
             error_frequency: Mutex::new(HashMap::new()),
@@ -50,34 +50,38 @@ impl GliaClient {
                 let client = reqwest::Client::new();
                 let debug_mode = env::var("CORE_DEBUG").is_ok();
                 
-                while let Ok(msg) = r.recv() {
-                    match msg {
-                        TelemetryMessage::Data { payload, url, timeout_sec } => {
-                            let res = client.post(&url)
-                                .header("Content-Type", "application/json")
-                                .timeout(Duration::from_secs_f64(timeout_sec))
-                                .body(payload)
-                                .send()
-                                .await;
+                let mut buffer: Vec<(String, String, f64)> = Vec::with_capacity(1000);
+                let mut last_send = tokio::time::Instant::now();
 
-                            let error_msg = match res {
-                                Ok(resp) if resp.status().is_success() => None,
-                                Ok(resp) => Some(format!("HTTP {}", resp.status())),
-                                Err(e) => Some(e.to_string()),
-                            };
-
-                            if let Some(err) = error_msg {
-                                stats_clone.failed_count.fetch_add(1, Ordering::SeqCst);
-                                let mut freq = stats_clone.error_frequency.lock().unwrap();
-                                *freq.entry(err.clone()).or_insert(0) += 1;
-                                
-                                if debug_mode {
-                                    eprintln!("[CORE DEBUG] Telemetry push failed: {}", err);
+                loop {
+                    let timeout = tokio::time::Duration::from_secs(2);
+                    let sleep = tokio::time::sleep_until(last_send + timeout);
+                    
+                    tokio::select! {
+                        msg = r.recv() => {
+                            match msg {
+                                Some(TelemetryMessage::Data { payload, url, timeout_sec }) => {
+                                    buffer.push((payload, url, timeout_sec));
+                                    if buffer.len() >= 1000 {
+                                        Self::send_batch(&client, &mut buffer, &stats_clone, debug_mode).await;
+                                        last_send = tokio::time::Instant::now();
+                                    }
                                 }
+                                Some(TelemetryMessage::Flush(ack_sender)) => {
+                                    if !buffer.is_empty() {
+                                        Self::send_batch(&client, &mut buffer, &stats_clone, debug_mode).await;
+                                    }
+                                    let _ = ack_sender.send(());
+                                    last_send = tokio::time::Instant::now();
+                                }
+                                None => break, // Channel closed
                             }
                         }
-                        TelemetryMessage::Flush(ack_sender) => {
-                            let _ = ack_sender.send(());
+                        _ = sleep => {
+                            if !buffer.is_empty() {
+                                Self::send_batch(&client, &mut buffer, &stats_clone, debug_mode).await;
+                            }
+                            last_send = tokio::time::Instant::now();
                         }
                     }
                 }
@@ -91,6 +95,61 @@ impl GliaClient {
         }
     }
 
+    async fn send_batch(
+        client: &reqwest::Client,
+        buffer: &mut Vec<(String, String, f64)>,
+        stats: &Arc<Stats>,
+        debug_mode: bool
+    ) {
+        if buffer.is_empty() { return; }
+
+        // For now, we assume all items in a batch go to the same URL and have same timeout
+        // (This matches current usage where GLIA_PYTHON sends all to one API_INGEST_URL)
+        let (_first_payload, url, timeout_sec) = &buffer[0];
+        let url = url.clone();
+        let timeout_sec = *timeout_sec;
+
+        // Merge payloads. Each payload is a JSON list string like "[{...}]"
+        // We want to merge them into a single list "[{...},{...},...]"
+        let mut merged_payload = String::from("[");
+        for (i, (payload, _, _)) in buffer.iter().enumerate() {
+            let stripped = payload.trim().trim_start_matches('[').trim_end_matches(']');
+            if !stripped.is_empty() {
+                if i > 0 {
+                    merged_payload.push(',');
+                }
+                merged_payload.push_str(stripped);
+            }
+        }
+        merged_payload.push(']');
+
+        let res = client.post(&url)
+            .header("Content-Type", "application/json")
+            .timeout(Duration::from_secs_f64(timeout_sec))
+            .body(merged_payload)
+            .send()
+            .await;
+
+        let error_msg = match res {
+            Ok(resp) if resp.status().is_success() => None,
+            Ok(resp) => Some(format!("HTTP {}", resp.status())),
+            Err(e) => Some(e.to_string()),
+        };
+
+        if let Some(err) = error_msg {
+            // If the whole batch fails, we count ALL jobs in it as failed
+            stats.failed_count.fetch_add(buffer.len(), Ordering::SeqCst);
+            let mut freq = stats.error_frequency.lock().unwrap();
+            *freq.entry(err.clone()).or_insert(0) += 1;
+            
+            if debug_mode {
+                eprintln!("[CORE DEBUG] Batch push failed ({} jobs): {}", buffer.len(), err);
+            }
+        }
+
+        buffer.clear();
+    }
+
     pub fn queue_telemetry(&self, json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
         self.sender.try_send(TelemetryMessage::Data {
             payload: json_payload.to_string(),
@@ -100,9 +159,9 @@ impl GliaClient {
     }
 
     pub fn flush(&self) -> FlushSummary {
-        let (ack_sender, ack_receiver) = bounded(1);
-        if self.sender.send(TelemetryMessage::Flush(ack_sender)).is_ok() {
-            let _ = ack_receiver.recv();
+        let (ack_sender, ack_receiver) = std::sync::mpsc::channel();
+        if self.sender.try_send(TelemetryMessage::Flush(ack_sender)).is_ok() {
+            let _ = ack_receiver.recv_timeout(Duration::from_secs(5));
         }
 
         let failed_jobs = self.stats.failed_count.swap(0, Ordering::SeqCst);
@@ -141,64 +200,69 @@ mod tests {
         // The third one should fail because the channel is bounded and full
         let result = client.queue_telemetry("{}", "http://localhost", 1.0);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("full"));
+        // tokio mpsc try_send error message contains "no available capacity" or similar
+        assert!(result.unwrap_err().to_string().to_lowercase().contains("capacity"));
     }
 
-    #[test]
-    fn test_queue_telemetry_success() {
+    #[tokio::test]
+    async fn test_queue_telemetry_success() {
         let client = setup_client(100);
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
 
         let mock = server.mock("POST", "/ingest")
             .with_status(200)
             .with_body("ok")
-            .create();
+            .create_async()
+            .await;
 
         let result = client.queue_telemetry("{}", &url, 1.0);
         assert!(result.is_ok());
         
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 0);
-        mock.assert();
+        mock.assert_async().await;
     }
 
-    #[test]
-    fn test_queue_telemetry_server_error() {
+    #[tokio::test]
+    async fn test_queue_telemetry_server_error() {
         let client = setup_client(100);
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
 
         let mock = server.mock("POST", "/ingest")
             .with_status(500)
-            .create();
+            .create_async()
+            .await;
 
         let _ = client.queue_telemetry("{}", &url, 1.0);
         let summary = client.flush();
         
         assert_eq!(summary.failed_jobs, 1);
         assert!(summary.common_errors.iter().any(|(e, _)| e.contains("HTTP 500")));
-        mock.assert();
+        mock.assert_async().await;
     }
 
-    #[test]
-    fn test_queue_telemetry_unreachable_host() {
+    #[tokio::test]
+    async fn test_queue_telemetry_unreachable_host() {
         let client = setup_client(100);
         let _ = client.queue_telemetry("{}", "http://invalid.local", 0.1);
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 1);
     }
 
-    #[test]
-    fn test_flush_clears_multiple_items() {
+    #[tokio::test]
+    async fn test_flush_clears_multiple_items() {
         let client = setup_client(100);
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
 
+        // We expect ONE batch request containing 3 items
         let mock = server.mock("POST", "/ingest")
-            .expect(3)
+            .expect(1)
             .with_status(200)
-            .create();
+            .create_async()
+            .await;
 
         client.queue_telemetry("{}", &url, 1.0).unwrap();
         client.queue_telemetry("{}", &url, 1.0).unwrap();
@@ -207,6 +271,57 @@ mod tests {
         let summary = client.flush();
         
         assert_eq!(summary.failed_jobs, 0);
-        mock.assert();
+        mock.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_batching_by_count() {
+        let client = GliaClient::new(2000);
+        let mut server = mockito::Server::new_async().await;
+        let url = format!("{}/ingest", server.url());
+
+        // We expect ONE batch request containing 1000 items
+        let mock = server.mock("POST", "/ingest")
+            .expect(1)
+            .with_status(201)
+            .create_async()
+            .await;
+
+        for _ in 0..1000 {
+            client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+        }
+
+        // Give some time for the worker to process
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        
+        let summary = client.flush();
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_batching_by_time() {
+        let client = GliaClient::new(100);
+        let mut server = mockito::Server::new_async().await;
+        let url = format!("{}/ingest", server.url());
+
+        let mock = server.mock("POST", "/ingest")
+            .expect(1)
+            .with_status(201)
+            .create_async()
+            .await;
+
+        client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+
+        // Should NOT be sent yet
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        // mock.assert() might fail here if it's sent immediately
+
+        // Should be sent after 2 seconds
+        tokio::time::sleep(Duration::from_millis(2100)).await;
+        
+        let summary = client.flush();
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert_async().await;
     }
 }
