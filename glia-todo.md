@@ -3,11 +3,13 @@
     - [x] Add `test_batching_by_count`: Verify 1000 items are sent as one batch.
     - [x] Add `test_batching_by_time`: Verify 1 item is sent after 2 seconds.
     - [x] Add `test_flush_drains_buffer`: Verify `flush()` sends items even if buffer is not full or timed out.
+    - [x] Add `test_batching_with_env_vars`: Verify configurability via `CORE_BATCH_SIZE` and `CORE_BATCH_TIMEOUT_SEC`.
 - [x] **Core: Implement batching logic**
     - [x] Update worker thread to use a buffer (`Vec<String>`).
     - [x] Implement a select-style loop with timeout for channel reception.
     - [x] Implement batch merging logic (re-wrap JSON list items into a single list).
     - [x] Ensure `Flush` message drains the buffer before acknowledging.
+    - [x] Make batch size and timeout configurable via environment variables (`CORE_BATCH_SIZE`, `CORE_BATCH_TIMEOUT_SEC`).
 - [x] **Validation: Cross-client compatibility**
     - [x] Verify `glia_python` still works (it currently wraps single items in `[]`).
     - [x] Verify `gliar` still works.

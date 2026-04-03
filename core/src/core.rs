@@ -50,11 +50,21 @@ impl GliaClient {
                 let client = reqwest::Client::new();
                 let debug_mode = env::var("CORE_DEBUG").is_ok();
                 
-                let mut buffer: Vec<(String, String, f64)> = Vec::with_capacity(1000);
+                let batch_size = env::var("CORE_BATCH_SIZE")
+                    .ok()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(1000);
+                
+                let batch_timeout_sec = env::var("CORE_BATCH_TIMEOUT_SEC")
+                    .ok()
+                    .and_then(|s| s.parse::<u64>().ok())
+                    .unwrap_or(2);
+
+                let mut buffer: Vec<(String, String, f64)> = Vec::with_capacity(batch_size);
                 let mut last_send = tokio::time::Instant::now();
 
                 loop {
-                    let timeout = tokio::time::Duration::from_secs(2);
+                    let timeout = tokio::time::Duration::from_secs(batch_timeout_sec);
                     let sleep = tokio::time::sleep_until(last_send + timeout);
                     
                     tokio::select! {
@@ -62,7 +72,7 @@ impl GliaClient {
                             match msg {
                                 Some(TelemetryMessage::Data { payload, url, timeout_sec }) => {
                                     buffer.push((payload, url, timeout_sec));
-                                    if buffer.len() >= 1000 {
+                                    if buffer.len() >= batch_size {
                                         Self::send_batch(&client, &mut buffer, &stats_clone, debug_mode).await;
                                         last_send = tokio::time::Instant::now();
                                     }
@@ -323,5 +333,35 @@ mod tests {
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 0);
         mock.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_batching_with_env_vars() {
+        std::env::set_var("CORE_BATCH_SIZE", "5");
+        std::env::set_var("CORE_BATCH_TIMEOUT_SEC", "1");
+        
+        let client = GliaClient::new(100);
+        let mut server = mockito::Server::new_async().await;
+        let url = format!("{}/ingest", server.url());
+
+        let mock = server.mock("POST", "/ingest")
+            .expect(1)
+            .with_status(201)
+            .create_async()
+            .await;
+
+        for _ in 0..5 {
+            client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+        }
+
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        
+        let summary = client.flush();
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert_async().await;
+        
+        // Clean up env vars for other tests
+        std::env::remove_var("CORE_BATCH_SIZE");
+        std::env::remove_var("CORE_BATCH_TIMEOUT_SEC");
     }
 }
