@@ -50,7 +50,7 @@
 
 
 
-## 🛠️ Technical Context
+## Technical Context
 - **Backend:** FastAPI (Python 3.12+)
 - **Database:** PostgreSQL (Optimized for high-frequency writes)
 - **Infrastructure:** Docker / Compose
