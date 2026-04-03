@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import glia_core
+import core
 from glia_python.JobMetrics import JobMetrics
 from glia_python.network import push_telemetry
 
@@ -31,7 +31,7 @@ def create_sample_metrics() -> JobMetrics:
     )
 
 
-@patch("glia_python.network.glia_core.queue_telemetry")
+@patch("glia_python.network.core.queue_telemetry")
 def test_push_telemetry_success(mock_queue):
     """Verify that metrics are correctly serialized and queued."""
     metrics = create_sample_metrics()
@@ -46,12 +46,12 @@ def test_push_telemetry_success(mock_queue):
 
     json_payload = mock_queue.call_args.args[0]
     payload = json.loads(json_payload)
-    assert payload["run_id"] == "test-uuid"
-    assert payload["wall_time_sec"] == 10.0
+    assert payload[0]["run_id"] == "test-uuid"
+    assert payload[0]["wall_time_sec"] == 10.0
 
 
 @patch("os.getenv")
-@patch("glia_python.network.glia_core.queue_telemetry")
+@patch("glia_python.network.core.queue_telemetry")
 def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     metrics = create_sample_metrics()
     mock_getenv.value = "http://env-var-url:9000"
@@ -67,7 +67,7 @@ def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     # but the logic is what we want to test.
 
 
-@patch("glia_python.network.glia_core.queue_telemetry")
+@patch("glia_python.network.core.queue_telemetry")
 def test_push_telemetry_fail_fast(mock_queue):
     metrics = create_sample_metrics()
 
@@ -83,7 +83,7 @@ def test_push_telemetry_fail_fast(mock_queue):
 def test_rust_panic_caught():
     """Verify that a Rust panic doesn't crash the Python process."""
     with pytest.raises(RuntimeError, match="Intentional Rust panic caught"):
-        glia_core.trigger_panic()
+        core.trigger_panic()
 
 
 def test_non_utf8_payload():
@@ -95,6 +95,6 @@ def test_non_utf8_payload():
     # Depending on how pyo3 handles it, it might raise a UnicodeEncodeError
     # before reaching Rust, or Rust might catch it.
     try:
-        glia_core.queue_telemetry(invalid_str, "http://localhost", 1.0)
+        core.queue_telemetry(invalid_str, "http://localhost", 1.0)
     except (UnicodeEncodeError, RuntimeError):
         pass  # Success if it doesn't crash the interpreter
