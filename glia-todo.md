@@ -1,3 +1,17 @@
+# Batching in Core Module
+- [ ] **TDD: Implement batching tests in `core/src/core.rs`**
+    - [ ] Add `test_batching_by_count`: Verify 1000 items are sent as one batch.
+    - [ ] Add `test_batching_by_time`: Verify 1 item is sent after 2 seconds.
+    - [ ] Add `test_flush_drains_buffer`: Verify `flush()` sends items even if buffer is not full or timed out.
+- [ ] **Core: Implement batching logic**
+    - [ ] Update worker thread to use a buffer (`Vec<String>`).
+    - [ ] Implement a select-style loop with timeout for channel reception.
+    - [ ] Implement batch merging logic (re-wrap JSON list items into a single list).
+    - [ ] Ensure `Flush` message drains the buffer before acknowledging.
+- [ ] **Validation: Cross-client compatibility**
+    - [ ] Verify `glia_python` still works (it currently wraps single items in `[]`).
+    - [ ] Verify `gliar` still works.
+
 # Glia Prefix Removal & Infrastructure Hardening
 - [x] **Refactor: Remove `glia_` prefix from components and variables**
     - [x] Rename `glia_core` to `core`

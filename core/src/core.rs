@@ -188,4 +188,25 @@ mod tests {
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 1);
     }
+
+    #[test]
+    fn test_flush_clears_multiple_items() {
+        let client = setup_client(100);
+        let mut server = mockito::Server::new();
+        let url = format!("{}/ingest", server.url());
+
+        let mock = server.mock("POST", "/ingest")
+            .expect(3)
+            .with_status(200)
+            .create();
+
+        client.queue_telemetry("{}", &url, 1.0).unwrap();
+        client.queue_telemetry("{}", &url, 1.0).unwrap();
+        client.queue_telemetry("{}", &url, 1.0).unwrap();
+
+        let summary = client.flush();
+        
+        assert_eq!(summary.failed_jobs, 0);
+        mock.assert();
+    }
 }
