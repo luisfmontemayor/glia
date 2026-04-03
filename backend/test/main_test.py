@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from glia_common.cli import run_command
+from common.cli import run_command
 from httpx import AsyncClient
 from sqlmodel import delete
 

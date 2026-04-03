@@ -1,4 +1,4 @@
-from glia_common.logs import setup_logger
+from common.logs import setup_logger
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
