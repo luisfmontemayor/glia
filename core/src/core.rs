@@ -48,7 +48,7 @@ impl GliaClient {
 
             rt.block_on(async move {
                 let client = reqwest::Client::new();
-                let debug_mode = env::var("GLIA_DEBUG").is_ok();
+                let debug_mode = env::var("CORE_DEBUG").is_ok();
                 
                 while let Ok(msg) = r.recv() {
                     match msg {
@@ -72,7 +72,7 @@ impl GliaClient {
                                 *freq.entry(err.clone()).or_insert(0) += 1;
                                 
                                 if debug_mode {
-                                    eprintln!("[GLIA_CORE DEBUG] Telemetry push failed: {}", err);
+                                    eprintln!("[CORE DEBUG] Telemetry push failed: {}", err);
                                 }
                             }
                         }
@@ -118,7 +118,7 @@ impl GliaClient {
 
 /// A canary function to test FFI panic handling.
 pub fn trigger_panic() {
-    panic!("[GLIA_CORE] INTENTIONAL PANIC: Testing FFI boundary safety.");
+    panic!("[CORE] INTENTIONAL PANIC: Testing FFI boundary safety.");
 }
 
 #[cfg(test)]

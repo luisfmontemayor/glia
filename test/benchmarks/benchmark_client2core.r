@@ -35,7 +35,7 @@ run_benchmark <- function(iterations) {
 
 if (!interactive()) {
   # Get iterations from environment variable, which run_benchmarks.py sets
-  iterations <- as.integer(Sys.getenv("GLIA_CORE_QUEUE_LIMIT", unset = "1000"))
+  iterations <- as.integer(Sys.getenv("CORE_QUEUE_LIMIT", unset = "1000"))
   
   # Check if glia_init is available (it should be in gliar)
   if (exists("glia_init")) {

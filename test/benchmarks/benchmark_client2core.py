@@ -3,7 +3,7 @@ import json
 import os
 import time
 
-from glia_common.logs import setup_logger
+from common.logs import setup_logger
 from glia_python.tracker import JobTracker
 
 logger = setup_logger("GLIA_PYTHON STRESS TEST")
@@ -12,7 +12,7 @@ logger = setup_logger("GLIA_PYTHON STRESS TEST")
 def run_benchmark(iterations):
     """
     Performance test for the 'Client-to-Core' inflection point.
-    Target: Measure the delta introduced by JobTracker -> glia_core hand-off.
+    Target: Measure the delta introduced by JobTracker -> core hand-off.
     """
     stress_load = iterations * 5
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--iterations",
         type=int,
-        default=int(os.environ.get("GLIA_CORE_QUEUE_LIMIT", "1000")),
+        default=int(os.environ.get("CORE_QUEUE_LIMIT", "1000")),
         help="Number of iterations to run",
     )
     args = parser.parse_args()

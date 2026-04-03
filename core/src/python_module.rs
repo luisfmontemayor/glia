@@ -10,7 +10,7 @@ static CLIENT: Lazy<Mutex<Option<GliaClient>>> = Lazy::new(|| Mutex::new(None));
 fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
     let mut client_lock = CLIENT.lock().unwrap();
     if client_lock.is_none() {
-        let limit = env::var("GLIA_CORE_QUEUE_LIMIT")
+        let limit = env::var("CORE_QUEUE_LIMIT")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(1000);
@@ -29,8 +29,8 @@ pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> PyRes
     });
 
     match result {
-        Ok(inner) => inner.map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("[GLIA_CORE] {}", e))),
-        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[GLIA_CORE] Rust panicked during queue_telemetry")),
+        Ok(inner) => inner.map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("[CORE] {}", e))),
+        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[CORE] Rust panicked during queue_telemetry")),
     }
 }
 
@@ -55,7 +55,7 @@ pub fn flush_queue() -> PyResult<PyFlushSummary> {
             failed_jobs: 0,
             common_errors: Vec::new(),
         }),
-        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[GLIA_CORE] Rust panicked during flush_queue")),
+        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[CORE] Rust panicked during flush_queue")),
     }
 }
 
@@ -67,7 +67,7 @@ pub fn trigger_panic() -> PyResult<()> {
 
     match result {
         Ok(_) => Ok(()),
-        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[GLIA_CORE] Intentional Rust panic caught at FFI boundary")),
+        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[CORE] Intentional Rust panic caught at FFI boundary")),
     }
 }
 
