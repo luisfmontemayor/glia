@@ -6,8 +6,8 @@ import time
 import uuid
 from datetime import UTC, datetime
 
-import glia_core
-from glia_common.logs import setup_logger
+import core
+from common.logs import setup_logger
 
 logger = setup_logger("benchmark_core2db_core.py")
 
@@ -15,7 +15,7 @@ API_URL = os.environ.get("API_INGEST_URL", "http://localhost:8000/ingest")
 
 
 def push_telemetry_core(url, iteration, load_factor):
-    """Uses glia_core.queue_telemetry to hit the FastAPI /ingest endpoint."""
+    """Uses core.queue_telemetry to hit the FastAPI /ingest endpoint."""
     payload = {
         "run_id": str(uuid.uuid4()),
         "hostname": "db-stress-node-core",
@@ -36,7 +36,7 @@ def push_telemetry_core(url, iteration, load_factor):
 
     try:
         # queue_telemetry is synchronous and adds to an internal Rust queue
-        glia_core.queue_telemetry(json.dumps(payload), url)
+        core.queue_telemetry(json.dumps(payload), url)
         return True
     except Exception as e:
         logger.error(f"Error queueing telemetry: {e}")
@@ -45,13 +45,13 @@ def push_telemetry_core(url, iteration, load_factor):
 
 def run_benchmark(iterations):
     """
-    Performance test for the 'Persistence Barrier' using glia_core.
+    Performance test for the 'Persistence Barrier' using core.
     Measures the time it takes to queue and then FLUSH all telemetry.
     """
-    logger.info(f"Starting DB stress test (via glia_core): {iterations} writes")
+    logger.info(f"Starting DB stress test (via core): {iterations} writes")
 
     # Set the queue limit via environment variable for the Rust core
-    os.environ["GLIA_CORE_QUEUE_LIMIT"] = str(iterations + 100)
+    os.environ["CORE_QUEUE_LIMIT"] = str(iterations + 100)
 
     start_time = time.perf_counter()
     
@@ -65,7 +65,7 @@ def run_benchmark(iterations):
     logger.info(f"Queued {success_count} items. Flushing to DB...")
     
     flush_start = time.perf_counter()
-    summary = glia_core.flush_queue()
+    summary = core.flush_queue()
     flush_end = time.perf_counter()
     
     total_duration = flush_end - start_time
@@ -90,15 +90,15 @@ def run_benchmark(iterations):
 
     print(f"REPORT_START{json.dumps(report)}REPORT_END")
 
-    logger.info(f"Backend-to-DB (glia_core) stress test complete. Failed: {summary.failed_jobs}")
+    logger.info(f"Backend-to-DB (core) stress test complete. Failed: {summary.failed_jobs}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Backend-to-DB benchmark using glia_core")
+    parser = argparse.ArgumentParser(description="Run Backend-to-DB benchmark using core")
     parser.add_argument(
         "--iterations",
         type=int,
-        default=int(os.environ.get("GLIA_CORE_QUEUE_LIMIT", "1000")),
+        default=int(os.environ.get("CORE_QUEUE_LIMIT", "1000")),
         help="Number of iterations to run",
     )
     args = parser.parse_args()
