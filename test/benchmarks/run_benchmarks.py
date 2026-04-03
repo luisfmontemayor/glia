@@ -6,8 +6,8 @@ import re
 import subprocess
 import sys
 
-from glia_common.logs import setup_logger
-from glia_common.system import run_command
+from common.logs import setup_logger
+from common.system import run_command
 
 logger = setup_logger("GLIA_BENCHMARKER")
 
@@ -30,15 +30,15 @@ BENCHMARKS = [
 def check_infrastructure():
     """Checks if the API and Database are ready using mise tasks."""
     logger.info("Verifying Infrastructure (API & DB)...")
-    
+
     # api:status returns 0 if healthy, which run_command returns as "0" when capture=False
     status = run_command(["mise", "run", "api:status"], capture=False)
-    
+
     if status != "0":
         logger.error("Infrastructure check FAILED.")
         logger.error("Ensure the API is running ('mise api:up') and the database is accessible.")
         return False
-    
+
     logger.info("Infrastructure is healthy. Proceeding with benchmarks.")
     return True
 
@@ -49,14 +49,14 @@ def run_benchmark(cmd: str, iterations: int):
     Captures stdstreams to extract the evaluation report.
     """
     env = os.environ.copy()
-    env["GLIA_CORE_QUEUE_LIMIT"] = str(iterations)
-    env["GLIA_LOCAL_QUEUE_LIMIT"] = str(iterations * 10)
-    env["GLIA_PERFORMANCE_TEST"] = "true"
+    env["CORE_QUEUE_LIMIT"] = str(iterations)
+    env["CORE_LOCAL_QUEUE_LIMIT"] = str(iterations * 10)
+    env["PERFORMANCE_TEST"] = "true"
 
     try:
         # Determine the directory of the current script to run commands from there
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        
+
         # We use shell=True to support pytest/Rscript directly as provided in BENCHMARKS
         result = subprocess.run(
             cmd,
@@ -95,7 +95,7 @@ def main():
         performance_profile[benchmark_name] = {"latency": [], "throughput": []}
 
         for iterations in ITERATIONS_LIST:
-            # Printing the current test being performed using the glia_common logger
+            # Printing the current test being performed using the common logger
             logger.info(f"Performing Test: {benchmark_name} | Load: {iterations}")
 
             report = run_benchmark(b["cmd"], iterations)
@@ -109,7 +109,7 @@ def main():
 
     # Generate the aligned Evaluation Report
     logger.info("=" * 80)
-    logger.info("📈 GLIA INFLECTION POINT CHARACTERIZATION")
+    logger.info("GLIA INFLECTION POINT CHARACTERIZATION")
     logger.info("=" * 80)
 
     # Define a fixed width for each column
@@ -119,8 +119,10 @@ def main():
     # Format the independent variables (ITERATIONS_LIST) once
     independent_str = "".join([f"{str(x):>{col_width}}" for x in ITERATIONS_LIST])
 
+    print(f"{'Number of Jobs:':<{header_width}}{independent_str}")
+    print("-" * 80)
     for name, metrics in performance_profile.items():
-        logger.info(f"Benchmark:   {name}")
+        print(f"## Benchmark:   {name}")
 
         # Format Latency
         formatted_latencies = []
@@ -141,10 +143,9 @@ def main():
         latency_str = "".join(formatted_latencies)
         throughput_str = "".join(formatted_throughputs)
 
-        logger.info(f"{'Latency (ms):':<{header_width}}{latency_str}")
-        logger.info(f"{'Throughput (j/s):':<{header_width}}{throughput_str}")
-        logger.info(f"{'Independent:':<{header_width}}{independent_str}")
-        logger.info("-" * 80)
+        print(f"{'Latency (ms):':<{header_width}}{latency_str}")
+        print(f"{'Throughput (j/s):':<{header_width}}{throughput_str}")
+        print("-" * 80)
 
 if __name__ == "__main__":
     main()
