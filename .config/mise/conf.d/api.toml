@@ -1,6 +1,10 @@
 [tasks."api:status"]
 description = "Check API status"
-run         = "curl -sf -o /dev/null http://localhost:8000/health/ready"
+run         = """
+curl -sf -o /dev/null http://localhost:8000/health/ready && \
+echo "SUCCESS: Backend API ready for requests" || \
+echo "ERROR: Backend API unable to take requests"  
+"""
 
 [tasks."api:status-wait"]
 description = "Poll the API until it responds"
