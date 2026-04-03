@@ -24,7 +24,6 @@ run         = "mise run alembic upgrade head"
 
 [tasks."db:status-wait"]
 description = "Poll the database until it accepts connections"
-depends = ["db:status"]
 run = """
 MAX_TRIES=15
 COUNT=0
