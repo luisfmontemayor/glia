@@ -1,10 +1,11 @@
 import uuid
-from unittest.mock import patch
-import pytest
+
 import httpx
+import pytest
 
 from backend.config import settings
 from glia_python import Glia
+
 
 @pytest.mark.asyncio
 async def test_end_to_end_telemetry_flow(monkeypatch):
