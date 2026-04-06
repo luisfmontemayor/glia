@@ -1,13 +1,13 @@
 import argparse
-import asyncio
 import json
 import os
 import time
 import uuid
 from datetime import UTC, datetime
 
-import core
 from common.logs import setup_logger
+
+import core
 
 logger = setup_logger("benchmark_core2db_core.py")
 

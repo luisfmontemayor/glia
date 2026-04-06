@@ -5,19 +5,15 @@ Revises: 6eeb89a12e02
 Create Date: 2026-03-11 12:11:12.236648
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
-import sqlalchemy as sa
-import sqlmodel
-import sqlmodel.sql.sqltypes
-
 
 # revision identifiers, used by Alembic.
 revision: str = '5693cef380bf'
-down_revision: Union[str, Sequence[str], None] = '6eeb89a12e02'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '6eeb89a12e02'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

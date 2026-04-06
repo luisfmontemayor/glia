@@ -5,19 +5,13 @@ Revises: 476c9650b98e
 Create Date: 2026-03-11 23:10:46.797965
 
 """
-from typing import Sequence, Union
-
-from alembic import op
-import sqlalchemy as sa
-import sqlmodel
-import sqlmodel.sql.sqltypes
-
+from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
 revision: str = '67b655d2cca0'
-down_revision: Union[str, Sequence[str], None] = '476c9650b98e'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '476c9650b98e'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
