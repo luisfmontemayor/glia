@@ -1,36 +1,38 @@
-# Glia Prefix Removal & Infrastructure Hardening
-- [x] **Refactor: Remove `glia_` prefix from components and variables**
-    - [x] Rename `glia_core` to `core`
-    - [x] Rename `glia_common` to `common`
-    - [x] Update imports in `glia_python`, `gliar`, `backend`, and `test`
-    - [x] Update `mise` tasks and `pyproject.toml` configurations
-- [x] **Mise: Improve Task Reliability**
-    - [x] Fix `api:status` to correctly return non-zero exit code on failure
-    - [x] Update `test:all` to wait for both API and DB readiness
-    - [x] Fix `status-wait` tasks to poll correctly during service startup (removed blocking `depends`)
-- [x] **Mise: API Status Formatting**
-    - [x] Improve `api:status` output with clear success/error messages
+# Configuration & Bug Fixes
+- [x] **Mise: Centralize configuration**
+    - [x] Add `API_HOST` and `CORE_FLUSH_TIMEOUT_SEC` to `mise.toml`.
+    - [x] Use `API_HOST` in `API_INGEST_URL` instead of `POSTGRES_HOST`.
+- [x] **Core: Use configurable flush timeout**
+    - [x] Update `core/src/core.rs` to use `CORE_FLUSH_TIMEOUT_SEC` instead of hardcoded 5s.
+- [x] **Python Client: Remove hardcoded defaults**
+    - [x] Remove hardcoded 2.0s timeout in `push_telemetry`.
+    - [x] Ensure it strictly respects `API_INGEST_URL`.
+- [x] **R Client: Remove hardcoded defaults**
+    - [x] Remove hardcoded "http://localhost:8000" in `glia_init`.
+    - [x] Remove hardcoded 10.0s timeout in `GliaClient$new`.
+- [x] **Validation: Ensure TDD coverage**
+    - [x] Update core tests to verify `CORE_FLUSH_TIMEOUT_SEC`.
 
-# Batch Ingestion Implementation
-- [x] **TDD: Create reproduction test case for batch ingestion**
-    - [x] Define expected behavior for `POST /ingest/batch`
-    - [x] Create test in `backend/test/main_test.py`
-- [x] **Backend: Data Modeling**
-    - [x] Define `JobBatchCreate` if necessary (or use `list[JobCreate]`)
-- [x] **Backend: Implementation**
-    - [x] Implement `POST /ingest/batch` endpoint in `backend/main.py`
-    - [x] Ensure atomic transactions for batch writes
-    - [x] Handle potential errors gracefully (partial success vs full rollback)
-    - [x] Refactor to **Batch-Only** (removed single item endpoint to prevent logic drift)
-- [x] **Clients Synchronization**
-    - [x] Update Python client to wrap single metrics in lists
-    - [x] Update R client to wrap single metrics in lists
-    - [x] Flatten R metadata structure to match Backend/Python schema
-- [x] **Validation**
-    - [x] Run backend tests
-    - [x] Verify database state after batch ingestion
-    - [x] Fix and verify E2E tests for both clients
-    - [x] Update benchmark scripts for batch compatibility
+- [x] **TDD: Implement batching tests in `core/src/core.rs`**
+    - [x] Add `test_batching_by_count`: Verify 1000 items are sent as one batch.
+    - [x] Add `test_batching_by_time`: Verify 1 item is sent after 2 seconds.
+    - [x] Add `test_flush_drains_buffer`: Verify `flush()` sends items even if buffer is not full or timed out.
+    - [x] Add `test_batching_with_env_vars`: Verify configurability via `CORE_BATCH_SIZE` and `CORE_BATCH_TIMEOUT_SEC`.
+- [x] **Core: Implement batching logic**
+    - [x] Update worker thread to use a buffer (`Vec<String>`).
+    - [x] Implement a select-style loop with timeout for channel reception.
+    - [x] Implement batch merging logic (re-wrap JSON list items into a single list).
+    - [x] Ensure `Flush` message drains the buffer before acknowledging.
+    - [x] Make batch size and timeout configurable via environment variables (`CORE_BATCH_SIZE`, `CORE_BATCH_TIMEOUT_SEC`).
+    - [x] **Refactor: Move to async `tokio` channels**
+        - [x] Replace `crossbeam_channel` with `tokio::sync::mpsc`.
+        - [x] Update `Cargo.toml` with `time` and `macros` features for tokio.
+        - [x] Fix `mockito` tests to use `async/await` and `tokio::test`.
+- [x] **Validation: Cross-client compatibility**
+    - [x] Verify `glia_python` still works (it currently wraps single items in `[]`).
+    - [x] Verify `gliar` still works.
+
+
 
 # Make README pitch-ready
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
@@ -39,7 +41,9 @@
  
 
 #######
-
+- [ ] remove return from R, archaic
+- [ ] encrypt comms, start with https
+- [ ] Identify the currently hardcoded vars to put in a config file / mise toml
 - [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
 - [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [ ] cli gui 

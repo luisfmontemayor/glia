@@ -23,12 +23,16 @@ RENV_CONFIG_PAK_ENABLED    = true
 RENV_PATHS_LIBRARY         = "renv/library"
 RENV_CONFIG_REPOS_OVERRIDE = "https://cloud.r-project.org"
 
+API_HOST       = "localhost"
 API_PORT       = "8000"
 POSTGRES_PORT  = "5432"
 POSTGRES_HOST  = "localhost"
-API_INGEST_URL = "http://{{ env.POSTGRES_HOST }}:{{ env.API_PORT }}/ingest"
+API_INGEST_URL = "http://{{ env.API_HOST }}:{{ env.API_PORT }}/ingest"
 
 CORE_QUEUE_LIMIT = "1000"
+CORE_BATCH_SIZE = "1000"
+CORE_BATCH_TIMEOUT_SEC = "2"
+CORE_FLUSH_TIMEOUT_SEC = "5"
 
 PERFORMANCE_TESTING = true
 

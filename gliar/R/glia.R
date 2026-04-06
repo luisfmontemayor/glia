@@ -27,12 +27,17 @@
 #' )
 #' }
 # TODO: adapt to base URL env var
-glia_init <- function(api_url = "http://localhost:8000",
+glia_init <- function(api_url = NULL,
                       app_name = NULL,
                       app_version = NULL,
                       tags = list()) {
   
-  if (api_url == "") {
+  target_url <- api_url
+  if (is.null(target_url) || target_url == "") {
+    target_url <- Sys.getenv("API_INGEST_URL")
+  }
+
+  if (is.null(target_url) || target_url == "") {
     stop(
       "[GLIAR] API endpoint not found. \n",
       "Please set the API_INGEST_URL environment variable (e.g., in mise.toml) ",
@@ -41,7 +46,7 @@ glia_init <- function(api_url = "http://localhost:8000",
     )
   }
 
-  .glia_env$client <- GliaClient$new(base_url = api_url)
+  .glia_env$client <- GliaClient$new(base_url = target_url)
   .glia_env$app_name <- app_name
   .glia_env$app_version <- app_version
   .glia_env$tags <- tags
