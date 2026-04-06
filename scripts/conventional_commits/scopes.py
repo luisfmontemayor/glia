@@ -44,12 +44,6 @@ def stage_all_files():
 
 
 def get_staged_files() -> list[str]:
-    staged_files: list[str] = list_staged_files()
-    if not staged_files:
-        if confirm_stage_all():
-            stage_all_files()
-        else:
-            sys.exit(0)
     return list_staged_files()
 
 
@@ -67,6 +61,9 @@ def add_scope_category(filepath: str) -> str:
 
     category: str | Literal[""] = parts[0] if parts else ""
     filename = path.name
+
+    if parts[:3] == ("backend", "migrations", "versions"):
+        return "backend/migrations/versions"
 
     if filename == "README.md":
         return "README"
@@ -101,10 +98,10 @@ def add_scope_category(filepath: str) -> str:
 
     return NO_SCOPE_STR
 
-
 def get_staged_scopes():
     unique_staged_scopes: set[str] = {add_scope_category(f) for f in get_staged_files()}
     extended_scopes: set[str] = set(unique_staged_scopes)
+    extended_scopes.add(NO_SCOPE_STR)
     for scope in unique_staged_scopes:
         if scope == NO_SCOPE_STR or "infrastructural" in scope:
             continue
