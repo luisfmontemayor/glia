@@ -11,7 +11,7 @@
 #' This should be called once when your application or script starts.
 #'
 #' @param api_url The URL of the Glia API backend. Defaults to the `GLIA_API_URL`
-#'   environment variable or "http://localhost:8000/ingest".
+#'   environment variable or "http://host:8000/ingest".
 #' @param app_name A global name for the application or project being tracked.
 #' @param app_version A global version for the application.
 #' @param tags A named list of global tags to be included with every tracked event.
