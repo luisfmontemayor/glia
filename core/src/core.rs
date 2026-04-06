@@ -160,7 +160,7 @@ impl GliaClient {
         buffer.clear();
     }
 
-    pub fn queue_telemetry(&self, json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
+    pub fn enqueue_to_background(&self, json_payload: &str, url: &str, timeout_sec: f64) -> Result<(), String> {
         self.sender.try_send(TelemetryMessage::Data {
             payload: json_payload.to_string(),
             url: url.to_string(),
@@ -209,18 +209,18 @@ mod tests {
         let client = setup_client(2);
         
         // Fill the queue
-        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
-        assert!(client.queue_telemetry("{}", "http://localhost", 1.0).is_ok());
+        assert!(client.enqueue_to_background("{}", "http://localhost", 1.0).is_ok());
+        assert!(client.enqueue_to_background("{}", "http://localhost", 1.0).is_ok());
         
         // The third one should fail because the channel is bounded and full
-        let result = client.queue_telemetry("{}", "http://localhost", 1.0);
+        let result = client.enqueue_to_background("{}", "http://localhost", 1.0);
         assert!(result.is_err());
         // tokio mpsc try_send error message contains "no available capacity" or similar
         assert!(result.unwrap_err().to_string().to_lowercase().contains("capacity"));
     }
 
     #[tokio::test]
-    async fn test_queue_telemetry_success() {
+    async fn test_enqueue_to_background_success() {
         let client = setup_client(100);
         let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
@@ -231,7 +231,7 @@ mod tests {
             .create_async()
             .await;
 
-        let result = client.queue_telemetry("{}", &url, 1.0);
+        let result = client.enqueue_to_background("{}", &url, 1.0);
         assert!(result.is_ok());
         
         let summary = client.flush();
@@ -240,7 +240,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_queue_telemetry_server_error() {
+    async fn test_enqueue_to_background_server_error() {
         let client = setup_client(100);
         let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
@@ -250,7 +250,7 @@ mod tests {
             .create_async()
             .await;
 
-        let _ = client.queue_telemetry("{}", &url, 1.0);
+        let _ = client.enqueue_to_background("{}", &url, 1.0);
         let summary = client.flush();
         
         assert_eq!(summary.failed_jobs, 1);
@@ -259,9 +259,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_queue_telemetry_unreachable_host() {
+    async fn test_enqueue_to_background_unreachable_host() {
         let client = setup_client(100);
-        let _ = client.queue_telemetry("{}", "http://invalid.local", 0.1);
+        let _ = client.enqueue_to_background("{}", "http://invalid.local", 0.1);
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 1);
     }
@@ -279,9 +279,9 @@ mod tests {
             .create_async()
             .await;
 
-        client.queue_telemetry("{}", &url, 1.0).unwrap();
-        client.queue_telemetry("{}", &url, 1.0).unwrap();
-        client.queue_telemetry("{}", &url, 1.0).unwrap();
+        client.enqueue_to_background("{}", &url, 1.0).unwrap();
+        client.enqueue_to_background("{}", &url, 1.0).unwrap();
+        client.enqueue_to_background("{}", &url, 1.0).unwrap();
 
         let summary = client.flush();
         
@@ -306,7 +306,7 @@ mod tests {
             .await;
 
         for _ in 0..1000 {
-            client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+            client.enqueue_to_background("{\"id\": 1}", &url, 1.0).unwrap();
         }
 
         // Give the worker thread a tiny bit of time to move items from the channel to the buffer
@@ -332,7 +332,7 @@ mod tests {
             .create_async()
             .await;
 
-        client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+        client.enqueue_to_background("{\"id\": 1}", &url, 1.0).unwrap();
 
         // Should NOT be sent yet
         tokio::time::sleep(Duration::from_millis(500)).await;
@@ -362,7 +362,7 @@ mod tests {
             .await;
 
         for _ in 0..5 {
-            client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
+            client.enqueue_to_background("{\"id\": 1}", &url, 1.0).unwrap();
         }
 
         tokio::time::sleep(Duration::from_millis(100)).await;

@@ -4,17 +4,11 @@
 \alias{glia_init}
 \title{Initialize the Glia client}
 \usage{
-glia_init(
-  api_url = NULL,
-  app_name = NULL,
-  app_version = NULL,
-  tags = list()
-)
+glia_init(api_url = NULL, app_name = NULL, app_version = NULL, tags = list())
 }
 \arguments{
-\item{api_url}{The URL of the Glia API backend. Defaults to the \code{GLIA_API_URL}
+\item{api_url}{The URL of the Glia API backend. Defaults to the `GLIA_API_URL`
 environment variable or "http://localhost:8000/ingest".}
-
 
 \item{app_name}{A global name for the application or project being tracked.}
 

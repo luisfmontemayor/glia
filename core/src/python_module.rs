@@ -21,16 +21,16 @@ fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
 
 #[pyfunction]
 #[pyo3(signature = (json_payload, url, timeout=1.0))]
-pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> PyResult<()> {
+pub fn enqueue_to_background(json_payload: String, url: String, timeout: f64) -> PyResult<()> {
     let result = panic::catch_unwind(|| {
         let client_lock = get_client();
         let client = client_lock.as_ref().unwrap();
-        client.queue_telemetry(&json_payload, &url, timeout)
+        client.enqueue_to_background(&json_payload, &url, timeout)
     });
 
     match result {
         Ok(inner) => inner.map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("[CORE] {}", e))),
-        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[CORE] Rust panicked during queue_telemetry")),
+        Err(_) => Err(pyo3::exceptions::PyRuntimeError::new_err("[CORE] Rust panicked during enqueue_to_background")),
     }
 }
 

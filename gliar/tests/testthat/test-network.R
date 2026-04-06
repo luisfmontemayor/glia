@@ -7,7 +7,7 @@ test_that("GliaClient queues valid payload successfully", {
   mock_ffi <- mock(list(success = TRUE))
   client <- GliaClient$new(base_url = "http://test-api/injest")
   
-  stub(client$send_job_run, "queue_telemetry", mock_ffi)
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
   
   payload <- list(run_id = "123", cpu_percent = 50)
   success <- client$send_job_run(payload)
@@ -19,7 +19,7 @@ test_that("GliaClient queues valid payload successfully", {
 test_that("GliaClient handles queueing errors gracefully", {
   mock_ffi <- mock(list(success = FALSE, error = "Queue Full"))
   client <- GliaClient$new()
-  stub(client$send_job_run, "queue_telemetry", mock_ffi)
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
 
   expect_warning(
     success <- client$send_job_run(list(data = 1)),
@@ -31,7 +31,7 @@ test_that("GliaClient handles queueing errors gracefully", {
 test_that("GliaClient handles FFI/Rust errors gracefully", {
   mock_ffi <- mock(stop("FFI Error"))
   client <- GliaClient$new()
-  stub(client$send_job_run, "queue_telemetry", mock_ffi)
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
 
   expect_warning(
     client$send_job_run(list(data = 1)),

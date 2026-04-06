@@ -12,7 +12,7 @@
 NULL
 
 #' @export
-queue_telemetry <- function(json_payload, url, timeout) .Call(wrap__queue_telemetry, json_payload, url, timeout)
+enqueue_to_background <- function(json_payload, url, timeout) .Call(wrap__enqueue_to_background, json_payload, url, timeout)
 
 #' @export
 flush_queue <- function() .Call(wrap__flush_queue)
