@@ -10,7 +10,7 @@
 #' Configures the package-level client that will be used for all tracking.
 #' This should be called once when your application or script starts.
 #'
-#' @param api_url The URL of the Glia API backend. Defaults to the `API_INGEST_URL`
+#' @param api_url The URL of the Glia API backend. Defaults to the `GLIA_API_URL`
 #'   environment variable or "http://localhost:8000/ingest".
 #' @param app_name A global name for the application or project being tracked.
 #' @param app_version A global version for the application.
@@ -34,13 +34,13 @@ glia_init <- function(api_url = NULL,
   
   target_url <- api_url
   if (is.null(target_url) || target_url == "") {
-    target_url <- Sys.getenv("API_INGEST_URL")
+    target_url <- Sys.getenv("GLIA_API_URL")
   }
 
   if (is.null(target_url) || target_url == "") {
     stop(
       "[GLIAR] API endpoint not found. \n",
-      "Please set the API_INGEST_URL environment variable (e.g., in mise.toml) ",
+      "Please set the GLIA_API_URL environment variable (e.g., in mise.toml) ",
       "or provide it directly to glia_init(api_url = '...').",
       call. = FALSE
     )

@@ -7,22 +7,22 @@
 #######
 - [x] remove return from R, archaic
 - [ ] encrypt comms, start with https
-- [ ] Identify the currently hardcoded vars to put in a config file / mise toml
-- [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
+- [x] Identify the currently hardcoded vars to put in a config file / mise toml
+- [x] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
 - [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [ ] cli gui 
 - [ ] Readme needs r installation path mapping 
-- [ ] change walltime to ms not secs and make into int
+- [x] change walltime to ms not secs and make into int
 - [ ] health check: is it legit  
 - [ ] cloud, by using the sandbpx software for aws, k8 and ansible
 - [ ] downgrade to 3.10 for better interop
 - [ ] change python version comment to use with mise run sync python or whatever it is
 - [ ] lazygit plugin: no files staged means it puts in messed up scope label
-- [ ] store memory as kb instead of mb
+- [x] store memory as kb instead of mb
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 - [ ] An interactive mode
-- [ ] API_INJEST_URL to GLIA_INJEST_URL
+- [x] API_INJEST_URL to GLIA_INJEST_URL
 - [ ] remove return from R
 - [ ] backend migrations fix, so that scope doesn't include hash  but ends at backend/migrations/versions
 

@@ -27,7 +27,7 @@ API_HOST       = "localhost"
 API_PORT       = "8000"
 POSTGRES_PORT  = "5432"
 POSTGRES_HOST  = "localhost"
-API_INGEST_URL = "http://{{ env.API_HOST }}:{{ env.API_PORT }}/ingest"
+GLIA_API_URL = "http://{{ env.API_HOST }}:{{ env.API_PORT }}/ingest"
 
 CORE_QUEUE_LIMIT = "1000"
 CORE_BATCH_SIZE = "1000"

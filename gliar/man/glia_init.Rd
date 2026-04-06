@@ -12,7 +12,7 @@ glia_init(
 )
 }
 \arguments{
-\item{api_url}{The URL of the Glia API backend. Defaults to the \code{API_INGEST_URL}
+\item{api_url}{The URL of the Glia API backend. Defaults to the \code{GLIA_API_URL}
 environment variable or "http://localhost:8000/ingest".}
 
 

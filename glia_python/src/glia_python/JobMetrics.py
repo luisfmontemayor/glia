@@ -16,11 +16,11 @@ class JobMetrics(BaseModel):
     os_info: str
     script_path: str | None = None
     argv: list[str]
-    wall_time_sec: float
+    wall_time_ms: int
     started_at: datetime
     ended_at: datetime
     cpu_time_sec: float
     cpu_percent: float
-    max_rss_mb: float
+    max_rss_kb: int
     exit_code_int: int
     meta: dict[str, Any] = Field(default_factory=dict)

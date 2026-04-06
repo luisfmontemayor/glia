@@ -24,10 +24,10 @@ class JobBase(SQLModel):
     )
     started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), index=True))
     ended_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
-    wall_time_sec: float = Field()
+    wall_time_ms: int = Field()
     cpu_time_sec: float = Field()
     cpu_percent: float = Field()
-    max_rss_mb: float = Field()
+    max_rss_kb: int = Field()
     exit_code_int: int = Field()
 
     meta: dict[str, Any] = Field(

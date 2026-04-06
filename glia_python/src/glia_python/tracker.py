@@ -95,13 +95,13 @@ class JobTracker:
         except OSError:
             return "access-denied"
 
-    def _get_peak_rss_mb(self) -> float:
+    def _get_peak_rss_kb(self) -> int:
         if sys.platform != "win32" and "resource" in sys.modules:
             usage: float = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
             if sys.platform == "darwin":
-                return usage / (1024**2)
-            return usage / 1024
-        return self.process.memory_info().rss / (1024**2)
+                return int(usage / 1024)
+            return int(usage)
+        return int(self.process.memory_info().rss / 1024)
 
     def capture(self, exit_code: int = 0) -> JobMetrics:
         if self._start_time is None or self._cpu_start is None:
@@ -116,11 +116,12 @@ class JobTracker:
         cpu_total_end: float = cpu_end.user + cpu_end.system
         cpu_time_consumed: float = cpu_total_end - cpu_total_start
 
-        wall_time: float = end_time - self._start_time
+        wall_time_sec: float = end_time - self._start_time
+        wall_time_ms: int = int(wall_time_sec * 1000)
 
         cpu_percent: float = 0.0
-        if wall_time > 0.0001:
-            cpu_percent = (cpu_time_consumed / wall_time) * 100
+        if wall_time_sec > 0.0001:
+            cpu_percent = (cpu_time_consumed / wall_time_sec) * 100
 
         return JobMetrics(
             run_id=self.run_id,
@@ -131,12 +132,12 @@ class JobTracker:
             os_info=f"{platform.system()} {platform.release()}",
             script_path=str(self.script_path) if self.script_path else None,
             argv=sys.argv[1:],
-            wall_time_sec=wall_time,
+            wall_time_ms=wall_time_ms,
             started_at=datetime.fromtimestamp(self._start_time, tz=UTC),
             ended_at=datetime.fromtimestamp(end_time, tz=UTC),
             cpu_time_sec=cpu_time_consumed,
             cpu_percent=round(cpu_percent, 2),
-            max_rss_mb=round(self._get_peak_rss_mb(), 2),
+            max_rss_kb=self._get_peak_rss_kb(),
             exit_code_int=exit_code,
             meta=self._user_meta,
         )

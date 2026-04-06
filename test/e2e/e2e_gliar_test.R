@@ -4,7 +4,7 @@ library(httr2)
 library(uuid)
 
 test_that("R Client E2E: telemetry reaches backend", {
-  raw_url <- Sys.getenv("API_INGEST_URL")
+  raw_url <- Sys.getenv("GLIA_API_URL")
   if (raw_url == "" || is.na(raw_url)) {
     raw_url <- "http://localhost:8000"
   }
@@ -57,7 +57,7 @@ test_that("R Client E2E: telemetry reaches backend", {
   expect_equal(as.character(meta[["e2e"]]), "true")
   expect_equal(as.character(meta[["client"]]), "R")
   
-  expect_gt(as.numeric(found_job[["wall_time_sec"]]), 0)
+  expect_gt(as.numeric(found_job[["wall_time_ms"]]), 0)
   
   print(paste("[SUCCESS] E2E: Verified job", unique_name))
 })
