@@ -1,39 +1,3 @@
-# Configuration & Bug Fixes
-- [x] **Mise: Centralize configuration**
-    - [x] Add `API_HOST` and `CORE_FLUSH_TIMEOUT_SEC` to `mise.toml`.
-    - [x] Use `API_HOST` in `API_INGEST_URL` instead of `POSTGRES_HOST`.
-- [x] **Core: Use configurable flush timeout**
-    - [x] Update `core/src/core.rs` to use `CORE_FLUSH_TIMEOUT_SEC` instead of hardcoded 5s.
-- [x] **Python Client: Remove hardcoded defaults**
-    - [x] Remove hardcoded 2.0s timeout in `push_telemetry`.
-    - [x] Ensure it strictly respects `API_INGEST_URL`.
-- [x] **R Client: Remove hardcoded defaults**
-    - [x] Remove hardcoded "http://localhost:8000" in `glia_init`.
-    - [x] Remove hardcoded 10.0s timeout in `GliaClient$new`.
-- [x] **Validation: Ensure TDD coverage**
-    - [x] Update core tests to verify `CORE_FLUSH_TIMEOUT_SEC`.
-
-- [x] **TDD: Implement batching tests in `core/src/core.rs`**
-    - [x] Add `test_batching_by_count`: Verify 1000 items are sent as one batch.
-    - [x] Add `test_batching_by_time`: Verify 1 item is sent after 2 seconds.
-    - [x] Add `test_flush_drains_buffer`: Verify `flush()` sends items even if buffer is not full or timed out.
-    - [x] Add `test_batching_with_env_vars`: Verify configurability via `CORE_BATCH_SIZE` and `CORE_BATCH_TIMEOUT_SEC`.
-- [x] **Core: Implement batching logic**
-    - [x] Update worker thread to use a buffer (`Vec<String>`).
-    - [x] Implement a select-style loop with timeout for channel reception.
-    - [x] Implement batch merging logic (re-wrap JSON list items into a single list).
-    - [x] Ensure `Flush` message drains the buffer before acknowledging.
-    - [x] Make batch size and timeout configurable via environment variables (`CORE_BATCH_SIZE`, `CORE_BATCH_TIMEOUT_SEC`).
-    - [x] **Refactor: Move to async `tokio` channels**
-        - [x] Replace `crossbeam_channel` with `tokio::sync::mpsc`.
-        - [x] Update `Cargo.toml` with `time` and `macros` features for tokio.
-        - [x] Fix `mockito` tests to use `async/await` and `tokio::test`.
-- [x] **Validation: Cross-client compatibility**
-    - [x] Verify `glia_python` still works (it currently wraps single items in `[]`).
-    - [x] Verify `gliar` still works.
-
-
-
 # Make README pitch-ready
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [ ] Readme needs r installation path mapping
@@ -41,7 +5,7 @@
  
 
 #######
-- [ ] remove return from R, archaic
+- [x] remove return from R, archaic
 - [ ] encrypt comms, start with https
 - [ ] Identify the currently hardcoded vars to put in a config file / mise toml
 - [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
