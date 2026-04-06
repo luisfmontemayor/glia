@@ -6,7 +6,7 @@ library(uuid)
 test_that("R Client E2E: telemetry reaches backend", {
   raw_url <- Sys.getenv("GLIA_API_URL")
   if (raw_url == "" || is.na(raw_url)) {
-    raw_url <- "http://localhost:8000"
+    stop("GLIA_API_URL environment variable is not set.")
   }
   
   base_url <- sub("/ingest/?$", "", raw_url)

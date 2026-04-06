@@ -11,7 +11,9 @@ from common.logs import setup_logger
 
 logger = setup_logger("GLIA_BACKEND STRESS TEST")
 
-API_URL = os.environ.get("GLIA_API_URL", "http://localhost:8000/ingest")
+API_URL = os.environ.get("GLIA_API_URL")
+if not API_URL:
+    raise RuntimeError("GLIA_API_URL environment variable is not set.")
 
 
 async def push_telemetry_direct(client, url, iteration, load_factor):
