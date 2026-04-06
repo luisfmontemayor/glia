@@ -13,13 +13,13 @@ def push_telemetry(
     metrics: JobMetrics, api_url: str | None = None, timeout: float | None = None
 ) -> bool:
     """
-    - Auto-config: Reads API_INGEST_URL env var if api_url is not provided.
+    - Auto-config: Reads GLIA_API_URL env var if api_url is not provided.
     - Suppress Errors: Returns False on failure instead of crashing (Fail Silent).
     - Non-blocking: Enqueues the telemetry to the Rust background worker.
     """
-    target_url: str | None = api_url or os.getenv("API_INGEST_URL")
+    target_url: str | None = api_url or os.getenv("GLIA_API_URL")
     if not target_url:
-        logger.warning("[GLIA_PYTHON] No API_INGEST_URL configured. Telemetry dropped.")
+        logger.warning("[GLIA_PYTHON] No GLIA_API_URL configured. Telemetry dropped.")
         return False
 
     final_timeout = timeout if timeout is not None else 2.0
