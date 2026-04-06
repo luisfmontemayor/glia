@@ -110,8 +110,11 @@ def get_staged_scopes():
             continue
 
         parts: list[str] = scope.split("/")
-        if len(parts) > 1:
-            extended_scopes.add(parts[0])
+        # Add all intermediate parent paths
+        # e.g., if scope is "a/b/c", adds "a" and "a/b"
+        for i in range(1, len(parts)):
+            parent_scope = "/".join(parts[:i])
+            extended_scopes.add(parent_scope)
 
     def scope_sort_key(s):
         # Primary Key: Boolean flag.
