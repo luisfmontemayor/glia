@@ -114,7 +114,7 @@ impl GliaClient {
         if buffer.is_empty() { return; }
 
         // For now, we assume all items in a batch go to the same URL and have same timeout
-        // (This matches current usage where GLIA_PYTHON sends all to one API_INGEST_URL)
+        // (This matches current usage where GLIA_PYTHON sends all to one GLIA_API_URL)
         let (_first_payload, url, timeout_sec) = &buffer[0];
         let url = url.clone();
         let timeout_sec = *timeout_sec;
@@ -291,6 +291,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_batching_by_count() {
+        std::env::set_var("CORE_BATCH_SIZE", "2000"); // Ensure they don't auto-send
+        std::env::set_var("CORE_BATCH_TIMEOUT_SEC", "60"); // Don't time out
+        
         let client = GliaClient::new(2000);
         let mut server = mockito::Server::new_async().await;
         let url = format!("{}/ingest", server.url());
@@ -306,12 +309,15 @@ mod tests {
             client.queue_telemetry("{\"id\": 1}", &url, 1.0).unwrap();
         }
 
-        // Give some time for the worker to process
-        tokio::time::sleep(Duration::from_millis(500)).await;
-        
+        // Give the worker thread a tiny bit of time to move items from the channel to the buffer
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
         let summary = client.flush();
         assert_eq!(summary.failed_jobs, 0);
         mock.assert_async().await;
+        
+        std::env::remove_var("CORE_BATCH_SIZE");
+        std::env::remove_var("CORE_BATCH_TIMEOUT_SEC");
     }
 
     #[tokio::test]

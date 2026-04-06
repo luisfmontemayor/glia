@@ -35,10 +35,10 @@ test_that("SystemTracker captures CPU and Wall time correctly", {
   metrics <- tracker$capture()
   
   # 5. Assertions
-  expect_equal(metrics$wall_time_sec, 20.0)
+  expect_equal(metrics$wall_time_ms, 20000)
   expect_equal(metrics$cpu_time_sec, 10.0) # (8+2) - (0+0)
   expect_equal(metrics$cpu_percent, 50.0)  # 10s CPU / 20s Wall * 100
-  expect_equal(metrics$max_rss_mb, 100.0)
+  expect_equal(metrics$max_rss_kb, 102400)
 })
 
 test_that("SystemTracker detects script path and calculates SHA256", {

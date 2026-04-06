@@ -176,7 +176,7 @@ def test_capture_before_start_raises_error():
 def test_linux_ram_conversion(mock_resource, mock_sys):
     setup_platform_ram(mock_sys, mock_resource, "linux", 102_400)
     tracker = JobTracker()
-    assert tracker._get_peak_rss_mb() == 100.0
+    assert tracker._get_peak_rss_kb() == 102_400
 
 
 # 10. RAM Conversion (macOS)
@@ -185,7 +185,7 @@ def test_linux_ram_conversion(mock_resource, mock_sys):
 def test_mac_ram_conversion(mock_resource, mock_sys):
     setup_platform_ram(mock_sys, mock_resource, "darwin", 104_857_600)
     tracker = JobTracker()
-    assert tracker._get_peak_rss_mb() == 100.0
+    assert tracker._get_peak_rss_kb() == 102_400
 
 
 # 11. RAM Conversion (Windows)
@@ -196,7 +196,7 @@ def test_windows_ram_conversion(mock_psutil, mock_sys):
     mock_sys.modules = {}
     mock_psutil.Process.return_value.memory_info.return_value.rss = 52_428_800
     tracker = JobTracker()
-    assert tracker._get_peak_rss_mb() == 50.0
+    assert tracker._get_peak_rss_kb() == 51200
 
 
 # 12. SHA256 Calculation

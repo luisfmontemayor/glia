@@ -11,7 +11,7 @@ from common.logs import setup_logger
 
 logger = setup_logger("GLIA_BACKEND STRESS TEST")
 
-API_URL = os.environ.get("API_INGEST_URL", "http://localhost:8000/ingest")
+API_URL = os.environ.get("GLIA_API_URL", "http://localhost:8000/ingest")
 
 
 async def push_telemetry_direct(client, url, iteration, load_factor):
