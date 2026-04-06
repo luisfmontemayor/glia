@@ -7,15 +7,7 @@ run         = "Rscript -e 'lints <- lintr::lint_package(); print(lints); if (len
 description = "Lint Python code using ruff"
 run         = "ruff check ."
 
-[tasks."lint:python-fix"]
-description = "Lint and fix Python code"
-run         = "ruff check . --fix"
-
 [tasks."lint:all"]
 alias       = "lint"
 description = "Run all linters"
 run         = "mise run lint:python && mise run lint:gliar"
-
-[tasks."lint:fix"]
-description = "Fix all fixable lints"
-run         = "mise run lint:python-fix && mise run lint:gliar"
