@@ -14,39 +14,7 @@
     - [x] Verify `glia_python` still works (it currently wraps single items in `[]`).
     - [x] Verify `gliar` still works.
 
-# Glia Prefix Removal & Infrastructure Hardening
-- [x] **Refactor: Remove `glia_` prefix from components and variables**
-    - [x] Rename `glia_core` to `core`
-    - [x] Rename `glia_common` to `common`
-    - [x] Update imports in `glia_python`, `gliar`, `backend`, and `test`
-    - [x] Update `mise` tasks and `pyproject.toml` configurations
-- [x] **Mise: Improve Task Reliability**
-    - [x] Fix `api:status` to correctly return non-zero exit code on failure
-    - [x] Update `test:all` to wait for both API and DB readiness
-    - [x] Fix `status-wait` tasks to poll correctly during service startup (removed blocking `depends`)
-- [x] **Mise: API Status Formatting**
-    - [x] Improve `api:status` output with clear success/error messages
 
-# Batch Ingestion Implementation
-- [x] **TDD: Create reproduction test case for batch ingestion**
-    - [x] Define expected behavior for `POST /ingest/batch`
-    - [x] Create test in `backend/test/main_test.py`
-- [x] **Backend: Data Modeling**
-    - [x] Define `JobBatchCreate` if necessary (or use `list[JobCreate]`)
-- [x] **Backend: Implementation**
-    - [x] Implement `POST /ingest/batch` endpoint in `backend/main.py`
-    - [x] Ensure atomic transactions for batch writes
-    - [x] Handle potential errors gracefully (partial success vs full rollback)
-    - [x] Refactor to **Batch-Only** (removed single item endpoint to prevent logic drift)
-- [x] **Clients Synchronization**
-    - [x] Update Python client to wrap single metrics in lists
-    - [x] Update R client to wrap single metrics in lists
-    - [x] Flatten R metadata structure to match Backend/Python schema
-- [x] **Validation**
-    - [x] Run backend tests
-    - [x] Verify database state after batch ingestion
-    - [x] Fix and verify E2E tests for both clients
-    - [x] Update benchmark scripts for batch compatibility
 
 # Make README pitch-ready
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
@@ -55,7 +23,7 @@
  
 
 #######
-
+- [ ] Identify the currently hardcoded vars to put in a config file / mise toml
 - [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
 - [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [ ] cli gui 
