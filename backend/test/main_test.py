@@ -20,7 +20,7 @@ def test_api_status():
 async def ingest_cleanup_client():
     job_ids = [str(uuid4()) for _ in range(3)]
     async with AsyncClient(
-        base_url=f"http://localhost:{settings.API_PORT}",
+        base_url=f"http://{settings.API_HOST}:{settings.API_PORT}",
     ) as client:
         yield client, job_ids
 

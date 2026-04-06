@@ -16,7 +16,7 @@ def push_telemetry(json_payload: str, url: str, timeout: float) -> PushResult:
 
     Args:
         json_payload: A valid JSON string representing JobMetrics.
-        url: The URL of the Glia backend ingestion endpoint, defined in GLIA_API_URL (e.g., http://localhost:8000/ingest).
+        url: The URL of the Glia backend ingestion endpoint, defined in GLIA_API_URL (e.g., http://host:8000/ingest).
         timeout: Request timeout in seconds.
 
     Returns:
