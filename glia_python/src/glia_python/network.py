@@ -26,7 +26,7 @@ def push_telemetry(
     try:
         # The backend now only accepts batches (list of jobs)
         json_payload = f"[{metrics.model_dump_json()}]"
-        core.queue_telemetry(json_payload, target_url, final_timeout)
+        core.enqueue_to_background(json_payload, target_url, final_timeout)
         return True
 
     except Exception as e:

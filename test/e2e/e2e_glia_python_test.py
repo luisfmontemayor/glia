@@ -17,7 +17,7 @@ async def test_end_to_end_telemetry_flow(monkeypatch):
     api_url = f"http://localhost:{settings.API_PORT}/ingest"
     monkeypatch.setenv("GLIA_API_URL", api_url)
 
-    # We don't need to mock core.queue_telemetry anymore if we want a true E2E
+    # We don't need to mock core.enqueue_to_background anymore if we want a true E2E
     # But since core is a background worker, we need to ensure it flushes.
     
     with Glia.tracker(program_name=unique_name, context={"e2e": "true"}):
