@@ -15,7 +15,7 @@ API_URL = os.environ.get("GLIA_API_URL", "http://localhost:8000/ingest")
 
 
 def push_telemetry_core(url, iteration, load_factor):
-    """Uses core.queue_telemetry to hit the FastAPI /ingest endpoint."""
+    """Uses core.enqueue_to_background to hit the FastAPI /ingest endpoint."""
     payload = {
         "run_id": str(uuid.uuid4()),
         "hostname": "db-stress-node-core",
@@ -35,8 +35,8 @@ def push_telemetry_core(url, iteration, load_factor):
     }
 
     try:
-        # queue_telemetry is synchronous and adds to an internal Rust queue
-        core.queue_telemetry(json.dumps(payload), url)
+        # enqueue_to_background is synchronous and adds to an internal Rust queue
+        core.enqueue_to_background(json.dumps(payload), url)
         return True
     except Exception as e:
         logger.error(f"Error queueing telemetry: {e}")
@@ -61,7 +61,7 @@ def run_benchmark(iterations):
             success_count += 1
             
     # The actual "DB write" latency in this model is mostly in the FLUSH
-    # because queue_telemetry is just a memory push.
+    # because enqueue_to_background is just a memory push.
     logger.info(f"Queued {success_count} items. Flushing to DB...")
     
     flush_start = time.perf_counter()

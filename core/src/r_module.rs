@@ -21,17 +21,17 @@ fn get_client() -> std::sync::MutexGuard<'static, Option<GliaClient>> {
 
 /// @export
 #[extendr]
-pub fn queue_telemetry(json_payload: String, url: String, timeout: f64) -> Robj {
+pub fn enqueue_to_background(json_payload: String, url: String, timeout: f64) -> Robj {
     let result = panic::catch_unwind(|| {
         let client_lock = get_client();
         let client = client_lock.as_ref().unwrap();
-        client.queue_telemetry(&json_payload, &url, timeout)
+        client.enqueue_to_background(&json_payload, &url, timeout)
     });
 
     match result {
         Ok(Ok(_)) => list!(success = true).into(),
         Ok(Err(e)) => list!(success = false, error = format!("[CORE] {}", e)).into(),
-        Err(_) => list!(success = false, error = "[CORE] Rust panicked during queue_telemetry").into(),
+        Err(_) => list!(success = false, error = "[CORE] Rust panicked during enqueue_to_background").into(),
     }
 }
 
@@ -73,7 +73,7 @@ pub fn trigger_panic() {
 
 extendr_module! {
     mod core; 
-    fn queue_telemetry;
+    fn enqueue_to_background;
     fn flush_queue;
     fn trigger_panic;
 }
