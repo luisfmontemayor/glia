@@ -11,12 +11,12 @@ GliaClient <- R6::R6Class("GliaClient",
     ) {
       target_url <- base_url
       if (is.null(target_url) || target_url == "") {
-        target_url <- Sys.getenv("API_INGEST_URL")
+        target_url <- Sys.getenv("GLIA_API_URL")
       }
 
       if (is.null(target_url) || target_url == "") {
         stop(
-          "[GLIAR] API_INGEST_URL environment variable is not set and no base_url was provided. ",
+          "[GLIAR] GLIA_API_URL environment variable is not set and no base_url was provided. ",
           "Telemetry cannot be sent without a target endpoint."
         )
       }

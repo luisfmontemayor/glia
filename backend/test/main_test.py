@@ -42,11 +42,11 @@ async def test_ingest(ingest_cleanup_client):
             "script_sha256": f"hash_{i}",
             "started_at": datetime.now(UTC).isoformat(),
             "ended_at": datetime.now(UTC).isoformat(),
-            "wall_time_sec": 0.1,
+            "wall_time_ms": 100,
             "exit_code_int": 0,
             "cpu_time_sec": 1.2,
             "cpu_percent": 15.5,
-            "max_rss_mb": 256.0,
+            "max_rss_kb": 262144,
             "meta": {"batch_index": i},
         }
         for i, job_id in enumerate(job_ids)

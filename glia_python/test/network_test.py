@@ -19,12 +19,12 @@ def create_sample_metrics() -> JobMetrics:
         os_info="linux",
         argv=["test.py"],
         program_version="1.0.0",
-        wall_time_sec=10.0,
+        wall_time_ms=10000,
         started_at=datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
         ended_at=datetime(2026, 1, 1, 12, 0, 10, tzinfo=UTC),
         cpu_time_sec=5.0,
         cpu_percent=50.0,
-        max_rss_mb=100.0,
+        max_rss_kb=102400,
         exit_code_int=0,
         meta={"env": "test"},
     )
@@ -46,7 +46,7 @@ def test_push_telemetry_success(mock_queue):
     json_payload = mock_queue.call_args.args[0]
     payload = json.loads(json_payload)
     assert payload[0]["run_id"] == "test-uuid"
-    assert payload[0]["wall_time_sec"] == 10.0
+    assert payload[0]["wall_time_ms"] == 10000
 
 
 @patch("os.getenv")
@@ -60,7 +60,7 @@ def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     success = push_telemetry(metrics)
 
     assert success is True
-    mock_getenv.assert_called_once_with("API_INGEST_URL")
+    mock_getenv.assert_called_once_with("GLIA_API_URL")
     # Note: If it fails here, it might be because the patched getenv 
     # doesn't behave exactly as expected in the test env.
     # but the logic is what we want to test.
