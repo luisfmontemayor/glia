@@ -10,7 +10,7 @@ logger = setup_logger("glia_python")
 
 
 def push_telemetry(
-    metrics: JobMetrics, api_url: str | None = None, timeout: float = 2.0
+    metrics: JobMetrics, api_url: str | None = None, timeout: float | None = None
 ) -> bool:
     """
     - Auto-config: Reads API_INGEST_URL env var if api_url is not provided.
@@ -22,10 +22,11 @@ def push_telemetry(
         logger.warning("[GLIA_PYTHON] No API_INGEST_URL configured. Telemetry dropped.")
         return False
 
+    final_timeout = timeout if timeout is not None else 2.0
     try:
         # The backend now only accepts batches (list of jobs)
         json_payload = f"[{metrics.model_dump_json()}]"
-        core.queue_telemetry(json_payload, target_url, timeout)
+        core.queue_telemetry(json_payload, target_url, final_timeout)
         return True
 
     except Exception as e:
