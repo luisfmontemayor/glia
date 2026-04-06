@@ -35,14 +35,14 @@ GliaClient <- R6::R6Class("GliaClient",
         # Rust FFI (Non-blocking)
         res <- queue_telemetry(json_str, self$base_url, self$timeout)
         if (is.list(res) && isTRUE(res$success)) {
-          return(TRUE)
+          TRUE
         } else {
           warning(paste("[GLIAR] Failed to queue telemetry:", res$error))
-          return(FALSE)
+          FALSE
         }
       }, error = function(e) {
         warning(paste("[GLIAR] Could not queue telemetry:", e$message))
-        return(FALSE)
+        FALSE
       })
     },
 
@@ -52,7 +52,7 @@ GliaClient <- R6::R6Class("GliaClient",
         flush_queue()
       }, error = function(e) {
         warning(paste("[GLIAR] Error during flush:", e$message))
-        return(NULL)
+        NULL
       })
     }
   )

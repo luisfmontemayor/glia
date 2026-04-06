@@ -187,7 +187,7 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
 #'
 #' my_heavy_computation <- function(n) {
 #'   Sys.sleep(0.5)
-#'   return(sum(1:n))
+#'   sum(1:n)
 #' }
 #'
 #' # Create a tracked version of the function
