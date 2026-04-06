@@ -7,7 +7,7 @@ GliaClient <- R6::R6Class("GliaClient",
 
     initialize = function(
       base_url = NULL,
-      timeout = 10.0
+      timeout = NULL
     ) {
       target_url <- base_url
       if (is.null(target_url) || target_url == "") {
@@ -22,7 +22,7 @@ GliaClient <- R6::R6Class("GliaClient",
       }
 
       self$base_url <- target_url
-      self$timeout <- as.numeric(timeout)
+      self$timeout <- if (is.null(timeout)) 10.0 else as.numeric(timeout)
     },
 
     send_job_run = function(payload) {
