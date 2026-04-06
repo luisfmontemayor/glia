@@ -1,4 +1,18 @@
-# Batching in Core Module
+# Configuration & Bug Fixes
+- [x] **Mise: Centralize configuration**
+    - [x] Add `API_HOST` and `CORE_FLUSH_TIMEOUT_SEC` to `mise.toml`.
+    - [x] Use `API_HOST` in `API_INGEST_URL` instead of `POSTGRES_HOST`.
+- [x] **Core: Use configurable flush timeout**
+    - [x] Update `core/src/core.rs` to use `CORE_FLUSH_TIMEOUT_SEC` instead of hardcoded 5s.
+- [x] **Python Client: Remove hardcoded defaults**
+    - [x] Remove hardcoded 2.0s timeout in `push_telemetry`.
+    - [x] Ensure it strictly respects `API_INGEST_URL`.
+- [x] **R Client: Remove hardcoded defaults**
+    - [x] Remove hardcoded "http://localhost:8000" in `glia_init`.
+    - [x] Remove hardcoded 10.0s timeout in `GliaClient$new`.
+- [x] **Validation: Ensure TDD coverage**
+    - [x] Update core tests to verify `CORE_FLUSH_TIMEOUT_SEC`.
+
 - [x] **TDD: Implement batching tests in `core/src/core.rs`**
     - [x] Add `test_batching_by_count`: Verify 1000 items are sent as one batch.
     - [x] Add `test_batching_by_time`: Verify 1 item is sent after 2 seconds.
@@ -23,6 +37,8 @@
  
 
 #######
+- [ ] remove return from R, archaic
+- [ ] encrypt comms, start with https
 - [ ] Identify the currently hardcoded vars to put in a config file / mise toml
 - [ ] scopes do not add most common ancestor (gliar/1/2 and gliar/1/3 list gliar as common and not gliar/1) 
 - [ ] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
