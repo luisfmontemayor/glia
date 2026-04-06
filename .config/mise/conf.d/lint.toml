@@ -4,8 +4,8 @@ dir         = "gliar"
 run         = "Rscript -e 'lints <- lintr::lint_package(); print(lints); if (length(lints) > 0) q(status = 1)'"
 
 [tasks."lint:python"]
-description = "Lint Python code using ruff"
-run         = "ruff check ."
+description = "Lint and fix Python code using ruff"
+run         = "ruff check . --fix"
 
 [tasks."lint:all"]
 alias       = "lint"
