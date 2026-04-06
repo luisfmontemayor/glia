@@ -33,7 +33,7 @@ GliaClient <- R6::R6Class("GliaClient",
 
       tryCatch({
         # Rust FFI (Non-blocking)
-        res <- queue_telemetry(json_str, self$base_url, self$timeout)
+        res <- enqueue_to_background(json_str, self$base_url, self$timeout)
         if (is.list(res) && isTRUE(res$success)) {
           TRUE
         } else {
