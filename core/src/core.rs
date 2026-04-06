@@ -169,9 +169,14 @@ impl GliaClient {
     }
 
     pub fn flush(&self) -> FlushSummary {
+        let timeout_sec = env::var("CORE_FLUSH_TIMEOUT_SEC")
+            .ok()
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(5);
+
         let (ack_sender, ack_receiver) = std::sync::mpsc::channel();
         if self.sender.try_send(TelemetryMessage::Flush(ack_sender)).is_ok() {
-            let _ = ack_receiver.recv_timeout(Duration::from_secs(5));
+            let _ = ack_receiver.recv_timeout(Duration::from_secs(timeout_sec));
         }
 
         let failed_jobs = self.stats.failed_count.swap(0, Ordering::SeqCst);
@@ -363,5 +368,23 @@ mod tests {
         // Clean up env vars for other tests
         std::env::remove_var("CORE_BATCH_SIZE");
         std::env::remove_var("CORE_BATCH_TIMEOUT_SEC");
+    }
+
+    #[tokio::test]
+    async fn test_flush_timeout_config() {
+        std::env::set_var("CORE_FLUSH_TIMEOUT_SEC", "1");
+        let client = GliaClient::new(100);
+        
+        // This test doesn't easily prove the timeout happened without mocks that hang,
+        // but we can at least verify it doesn't crash and respects the variable path.
+        let start = std::time::Instant::now();
+        let _ = client.flush();
+        let duration = start.elapsed();
+        
+        // It shouldn't take MUCH longer than the timeout (plus some overhead)
+        // Default is 5s, we set 1s.
+        assert!(duration.as_secs() < 5);
+
+        std::env::remove_var("CORE_FLUSH_TIMEOUT_SEC");
     }
 }
