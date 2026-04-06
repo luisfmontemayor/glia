@@ -209,11 +209,11 @@ mod tests {
         let client = setup_client(2);
         
         // Fill the queue
-        assert!(client.enqueue_to_background("{}", "http://localhost", 1.0).is_ok());
-        assert!(client.enqueue_to_background("{}", "http://localhost", 1.0).is_ok());
+        assert!(client.enqueue_to_background("{}", "http://test-host", 1.0).is_ok());
+        assert!(client.enqueue_to_background("{}", "http://test-host", 1.0).is_ok());
         
         // The third one should fail because the channel is bounded and full
-        let result = client.enqueue_to_background("{}", "http://localhost", 1.0);
+        let result = client.enqueue_to_background("{}", "http://test-host", 1.0);
         assert!(result.is_err());
         // tokio mpsc try_send error message contains "no available capacity" or similar
         assert!(result.unwrap_err().to_string().to_lowercase().contains("capacity"));

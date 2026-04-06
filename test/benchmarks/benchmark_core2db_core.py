@@ -11,7 +11,9 @@ import core
 
 logger = setup_logger("benchmark_core2db_core.py")
 
-API_URL = os.environ.get("GLIA_API_URL", "http://localhost:8000/ingest")
+API_URL = os.environ.get("GLIA_API_URL")
+if not API_URL:
+    raise RuntimeError("GLIA_API_URL environment variable is not set.")
 
 
 def push_telemetry_core(url, iteration, load_factor):

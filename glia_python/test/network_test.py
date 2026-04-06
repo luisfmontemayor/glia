@@ -38,7 +38,7 @@ def test_push_telemetry_success(mock_queue):
     # Success in fire-and-forget means it returns None
     mock_queue.return_value = None
 
-    success: bool = push_telemetry(metrics, api_url="http://localhost:8000/ingest")
+    success: bool = push_telemetry(metrics, api_url="http://test-host:8000/ingest")
 
     assert success is True
     mock_queue.assert_called_once()
@@ -94,6 +94,6 @@ def test_non_utf8_payload():
     # Depending on how pyo3 handles it, it might raise a UnicodeEncodeError
     # before reaching Rust, or Rust might catch it.
     try:
-        core.enqueue_to_background(invalid_str, "http://localhost", 1.0)
+        core.enqueue_to_background(invalid_str, "http://test-host", 1.0)
     except (UnicodeEncodeError, RuntimeError):
         pass  # Success if it doesn't crash the interpreter
