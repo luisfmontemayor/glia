@@ -30,7 +30,7 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
         (
             Path("pyproject.toml"),
             r'(?s)(\[tool\.ty\.environment\][^\[]*?python-version\s*=\s*)"[^"]*"',
-            rf'\1"{version.rstrip(".0")}"',
+            rf'\1"{re.sub(r"\.0$", "", version)}"',
         ),
         (
             Path("glia_python/pyproject.toml"),
