@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import getpass
 import hashlib
 import os
@@ -5,7 +7,7 @@ import platform
 import sys
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from types import TracebackType
 from typing import Any
@@ -133,8 +135,8 @@ class JobTracker:
             script_path=str(self.script_path) if self.script_path else None,
             argv=sys.argv[1:],
             wall_time_ms=wall_time_ms,
-            started_at=datetime.fromtimestamp(self._start_time, tz=UTC),
-            ended_at=datetime.fromtimestamp(end_time, tz=UTC),
+            started_at=datetime.fromtimestamp(self._start_time, tz=timezone.utc),
+            ended_at=datetime.fromtimestamp(end_time, tz=timezone.utc),
             cpu_time_sec=cpu_time_consumed,
             cpu_percent=round(cpu_percent, 2),
             max_rss_kb=self._get_peak_rss_kb(),

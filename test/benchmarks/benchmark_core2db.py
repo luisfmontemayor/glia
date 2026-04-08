@@ -4,7 +4,7 @@ import json
 import os
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import httpx
 from common.logs import setup_logger
@@ -24,8 +24,8 @@ async def push_telemetry_direct(client, url, iteration, load_factor):
         "os_info": "Linux Performance-Test",
         "user_name": "stressed_user",
         "program_name": "db_stress_worker",
-        "started_at": datetime.now(UTC).isoformat(),
-        "ended_at": datetime.now(UTC).isoformat(),
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "ended_at": datetime.now(timezone.utc).isoformat(),
         "wall_time_sec": 0.1,
         "cpu_time_sec": 0.05,
         "cpu_percent": 10.0,

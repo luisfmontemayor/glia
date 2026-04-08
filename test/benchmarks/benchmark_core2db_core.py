@@ -3,7 +3,7 @@ import json
 import os
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from common.logs import setup_logger
 
@@ -24,8 +24,8 @@ def push_telemetry_core(url, iteration, load_factor):
         "os_info": "Linux Performance-Test-Core",
         "user_name": "stress_user",
         "program_name": "db_stress_worker_core",
-        "started_at": datetime.now(UTC).isoformat(),
-        "ended_at": datetime.now(UTC).isoformat(),
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "ended_at": datetime.now(timezone.utc).isoformat(),
         "wall_time_sec": 0.1,
         "cpu_time_sec": 0.05,
         "cpu_percent": 10.0,

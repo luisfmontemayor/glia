@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -20,8 +20,8 @@ def create_sample_metrics() -> JobMetrics:
         argv=["test.py"],
         program_version="1.0.0",
         wall_time_ms=10000,
-        started_at=datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
-        ended_at=datetime(2026, 1, 1, 12, 0, 10, tzinfo=UTC),
+        started_at=datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        ended_at=datetime(2026, 1, 1, 12, 0, 10, tzinfo=timezone.utc),
         cpu_time_sec=5.0,
         cpu_percent=50.0,
         max_rss_kb=102400,

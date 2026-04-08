@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
@@ -40,8 +40,8 @@ async def test_ingest(ingest_cleanup_client):
             "hostname": "test-host",
             "os_info": "Linux-Test",
             "script_sha256": f"hash_{i}",
-            "started_at": datetime.now(UTC).isoformat(),
-            "ended_at": datetime.now(UTC).isoformat(),
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "ended_at": datetime.now(timezone.utc).isoformat(),
             "wall_time_ms": 100,
             "exit_code_int": 0,
             "cpu_time_sec": 1.2,

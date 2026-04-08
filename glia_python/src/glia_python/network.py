@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Written by Luis Felipe Montemayor, sometime around January of 2026
 import os
 

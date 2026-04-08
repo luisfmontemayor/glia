@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from common.logs import setup_logger
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict

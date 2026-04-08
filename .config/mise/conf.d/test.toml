@@ -42,6 +42,7 @@ run         = "mise test:e2e-glia_python && mise test:e2e-gliar"
 
 [tasks."test:all"]
 description = "Run all tests"
+alias = "ta"
 depends = ["api:status-wait", "db:status-wait"]
 run = """
 mise test:core && \
