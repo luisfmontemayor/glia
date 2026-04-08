@@ -1,3 +1,20 @@
+# Parallel Development Branches
+
+### Branch: `downgrade-python-3.10`
+- [x] Downgrade Python version in `.python-version`, `pyproject.toml`, `mise.toml`.
+- [x] Fix sync script to handle `3.10` versioning correctly.
+- [x] Refactor `datetime.UTC` to `datetime.timezone.utc` for 3.10 compatibility.
+- [x] Add `from __future__ import annotations` for `|` type operator support in 3.10.
+- [ ] Verify `glia_python` tests pass in a clean 3.10 environment (WSL/Docker issue).
+
+### Branch: `fix-conventional-commits`
+- [x] Fix backend migrations scope to strip hashes and end at `backend/migrations/versions`.
+- [x] Fix lazygit wizard freeze when no files are staged (removed interactive `gum` prompts).
+- [x] Add `Nothing Staged` scope option when no files are staged.
+- [x] Add `test_scopes.py` for regression testing of scope logic.
+
+---
+
 # Make README pitch-ready
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [ ] Readme needs r installation path mapping
@@ -5,11 +22,11 @@
  
 
 #######
-- [ ] encrypt comms, start with https
-- [ ] downgrade to 3.10 for better interop
-- [ ] health check: is it legit  
-- [ ] lazygit plugin: no files staged means it puts in messed up scope label
-- [ ] backend migrations fix, so that scope doesn't include hash but ends at backend/migrations/versions
+- [ ] encrypt comms, start with https (STASHED)
+- [/] downgrade to 3.10 for better interop (Done in `downgrade-python-3.10`)
+- [ ] health check: is it legit (Endpoints identified: `/health/live`, `/health/ready`)
+- [x] lazygit plugin: no files staged means it puts in messed up scope label (Done in `fix-conventional-commits`)
+- [x] backend migrations fix (Done in `fix-conventional-commits`)
 - [x] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [x] Make hardcoded "http://localhost" in tests and benchmarks configurable via environment variables.
 - [ ] Readme needs r installation path mapping
