@@ -25,3 +25,4 @@ MISE_FILES: set[str] = {
 }
 INFRA_DIRS: set[str] = {".git", ".vscode", ".config/mise/conf.d/"}
 NO_SCOPE_STR = "None"
+NOTHING_STAGED_STR = "Nothing Staged"

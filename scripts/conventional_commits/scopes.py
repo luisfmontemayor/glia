@@ -13,6 +13,7 @@ from .constants import (
     INFRA_FILES,
     MISE_FILES,
     NO_SCOPE_STR,
+    NOTHING_STAGED_STR,
     SCOPE_CATEGORIES,
 )
 
@@ -99,7 +100,11 @@ def add_scope_category(filepath: str) -> str:
     return NO_SCOPE_STR
 
 def get_staged_scopes():
-    unique_staged_scopes: set[str] = {add_scope_category(f) for f in get_staged_files()}
+    staged_files = get_staged_files()
+    if not staged_files:
+        return [NOTHING_STAGED_STR]
+
+    unique_staged_scopes: set[str] = {add_scope_category(f) for f in staged_files}
     extended_scopes: set[str] = set(unique_staged_scopes)
     extended_scopes.add(NO_SCOPE_STR)
     for scope in unique_staged_scopes:
