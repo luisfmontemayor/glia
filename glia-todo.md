@@ -1,10 +1,10 @@
 # Parallel Development Branches
 
 ### Branch: `downgrade-python-3.10`
-- [ ] Downgrade Python version in `.python-version`, `pyproject.toml`, `mise.toml`.
-- [ ] Fix sync script to handle `3.10` versioning correctly.
-- [ ] Refactor `datetime.UTC` to `datetime.timezone.utc` for 3.10 compatibility.
-- [ ] Add `from __future__ import annotations` for `|` type operator support in 3.10.
+- [x] Downgrade Python version in `.python-version`, `pyproject.toml`, `mise.toml`.
+- [x] Fix sync script to handle `3.10` versioning correctly.
+- [x] Refactor `datetime.UTC` to `datetime.timezone.utc` for 3.10 compatibility.
+- [x] Add `from __future__ import annotations` for `|` type operator support in 3.10.
 - [ ] Verify `glia_python` tests pass in a clean 3.10 environment (WSL/Docker issue).
 
 ### Branch: `fix-conventional-commits`
@@ -23,7 +23,7 @@
 
 #######
 - [ ] encrypt comms, start with https (STASHED)
-- [ ] downgrade to 3.10 for better interop (In Progress in `downgrade-python-3.10`)
+- [/] downgrade to 3.10 for better interop (Done in `downgrade-python-3.10`)
 - [ ] health check: is it legit (Endpoints identified: `/health/live`, `/health/ready`)
 - [x] lazygit plugin: no files staged means it puts in messed up scope label (Done in `fix-conventional-commits`)
 - [x] backend migrations fix (Done in `fix-conventional-commits`)
