@@ -21,6 +21,7 @@ def get_python_version(version_file: Path = VERSION_FILE) -> str:
 
 
 def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
+    version_short = re.sub(r"\.0$", "", version)
     return [
         (
             Path("pyproject.toml"),
@@ -30,13 +31,14 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
         (
             Path("pyproject.toml"),
             r'(?s)(\[tool\.ty\.environment\][^\[]*?python-version\s*=\s*)"[^"]*"',
-            rf'\1"{version.rstrip(".0")}"',
+            rf'\1"{version_short}"',
         ),
         (
             Path("glia_python/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),
+
         (
             Path("core/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',
