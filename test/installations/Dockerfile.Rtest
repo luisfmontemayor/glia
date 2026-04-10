@@ -1,0 +1,70 @@
+# Use a minimal ubuntu image
+FROM ubuntu:22.04
+
+# Set environment variables for non-interactive installations
+ENV DEBIAN_FRONTEND=noninteractive
+ENV R_PROFILE_USER=/etc/R/Rprofile.site
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Install R and system dependencies for building R packages and the rust core
+RUN apt-get update && apt-get install -y \
+    r-base \
+    r-base-dev \
+    build-essential \
+    cmake \
+    libuv1-dev \
+    pandoc \
+    libgit2-dev \
+    libsecret-1-dev \
+    libxml2-dev \
+    libfribidi-dev \
+    libharfbuzz-dev \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    pkg-config \
+    rsync \
+    libtiff-dev \
+    libwebp-dev \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    curl \
+    git \
+    wget \
+    ca-certificates \
+    unzip
+
+# Install renv R package globally
+RUN R -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
+
+# Copy the local repository instead of cloning
+COPY . /glia
+WORKDIR /glia
+
+# Robustly remove tools from mise.toml that we are providing via apt-get or that are redundant for this test
+RUN sed -i '/^r[[:space:]]*=/d' mise.toml && \
+    sed -i '/^pandoc[[:space:]]*=/d' mise.toml && \
+    sed -i '/^cmake[[:space:]]*=/d' mise.toml
+
+# Patch setup task and gliar tasks to avoid pak in this environment
+RUN sed -i 's/options(renv.config.pak.enabled = TRUE)/options(renv.config.pak.enabled = FALSE)/' .config/mise/conf.d/setup.toml && \
+    sed -i 's/options(pak.sysreqs = FALSE);/options(pak.sysreqs = FALSE); options(renv.config.pak.enabled = FALSE);/' .config/mise/conf.d/gliar.toml
+
+# Install mise, and then use it to install project dependencies
+ENV MISE_GITHUB_GITHUB_ATTESTATIONS=false
+ENV MISE_PYTHON_GITHUB_ATTESTATIONS=false
+ENV R_CONFIGURE_OPTIONS="--with-x=no"
+ENV MISE_SKIP_TOOLS=r,pandoc,cmake
+# Disable pak for renv to avoid "Subprocess is busy" errors in Docker
+ENV RENV_CONFIG_PAK_ENABLED=false
+SHELL ["/bin/bash", "-c"]
+
+RUN curl https://mise.run | sh && \
+    chmod +x /root/.local/bin/mise && \
+    mise trust && \
+    mise install && \
+    mise run setup:r-deps && \
+    mise run gliar:build
+
+# Final command to show that R is installed and gliar can be loaded
+# We use mise run to ensure environment variables from .env.r are loaded
+CMD ["mise", "run", "--", "R", "-e", "library(gliar); print('gliar loaded successfully.')"]
