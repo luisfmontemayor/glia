@@ -21,6 +21,7 @@ if [ "$CURRENT_DIR_NAME" != "gliar" ]; then
 fi
 
 Rscript -e '
+if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv", repos = "https://cloud.r-project.org")
 if (!file.exists("renv/activate.R")) {
     renv::init(bare = TRUE, restart = FALSE)
 }
@@ -30,9 +31,10 @@ stat <- renv::status()
 if (isTRUE(stat$synchronized)) {
     message("Project is already synchronized. Skipping install.")
 } else {
-    options(renv.config.pak.enabled = TRUE)
+    pak_enabled <- as.logical(toupper(Sys.getenv("RENV_CONFIG_PAK_ENABLED", "TRUE")))
+    options(renv.config.pak.enabled = pak_enabled)
     renv::consent(provided = TRUE)
-    renv::install()
+    renv::install(verbose = TRUE, n_cpus = 1)
     renv::snapshot(prompt = FALSE)
 }
 
