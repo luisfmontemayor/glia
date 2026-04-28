@@ -1,16 +1,16 @@
 {
-  "phase": 1,
+  "phase": 2,
   "status": "in_progress",
   "tasks": {
-    "mise_integration": {
+    "tdd_tests": {
+      "assignee": "@monitor",
+      "status": "completed",
+      "details": "1. In tui/src/app.rs, add WMax to TimeWindow enum. Add a test 'test_time_window_max' verifying next_window cycles to WMax. 2. Add 'pub fn previous_metric(&mut self)' (with unimplemented!()) and write a failing test 'test_previous_metric' verifying it cycles backwards."
+    },
+    "tdd_implementation": {
       "assignee": "@flash-executor",
       "status": "completed",
-      "details": "Create .config/mise/conf.d/tui.toml with [tasks.\"tui:up\"]. dir=\"tui\", depends=[\"api:status-wait\", \"db:status-wait\"], run=\"cargo run\"."
-    },
-    "color_palette": {
-      "assignee": "@analyst",
-      "status": "pending",
-      "details": "Create tui/src/theme.rs. Define Catppuccin (Macchiato/Mocha) colors as ratatui::style::Color::Rgb(r,g,b) constants. Export them. e.g., FLAMINGO, MAUVE, PINK, TEAL, BASE, SURFACE, TEXT, SUBTEXT."
+      "details": "1. Implement App::previous_metric() in tui/src/app.rs. 2. Implement the logic for WMax in next_window. 3. Update main.rs to handle KeyCode::BackTab (which maps to Shift+Tab) and call app.previous_metric(). Ensure 'cargo test' passes in tui/."
     }
   }
 }

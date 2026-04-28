@@ -1,3 +1,4 @@
+pub mod theme;
 pub mod app;
 pub mod network;
 pub mod ui;
@@ -63,6 +64,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                 match key.code {
                     KeyCode::Char('q') => app.running = false,
                     KeyCode::Tab => app.next_metric(),
+                    KeyCode::BackTab => app.previous_metric(),
                     KeyCode::Char('t') => app.next_window(),
                     _ => {}
                 }
