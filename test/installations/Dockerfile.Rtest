@@ -79,4 +79,4 @@ RUN curl https://mise.run | sh && \
 
 # Final command to show that R is installed and gliar can be loaded
 # We use mise run to ensure environment variables from .env.r are loaded
-CMD ["mise", "exec", "--", "R", "-e", "library(gliar); print('gliar loaded successfully.')"]iar); print('gliar loaded successfully.')"]
+CMD ["mise", "exec", "--", "R", "-e", "library(gliar); print('gliar loaded successfully.')"]
