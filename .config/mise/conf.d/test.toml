@@ -17,6 +17,11 @@ depends     = ["api:status-wait", "db:status-wait"]
 dir         = "gliar"
 run         = "Rscript -e 'res <- testthat::test_local(); df <- as.data.frame(res); if (sum(df$failed) + sum(df$error) > 0) q(status = 1)'"
 
+[tasks."test:tui"]
+dir     = "tui"
+depends = ["api:status-wait", "db:status-wait"]
+run     = "cargo test"
+
 [tasks."test:e2e-glia_python"]
 description = "Tests client run, push to db, db write and query for integrity"
 depends     = ["api:status-wait", "db:status-wait"]

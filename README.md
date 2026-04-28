@@ -177,4 +177,5 @@ Recommended VS Code extensions (configured in `.vscode/extensions.json`):
 
 ## Project Structure
 - **Backend**: Built with [FastAPI](https://fastapi.tiangolo.com/) (Python).
-- **Clients**: Written in their respective languages, for Python and R
+- **Clients**: Written in their respective languages, for Python and R.
+- **TUI Dashboard**: A visual terminal interface built with Rust (`ratatui`) to monitor metrics in real-time. See `tui/README.md` for details.

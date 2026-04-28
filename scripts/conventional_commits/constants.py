@@ -10,6 +10,7 @@ SCOPE_CATEGORIES: set[str] = {
     "scripts",
     "libs",
     "test",
+    "tui",
 }
 INFRA_FILES: set[str] = {
     "pyproject.toml",

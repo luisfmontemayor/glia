@@ -7,7 +7,12 @@ run         = "Rscript -e 'lints <- lintr::lint_package(); print(lints); if (len
 description = "Lint and fix Python code using ruff"
 run         = "ruff check . --fix"
 
+[tasks."lint:tui"]
+description = "Lint Rust code using cargo clippy and fmt"
+dir         = "tui"
+run         = "cargo fmt --check && cargo clippy -- -D warnings"
+
 [tasks."lint:all"]
 alias       = "lint"
 description = "Run all linters"
-run         = "mise run lint:python && mise run lint:gliar"
+run         = "mise run lint:python && mise run lint:gliar && mise run lint:tui"
