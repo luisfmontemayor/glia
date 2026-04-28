@@ -1,8 +1,4 @@
 # TUI Dashboard (Session: 2026-04-10)
-- [x] Phase 1: Scaffold TUI project with Ratatui and Tokio.
-- [x] Phase 2: Implement route mapping and data models.
-- [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).
-- [x] Phase 4: Polish (Panic hooks, formatting).
 
 - [ ] add env var to add cores to the R installation
 - [ ] add most up to date conventional commits and make sure that the descriptions files for it are retained
@@ -127,47 +123,9 @@
 - [x] Data Schema
     - [x] Choose compulsory variables
         - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
- v0 Scope
-- 2 Clients: Python and R (Single script model).
-- 1 Data Pipeline: Client -> FastAPI -> PostgreSQL.
 
-### v1 Scope
-- CLI client for bash scripting
-- Nextflow program for scripting
-- Queue and queue worker implemented
-- I/O Metrics implementation
-
-
-
-### Setup
-- [x] Lock files
-- [x] A task runner
-- [x] CCs 
-- [x] Basic dir structure
-- [x] Dependencies
-    - [x] Add cmake to mise tools
-    - Manual installs
-        - [x] Docker
-        - [x] mise
-    - General dependencies:
-        - [x] R
-        - [x] Python
-            - [x] FastAPI
-    - dev dependencies
-        - [x] gum
-    - [x] make dev dependencies (cmake, etc documented in README)
-- [x] Docs
-    - [x] Basic README
-- [x] Identify testing
-    - [x] Backend TDD
-    - [x] E2E Integration tests
-    - [x] Fixed broken mise task paths
-- [x] Git
-    - [x] Merge branches protections, only stuff I approve can be merged
-    - [x] merged branches get deleted
-    - [x] Consolidated atomic commit strategy
-
-### Backend
-- [x] Data Schema
-    - [x] Choose compulsory variables
-        - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
+# ARCHIVE
+- [x] Phase 1: Scaffold TUI project with Ratatui and Tokio.
+- [x] Phase 2: Implement route mapping and data models.
+- [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).
+- [x] Phase 4: Polish (Panic hooks, formatting).
