@@ -1,3 +1,9 @@
+# TUI Dashboard (Session: 2026-04-10)
+- [x] Phase 1: Scaffold TUI project with Ratatui and Tokio.
+- [x] Phase 2: Implement route mapping and data models.
+- [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).
+- [x] Phase 4: Polish (Panic hooks, formatting).
+
 - [ ] add env var to add cores to the R installation
 - [ ] add most up to date conventional commits and make sure that the descriptions files for it are retained
 - [ ] Make README pitch-ready
