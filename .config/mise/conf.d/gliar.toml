@@ -38,6 +38,8 @@ sources = ["DESCRIPTION", "renv.lock"]
 run = """
 Rscript -e "
   options(pak.sysreqs = FALSE);
+  pak_enabled <- as.logical(toupper(Sys.getenv('RENV_CONFIG_PAK_ENABLED', 'TRUE')));
+  options(renv.config.pak.enabled = pak_enabled);
   if (!requireNamespace('renv', quietly=TRUE)) install.packages('renv');
   renv::install();
   renv::snapshot(prompt = FALSE);
