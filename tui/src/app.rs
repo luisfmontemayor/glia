@@ -7,6 +7,7 @@ pub enum TimeWindow {
     W6h,
     W12h,
     W24h,
+    WMax,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -83,7 +84,8 @@ impl App {
             TimeWindow::W3h => TimeWindow::W6h,
             TimeWindow::W6h => TimeWindow::W12h,
             TimeWindow::W12h => TimeWindow::W24h,
-            TimeWindow::W24h => TimeWindow::W1h,
+            TimeWindow::W24h => TimeWindow::WMax,
+            TimeWindow::WMax => TimeWindow::W1h,
         };
     }
 
@@ -95,6 +97,17 @@ impl App {
             Metric::MaxRss => Metric::Throughput,
             Metric::Throughput => Metric::SuccessRate,
             Metric::SuccessRate => Metric::WallTime,
+        };
+    }
+
+    pub fn previous_metric(&mut self) {
+        self.metric = match self.metric {
+            Metric::WallTime => Metric::SuccessRate,
+            Metric::CpuTime => Metric::WallTime,
+            Metric::CpuPercent => Metric::CpuTime,
+            Metric::MaxRss => Metric::CpuPercent,
+            Metric::Throughput => Metric::MaxRss,
+            Metric::SuccessRate => Metric::Throughput,
         };
     }
 }
@@ -112,11 +125,8 @@ mod tests {
 
     #[test]
     fn test_time_window_toggle() {
-        let mut app = App {
-            running: true,
-            window: TimeWindow::W1h,
-            metric: Metric::WallTime,
-        };
+        let mut app = App::new();
+        app.window = TimeWindow::W1h;
 
         app.next_window();
         assert_eq!(app.window, TimeWindow::W3h);
@@ -127,16 +137,15 @@ mod tests {
         app.next_window();
         assert_eq!(app.window, TimeWindow::W24h);
         app.next_window();
+        assert_eq!(app.window, TimeWindow::WMax);
+        app.next_window();
         assert_eq!(app.window, TimeWindow::W1h);
     }
 
     #[test]
     fn test_metric_toggle() {
-        let mut app = App {
-            running: true,
-            window: TimeWindow::W1h,
-            metric: Metric::WallTime,
-        };
+        let mut app = App::new();
+        app.metric = Metric::WallTime;
 
         app.next_metric();
         assert_eq!(app.metric, Metric::CpuTime);
@@ -149,6 +158,25 @@ mod tests {
         app.next_metric();
         assert_eq!(app.metric, Metric::SuccessRate);
         app.next_metric();
+        assert_eq!(app.metric, Metric::WallTime);
+    }
+
+    #[test]
+    fn test_previous_metric() {
+        let mut app = App::new();
+        app.metric = Metric::WallTime;
+
+        app.previous_metric();
+        assert_eq!(app.metric, Metric::SuccessRate);
+        app.previous_metric();
+        assert_eq!(app.metric, Metric::Throughput);
+        app.previous_metric();
+        assert_eq!(app.metric, Metric::MaxRss);
+        app.previous_metric();
+        assert_eq!(app.metric, Metric::CpuPercent);
+        app.previous_metric();
+        assert_eq!(app.metric, Metric::CpuTime);
+        app.previous_metric();
         assert_eq!(app.metric, Metric::WallTime);
     }
 }
