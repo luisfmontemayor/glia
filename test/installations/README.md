@@ -4,10 +4,10 @@ This directory contains Dockerfiles and related files for testing the installati
 
 ## R Package (`gliar`) Installation Test
 
-The `Dockerfile.Rtest` is designed to simulate a fresh installation on a minimal Ubuntu image. It installs all necessary system dependencies, sets up `mise`, and builds the R package.
+The `Dockerfile.Rtest` is designed to simulate a fresh installation on a minimal Ubuntu image. It installs all necessary system dependencies, clones the project from GitHub, sets up `mise`, and builds the R package.
 
 ### Files
-- `Dockerfile.Rtest`: Defines the test environment starting from `ubuntu:22.04`.
+- `Dockerfile.Rtest`: Defines the test environment starting from `ubuntu:22.04`. It clones `https://github.com/luisfmontemayor/glia.git`.
 - `build_rtest.sh`: A helper script to automate the building and running of the test container.
 
 ### How to run

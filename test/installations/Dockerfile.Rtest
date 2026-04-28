@@ -6,14 +6,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV R_PROFILE_USER=/etc/R/Rprofile.site
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Install R and system dependencies for building R packages and the rust core
+# Install system dependencies for building R packages and the rust core
 RUN apt-get update && apt-get install -y \
-    r-base \
-    r-base-dev \
     build-essential \
-    cmake \
+    gfortran \
+    libreadline-dev \
+    libpcre2-dev \
+    liblzma-dev \
+    libbz2-dev \
+    zlib1g-dev \
     libuv1-dev \
-    pandoc \
     libgit2-dev \
     libsecret-1-dev \
     libxml2-dev \
@@ -31,40 +33,50 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     ca-certificates \
-    unzip
+    unzip \
+    tzdata \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libx11-dev \
+    libxt-dev \
+    x11proto-core-dev \
+    libice-dev \
+    libsm-dev \
+    libxext-dev \
+    libxrender-dev \
+    pandoc
 
-# Install renv R package globally
-RUN R -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
-
-# Copy the local repository instead of cloning
-COPY . /glia
+# Copy the local repository content
 WORKDIR /glia
+COPY . /glia
 
-# Robustly remove tools from mise.toml that we are providing via apt-get or that are redundant for this test
-RUN sed -i '/^r[[:space:]]*=/d' mise.toml && \
-    sed -i '/^pandoc[[:space:]]*=/d' mise.toml && \
-    sed -i '/^cmake[[:space:]]*=/d' mise.toml
-
-# Patch setup task and gliar tasks to avoid pak in this environment
-RUN sed -i 's/options(renv.config.pak.enabled = TRUE)/options(renv.config.pak.enabled = FALSE)/' .config/mise/conf.d/setup.toml && \
-    sed -i 's/options(pak.sysreqs = FALSE);/options(pak.sysreqs = FALSE); options(renv.config.pak.enabled = FALSE);/' .config/mise/conf.d/gliar.toml
+# Remove pandoc from mise.toml and mise.lock to avoid GitHub API rate limits
+RUN sed -i '/^pandoc = /d' mise.toml && \
+    sed -i '/\[\[tools.pandoc\]\]/,/^[[:space:]]*$/d' mise.lock
 
 # Install mise, and then use it to install project dependencies
 ENV MISE_GITHUB_GITHUB_ATTESTATIONS=false
 ENV MISE_PYTHON_GITHUB_ATTESTATIONS=false
+ENV MISE_SETTINGS__GITHUB_ATTESTATIONS=false
+ENV MISE_SETTINGS__VERIFY_SLSA=false
+ENV MISE_SETTINGS__VERIFY=false
 ENV R_CONFIGURE_OPTIONS="--with-x=no"
-ENV MISE_SKIP_TOOLS=r,pandoc,cmake
 # Disable pak for renv to avoid "Subprocess is busy" errors in Docker
-ENV RENV_CONFIG_PAK_ENABLED=false
+ENV RENV_CONFIG_PAK_ENABLED=FALSE
 SHELL ["/bin/bash", "-c"]
 
 RUN curl https://mise.run | sh && \
     chmod +x /root/.local/bin/mise && \
     mise trust && \
+    mise plugin install r https://github.com/mise-plugins/mise-r.git && \
     mise install && \
+    # Install renv globally to ensure setup tasks can run without .Rprofile failures
+    mise exec -- Rscript -e "install.packages('renv', repos='https://cloud.r-project.org')" && \
     mise run setup:r-deps && \
     mise run gliar:build
 
 # Final command to show that R is installed and gliar can be loaded
 # We use mise run to ensure environment variables from .env.r are loaded
-CMD ["mise", "run", "--", "R", "-e", "library(gliar); print('gliar loaded successfully.')"]
+CMD ["mise", "exec", "--", "R", "-e", "library(gliar); print('gliar loaded successfully.')"]iar); print('gliar loaded successfully.')"]
