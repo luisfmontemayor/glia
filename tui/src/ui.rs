@@ -1,4 +1,4 @@
-use crate::app::{App, Metric};
+use crate::app::{App, Metric, TimeWindow};
 use crate::theme::*;
 use ratatui::{
     Frame,
@@ -83,45 +83,67 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     let mut str_data: Vec<String> = Vec::new();
     let mut num_data: Vec<u64> = Vec::new();
 
+    let format_time = |started_at: &str| -> String {
+        let parts: Vec<&str> = started_at.split('T').collect();
+        if parts.len() == 2 {
+            if app.window == TimeWindow::WMax {
+                let date_parts: Vec<&str> = parts[0].split('-').collect();
+                if date_parts.len() >= 3 {
+                    format!("{}-{}", date_parts[1], date_parts[2])
+                } else {
+                    parts[0].to_string()
+                }
+            } else {
+                if parts[1].len() >= 5 {
+                    parts[1][0..5].to_string()
+                } else {
+                    parts[1].to_string()
+                }
+            }
+        } else {
+            started_at.to_string()
+        }
+    };
+
     let (y_title, bar_color) = match app.metric {
         Metric::WallTime => {
-            for (i, j) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push(j.wall_time_ms as u64);
             }
             ("Wall Time (ms)", MAUVE)
         }
         Metric::CpuTime => {
-            for (i, j) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push((j.cpu_time_sec * 1000.0) as u64);
             }
             ("CPU Time (ms)", GREEN)
         }
         Metric::CpuPercent => {
-            for (i, j) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push(j.cpu_percent as u64);
             }
             ("CPU Percent (%)", PEACH)
         }
         Metric::MaxRss => {
-            for (i, j) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push(j.max_rss_kb as u64);
             }
             ("Max RSS (KB)", BLUE)
         }
         Metric::Throughput => {
-            for (i, _) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push(1);
             }
             ("Throughput", TEAL)
         }
         Metric::SuccessRate => {
-            for (i, j) in app.jobs.iter().enumerate() {
-                str_data.push(format!("#{}", i));
+            for j in app.jobs.iter() {
+                str_data.push(format_time(&j.started_at));
                 num_data.push(if j.exit_code_int == 0 { 100 } else { 0 });
             }
             ("Success Rate (%)", GREEN)
