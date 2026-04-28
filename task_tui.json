@@ -1,6 +1,6 @@
 {
-  "phase": 2,
-  "status": "in_progress",
+  "phase": 3,
+  "status": "completed",
   "tasks": {
     "scaffold": {
       "assignee": "@flash-executor",
@@ -16,6 +16,11 @@
       "assignee": "@flash-executor",
       "status": "completed",
       "details": "Implement core logic in app.rs and network.rs to pass failing tests. Cycle through windows and metrics, and implement JSON parsing."
+    },
+    "visuals_integration": {
+      "assignee": "@flash-executor",
+      "status": "completed",
+      "details": "Implement TUI visuals in ui.rs and main event loop in main.rs. Split screen into Header and Body. Implement metric chart using Sparkline."
     }
   },
   "routes": {

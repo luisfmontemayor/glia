@@ -1,3 +1,5 @@
+use crate::network::JobMetrics;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TimeWindow {
     W1h,
@@ -21,15 +23,28 @@ pub struct App {
     pub running: bool,
     pub window: TimeWindow,
     pub metric: Metric,
+    pub jobs: Vec<JobMetrics>,
 }
 
 impl App {
     pub fn new() -> Self {
-        Self {
+        let mut app = Self {
             running: true,
             window: TimeWindow::W1h,
             metric: Metric::WallTime,
-        }
+            jobs: Vec::new(),
+        };
+        
+        // Dummy data for visual testing
+        app.jobs = vec![
+            JobMetrics { wall_time_ms: 100, cpu_time_sec: 0.1, cpu_percent: 10.0, max_rss_kb: 1024, exit_code_int: 0 },
+            JobMetrics { wall_time_ms: 200, cpu_time_sec: 0.2, cpu_percent: 20.0, max_rss_kb: 2048, exit_code_int: 0 },
+            JobMetrics { wall_time_ms: 150, cpu_time_sec: 0.15, cpu_percent: 15.0, max_rss_kb: 1536, exit_code_int: 1 },
+            JobMetrics { wall_time_ms: 300, cpu_time_sec: 0.3, cpu_percent: 30.0, max_rss_kb: 3072, exit_code_int: 0 },
+            JobMetrics { wall_time_ms: 250, cpu_time_sec: 0.25, cpu_percent: 25.0, max_rss_kb: 2560, exit_code_int: 0 },
+        ];
+
+        app
     }
 
     pub fn next_window(&mut self) {
