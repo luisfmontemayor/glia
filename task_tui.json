@@ -1,5 +1,5 @@
 {
-  "phase": 1,
+  "phase": 2,
   "status": "in_progress",
   "tasks": {
     "scaffold": {
@@ -11,6 +11,11 @@
       "assignee": "@analyst",
       "status": "completed",
       "details": "Read backend/main.py. Find exactly the REST route to get jobs. Extract JSON schema (fields: wall_time_ms, cpu_time_sec, cpu_percent, max_rss_kb, exit_code_int). Note it down here under 'routes' section."
+    },
+    "tdd_logic_implementation": {
+      "assignee": "@flash-executor",
+      "status": "completed",
+      "details": "Implement core logic in app.rs and network.rs to pass failing tests. Cycle through windows and metrics, and implement JSON parsing."
     }
   },
   "routes": {
