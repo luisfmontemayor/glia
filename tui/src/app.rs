@@ -39,6 +39,7 @@ impl App {
         // Dummy data for visual testing
         app.jobs = vec![
             JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
                 wall_time_ms: 100,
                 cpu_time_sec: 0.1,
                 cpu_percent: 10.0,
@@ -46,6 +47,7 @@ impl App {
                 exit_code_int: 0,
             },
             JobMetrics {
+                started_at: "2023-10-27T10:05:00Z".to_string(),
                 wall_time_ms: 200,
                 cpu_time_sec: 0.2,
                 cpu_percent: 20.0,
@@ -53,6 +55,7 @@ impl App {
                 exit_code_int: 0,
             },
             JobMetrics {
+                started_at: "2023-10-27T10:10:00Z".to_string(),
                 wall_time_ms: 150,
                 cpu_time_sec: 0.15,
                 cpu_percent: 15.0,
@@ -60,6 +63,7 @@ impl App {
                 exit_code_int: 1,
             },
             JobMetrics {
+                started_at: "2023-10-27T10:15:00Z".to_string(),
                 wall_time_ms: 300,
                 cpu_time_sec: 0.3,
                 cpu_percent: 30.0,
@@ -67,6 +71,7 @@ impl App {
                 exit_code_int: 0,
             },
             JobMetrics {
+                started_at: "2023-10-27T10:20:00Z".to_string(),
                 wall_time_ms: 250,
                 cpu_time_sec: 0.25,
                 cpu_percent: 25.0,
