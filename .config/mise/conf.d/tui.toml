@@ -1,0 +1,5 @@
+[tasks."tui:up"]
+description = "Run the TUI Dashboard"
+dir = "tui"
+depends = ["api:status-wait", "db:status-wait"]
+run = "cargo run"
