@@ -1,0 +1,16 @@
+{
+  "phase": 3,
+  "status": "in_progress",
+  "tasks": {
+    "started_at_parsing": {
+      "assignee": "@flash-executor",
+      "status": "completed",
+      "details": "1. In tui/src/network.rs, add 'pub started_at: String' to JobMetrics and test mock data. 2. In tui/src/app.rs, add dummy 'started_at' ISO8601 strings to the mock app.jobs."
+    },
+    "visual_overhaul": {
+      "assignee": "@pro-executor",
+      "status": "pending",
+      "details": "1. In tui/src/ui.rs, implement render_tabs with ratatui::widgets::Tabs. 2. Update render_metric_chart to format the X-axis labels from started_at. If app.window == WMax, format as 'MM-DD'. Else 'HH:MM'. Use these as the &str labels in BarChart data."
+    }
+  }
+}
