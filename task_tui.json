@@ -1,0 +1,16 @@
+{
+  "phase": 1,
+  "status": "in_progress",
+  "tasks": {
+    "mise_integration": {
+      "assignee": "@flash-executor",
+      "status": "completed",
+      "details": "Create .config/mise/conf.d/tui.toml with [tasks.\"tui:up\"]. dir=\"tui\", depends=[\"api:status-wait\", \"db:status-wait\"], run=\"cargo run\"."
+    },
+    "color_palette": {
+      "assignee": "@analyst",
+      "status": "pending",
+      "details": "Create tui/src/theme.rs. Define Catppuccin (Macchiato/Mocha) colors as ratatui::style::Color::Rgb(r,g,b) constants. Export them. e.g., FLAMINGO, MAUVE, PINK, TEAL, BASE, SURFACE, TEXT, SUBTEXT."
+    }
+  }
+}
