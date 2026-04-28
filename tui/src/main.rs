@@ -1,6 +1,6 @@
-pub mod theme;
 pub mod app;
 pub mod network;
+pub mod theme;
 pub mod ui;
 
 use crate::app::App;
