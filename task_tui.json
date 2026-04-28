@@ -1,0 +1,33 @@
+{
+  "phase": 1,
+  "status": "in_progress",
+  "tasks": {
+    "scaffold": {
+      "assignee": "@flash-executor",
+      "status": "completed",
+      "details": "Update tui/Cargo.toml with reqwest=0.11, serde=1.0, tokio=1, ratatui, crossterm. Create skeleton: tui/src/main.rs, tui/src/app.rs, tui/src/network.rs, tui/src/ui.rs."
+    },
+    "route_mapping": {
+      "assignee": "@analyst",
+      "status": "completed",
+      "details": "Read backend/main.py. Find exactly the REST route to get jobs. Extract JSON schema (fields: wall_time_ms, cpu_time_sec, cpu_percent, max_rss_kb, exit_code_int). Note it down here under 'routes' section."
+    }
+  },
+  "routes": {
+    "list_jobs": {
+      "url": "/telemetry",
+      "method": "GET",
+      "query_params": {
+        "limit": "int (default: 100)"
+      },
+      "response_fields": {
+        "wall_time_ms": "int",
+        "cpu_time_sec": "float",
+        "cpu_percent": "float",
+        "max_rss_kb": "int",
+        "exit_code_int": "int"
+      },
+      "note": "Currently only \"limit\" is supported. Dynamic filtering by time (e.g. past 1h) is not yet implemented in the backend."
+    }
+  }
+}
