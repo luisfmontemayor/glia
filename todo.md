@@ -6,7 +6,7 @@
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [ ] Readme needs r installation path mapping
   - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
-- [ ] cli gui
+- [x] cli gui (TUI Dashboard)
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
 
 #######
@@ -26,7 +26,7 @@
 
 - [ ] encrypt comms, start with https (STASHED)
 - [ ] cloud, by using the sandbpx software for aws, k8 and ansible
-- [ ] cli gui
+- [x] cli gui (TUI Dashboard)
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 - [ ] An interactive mode
@@ -129,3 +129,4 @@
 - [x] Phase 2: Implement route mapping and data models.
 - [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).
 - [x] Phase 4: Polish (Panic hooks, formatting).
+- [x] Phase 5: Add stacked job status chart and top scripts table.

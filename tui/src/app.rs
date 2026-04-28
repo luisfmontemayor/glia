@@ -16,8 +16,7 @@ pub enum Metric {
     CpuTime,
     CpuPercent,
     MaxRss,
-    Throughput,
-    SuccessRate,
+    JobStatus,
 }
 
 pub struct App {
@@ -40,6 +39,8 @@ impl App {
         app.jobs = vec![
             JobMetrics {
                 started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "data_proc".to_string(),
+                user_name: "alice".to_string(),
                 wall_time_ms: 100,
                 cpu_time_sec: 0.1,
                 cpu_percent: 10.0,
@@ -48,6 +49,8 @@ impl App {
             },
             JobMetrics {
                 started_at: "2023-10-27T10:05:00Z".to_string(),
+                program_name: "ml_train".to_string(),
+                user_name: "bob".to_string(),
                 wall_time_ms: 200,
                 cpu_time_sec: 0.2,
                 cpu_percent: 20.0,
@@ -56,6 +59,8 @@ impl App {
             },
             JobMetrics {
                 started_at: "2023-10-27T10:10:00Z".to_string(),
+                program_name: "data_proc".to_string(),
+                user_name: "alice".to_string(),
                 wall_time_ms: 150,
                 cpu_time_sec: 0.15,
                 cpu_percent: 15.0,
@@ -64,6 +69,8 @@ impl App {
             },
             JobMetrics {
                 started_at: "2023-10-27T10:15:00Z".to_string(),
+                program_name: "data_proc".to_string(),
+                user_name: "bob".to_string(),
                 wall_time_ms: 300,
                 cpu_time_sec: 0.3,
                 cpu_percent: 30.0,
@@ -72,6 +79,8 @@ impl App {
             },
             JobMetrics {
                 started_at: "2023-10-27T10:20:00Z".to_string(),
+                program_name: "db_backup".to_string(),
+                user_name: "system".to_string(),
                 wall_time_ms: 250,
                 cpu_time_sec: 0.25,
                 cpu_percent: 25.0,
@@ -99,20 +108,18 @@ impl App {
             Metric::WallTime => Metric::CpuTime,
             Metric::CpuTime => Metric::CpuPercent,
             Metric::CpuPercent => Metric::MaxRss,
-            Metric::MaxRss => Metric::Throughput,
-            Metric::Throughput => Metric::SuccessRate,
-            Metric::SuccessRate => Metric::WallTime,
+            Metric::MaxRss => Metric::JobStatus,
+            Metric::JobStatus => Metric::WallTime,
         };
     }
 
     pub fn previous_metric(&mut self) {
         self.metric = match self.metric {
-            Metric::WallTime => Metric::SuccessRate,
+            Metric::WallTime => Metric::JobStatus,
             Metric::CpuTime => Metric::WallTime,
             Metric::CpuPercent => Metric::CpuTime,
             Metric::MaxRss => Metric::CpuPercent,
-            Metric::Throughput => Metric::MaxRss,
-            Metric::SuccessRate => Metric::Throughput,
+            Metric::JobStatus => Metric::MaxRss,
         };
     }
 }
@@ -159,9 +166,7 @@ mod tests {
         app.next_metric();
         assert_eq!(app.metric, Metric::MaxRss);
         app.next_metric();
-        assert_eq!(app.metric, Metric::Throughput);
-        app.next_metric();
-        assert_eq!(app.metric, Metric::SuccessRate);
+        assert_eq!(app.metric, Metric::JobStatus);
         app.next_metric();
         assert_eq!(app.metric, Metric::WallTime);
     }
@@ -172,9 +177,7 @@ mod tests {
         app.metric = Metric::WallTime;
 
         app.previous_metric();
-        assert_eq!(app.metric, Metric::SuccessRate);
-        app.previous_metric();
-        assert_eq!(app.metric, Metric::Throughput);
+        assert_eq!(app.metric, Metric::JobStatus);
         app.previous_metric();
         assert_eq!(app.metric, Metric::MaxRss);
         app.previous_metric();
