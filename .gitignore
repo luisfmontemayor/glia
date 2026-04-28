@@ -13,6 +13,13 @@ gliar/src/*.dll
 gliar/src/symbols.rds
 gliar/src/glia_core/
 gliar/.Renviron
-.env.r
 gliar/2
+.gemini/
 test/benchmarks/renv/
+.env.r
+.geminiignore
+**/.venv/
+**/.pytest_cache/
+**/.ruff_cache/
+**/target/
+**/renv/
