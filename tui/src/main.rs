@@ -2,19 +2,27 @@ pub mod app;
 pub mod network;
 pub mod ui;
 
-use std::{error::Error, io};
+use crate::app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::{backend::CrosstermBackend, Terminal};
-use crate::app::App;
+use ratatui::{Terminal, backend::CrosstermBackend};
+use std::{error::Error, io};
 
 type Backend = CrosstermBackend<io::Stdout>;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Setup panic hook to restore terminal on crash
+    let panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        let _ = disable_raw_mode();
+        let _ = execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture);
+        panic_hook(panic_info);
+    }));
+
     let mut terminal = setup_terminal()?;
     let app = App::new();
     let res = run_app(&mut terminal, app).await;
