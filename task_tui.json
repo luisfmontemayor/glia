@@ -1,5 +1,5 @@
 {
-  "phase": 3,
+  "phase": 4,
   "status": "completed",
   "tasks": {
     "scaffold": {
@@ -21,6 +21,11 @@
       "assignee": "@flash-executor",
       "status": "completed",
       "details": "Implement TUI visuals in ui.rs and main event loop in main.rs. Split screen into Header and Body. Implement metric chart using Sparkline."
+    },
+    "polish": {
+      "assignee": "@janitor",
+      "status": "completed",
+      "details": "Install panic hook, run cargo fmt, and cleanup task state."
     }
   },
   "routes": {
