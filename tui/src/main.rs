@@ -1,8 +1,10 @@
+pub mod action;
 pub mod app;
 pub mod network;
 pub mod theme;
 pub mod ui;
 
+use crate::action::Action;
 use crate::app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -11,6 +13,7 @@ use crossterm::{
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 use std::{error::Error, io};
+use tokio::sync::mpsc;
 
 type Backend = CrosstermBackend<io::Stdout>;
 
@@ -56,18 +59,48 @@ fn restore_terminal(terminal: &mut Terminal<Backend>) -> Result<(), Box<dyn Erro
 }
 
 async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<()> {
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let tick_rate = std::time::Duration::from_millis(250);
+
+    let tx_tick = tx.clone();
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(tick_rate).await;
+            if tx_tick.send(Action::Tick).is_err() {
+                break;
+            }
+        }
+    });
+
+    let tx_event = tx.clone();
+    tokio::task::spawn_blocking(move || {
+        loop {
+            if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false) {
+                if let Ok(Event::Key(key)) = event::read() {
+                    if tx_event.send(Action::Key(key)).is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
     while app.running {
         terminal.draw(|f| ui::draw(f, &app))?;
 
-        if event::poll(std::time::Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char('q') => app.running = false,
-                    KeyCode::Tab => app.next_metric(),
-                    KeyCode::BackTab => app.previous_metric(),
-                    KeyCode::Char('t') => app.next_window(),
-                    _ => {}
+        if let Some(action) = rx.recv().await {
+            match action {
+                Action::Tick => {
+                    // Tick logic goes here
                 }
+                Action::Key(key) => match key.code {
+                    KeyCode::Char('q') => app.update(Action::Quit),
+                    KeyCode::Tab => app.update(Action::NextMetric),
+                    KeyCode::BackTab => app.update(Action::PreviousMetric),
+                    KeyCode::Char('t') => app.update(Action::NextWindow),
+                    _ => {}
+                },
+                _ => app.update(action),
             }
         }
     }
