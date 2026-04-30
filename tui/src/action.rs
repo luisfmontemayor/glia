@@ -9,5 +9,7 @@ pub enum Action {
     NextWindow,
     NextMetric,
     PreviousMetric,
+    NextRow,
+    PreviousRow,
     FetchMetrics,
 }

@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Bar, BarChart, BarGroup, Block, Borders, Cell, Paragraph, Row, Table, Tabs},
 };
 
-pub fn draw(f: &mut Frame, app: &App) {
+pub fn draw(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -173,32 +173,18 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(barchart, area);
 }
 
-fn render_top_scripts_table(f: &mut Frame, app: &App, area: Rect) {
-    let mut stats: HashMap<(&str, &str), (u64, u64)> = HashMap::new(); // (program, user) -> (count, total_time)
-    for j in &app.jobs {
-        let entry = stats
-            .entry((j.program_name.as_str(), j.user_name.as_str()))
-            .or_insert((0, 0));
-        entry.0 += 1;
-        entry.1 += j.wall_time_ms as u64;
-    }
+fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
+    let summaries = app.summarize_jobs();
 
-    let mut rows_data: Vec<(&str, &str, u64, u64)> = stats
-        .into_iter()
-        .map(|((prog, user), v)| (prog, user, v.0, v.1 / v.0))
-        .collect();
-
-    // Sort by times used descending
-    rows_data.sort_by(|a, b| b.2.cmp(&a.2));
-
-    let rows: Vec<Row> = rows_data
+    let rows: Vec<Row> = summaries
         .iter()
-        .map(|(prog, user, count, avg_time)| {
+        .map(|s| {
             Row::new(vec![
-                Cell::from(*prog),
-                Cell::from(*user),
-                Cell::from(count.to_string()),
-                Cell::from(format!("{}ms", avg_time)),
+                Cell::from(s.program_name.clone()),
+                Cell::from(s.count.to_string()),
+                Cell::from(format!("{}ms", s.avg_wall_time_ms)),
+                Cell::from(format!("{:.2}s", s.total_cpu_time_sec)),
+                Cell::from(format!("{}KB", s.max_rss_kb)),
             ])
             .style(Style::default().fg(TEXT))
         })
@@ -207,14 +193,15 @@ fn render_top_scripts_table(f: &mut Frame, app: &App, area: Rect) {
     let table = Table::new(
         rows,
         [
-            Constraint::Percentage(40),
+            Constraint::Percentage(30),
+            Constraint::Percentage(10),
             Constraint::Percentage(20),
-            Constraint::Percentage(15),
-            Constraint::Percentage(25),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
         ],
     )
     .header(
-        Row::new(vec!["Script", "User", "Uses", "Avg Time"])
+        Row::new(vec!["Script", "Uses", "Avg Wall", "Total CPU", "Max RSS"])
             .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
             .bottom_margin(1),
     )
@@ -223,9 +210,10 @@ fn render_top_scripts_table(f: &mut Frame, app: &App, area: Rect) {
             .borders(Borders::ALL)
             .title("Top Scripts")
             .style(Style::default().fg(TEXT)),
-    );
+    )
+    .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
 
-    f.render_widget(table, area);
+    f.render_stateful_widget(table, area, &mut app.table_state);
 }
 
 fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
@@ -236,6 +224,8 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
         Span::raw(" Prev Metric | "),
         Span::styled("[t]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Time Window | "),
+        Span::styled("[j/k]", Style::default().add_modifier(Modifier::BOLD)),
+        Span::raw(" Navigate | "),
         Span::styled("[q]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Quit"),
     ])];
