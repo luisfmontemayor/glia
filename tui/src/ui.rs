@@ -2,10 +2,10 @@ use crate::app::{App, Metric, TimeWindow};
 use crate::theme::*;
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Bar, BarChart, BarGroup, Block, Borders, Cell, Paragraph, Row, Table, Tabs},
+    widgets::{Bar, BarChart, BarGroup, Block, Borders, Cell, Clear, Paragraph, Row, Table, Tabs},
 };
 
 pub fn draw(f: &mut Frame, app: &mut App) {
@@ -80,6 +80,32 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
+    let chart_title = if app.metric == Metric::JobStatus {
+        "Job Status (Success: Green | Fail: Red)"
+    } else {
+        match app.metric {
+            Metric::WallTime => "Wall Time (ms)",
+            Metric::CpuTime => "CPU Time (ms)",
+            Metric::CpuPercent => "CPU Percent (%)",
+            Metric::MaxRss => "Max RSS (KB)",
+            _ => "Metrics",
+        }
+    };
+
+    if app.is_loading && app.jobs.is_empty() {
+        let loading = Paragraph::new("Loading...")
+            .style(Style::default().fg(YELLOW))
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(chart_title)
+                    .style(Style::default().fg(TEXT)),
+            );
+        f.render_widget(loading, area);
+        return;
+    }
+
     let format_time = |started_at: &str| -> String {
         let parts: Vec<&str> = started_at.split('T').collect();
         if parts.len() == 2 {
@@ -169,10 +195,63 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     }
 
     f.render_widget(barchart, area);
+
+    if app.is_loading {
+        let area = centered_rect(30, 10, area);
+        f.render_widget(Clear, area);
+        f.render_widget(
+            Paragraph::new("Loading...")
+                .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
+                .alignment(Alignment::Center)
+                .block(Block::default().borders(Borders::ALL).style(Style::default().fg(YELLOW))),
+            area,
+        );
+    }
 }
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
+    let (table_area, error_area) = if let Some(_) = &app.error_message {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(3)])
+            .split(area);
+        (chunks[0], Some(chunks[1]))
+    } else {
+        (area, None)
+    };
+
+    if let Some(ea) = error_area {
+        let p = Paragraph::new(app.error_message.as_ref().unwrap().clone())
+            .style(Style::default().fg(RED))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Error")
+                    .style(Style::default().fg(RED)),
+            );
+        f.render_widget(p, ea);
+    }
+
     let summaries = app.summarize_jobs();
+
+    if summaries.is_empty() {
+        let msg = if app.is_loading {
+            "Loading..."
+        } else {
+            "No data available. Waiting for updates..."
+        };
+        let p = Paragraph::new(msg)
+            .style(Style::default().fg(YELLOW))
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Top Scripts")
+                    .style(Style::default().fg(TEXT)),
+            );
+        f.render_widget(p, table_area);
+        return;
+    }
 
     let rows: Vec<Row> = summaries
         .iter()
@@ -211,7 +290,19 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     )
     .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
 
-    f.render_stateful_widget(table, area, &mut app.table_state);
+    f.render_stateful_widget(table, table_area, &mut app.table_state);
+
+    if app.is_loading {
+        let area = centered_rect(30, 10, table_area);
+        f.render_widget(Clear, area);
+        f.render_widget(
+            Paragraph::new("Loading...")
+                .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
+                .alignment(Alignment::Center)
+                .block(Block::default().borders(Borders::ALL).style(Style::default().fg(YELLOW))),
+            area,
+        );
+    }
 }
 
 fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
@@ -234,4 +325,24 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
             .style(Style::default().fg(OVERLAY2)),
     );
     f.render_widget(paragraph, area);
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }

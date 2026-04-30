@@ -38,6 +38,7 @@ pub struct App {
     pub jobs: Vec<JobMetrics>,
     pub table_state: TableState,
     pub error_message: Option<String>,
+    pub is_loading: bool,
 }
 
 impl Default for App {
@@ -55,6 +56,7 @@ impl App {
             jobs: Vec::new(),
             table_state: TableState::default(),
             error_message: None,
+            is_loading: false,
         }
     }
 
@@ -66,15 +68,18 @@ impl App {
             Action::PreviousMetric => self.previous_metric(),
             Action::NextRow => self.next_row(),
             Action::PreviousRow => self.previous_row(),
+            Action::FetchMetrics => self.is_loading = true,
             Action::SetJobs(jobs) => {
                 self.jobs = jobs;
                 if self.table_state.selected().is_none() && !self.jobs.is_empty() {
                     self.table_state.select(Some(0));
                 }
                 self.error_message = None;
+                self.is_loading = false;
             }
             Action::FetchError(err) => {
                 self.error_message = Some(err);
+                self.is_loading = false;
             }
             _ => {}
         }
@@ -262,5 +267,25 @@ mod tests {
         app.table_state.select(Some(0));
         app.previous_row();
         assert_eq!(app.table_state.selected(), Some(count - 1));
+    }
+
+    #[test]
+    fn test_app_loading_state() {
+        let mut app = App::new();
+        // This will fail initially because is_loading doesn't exist yet
+        // and update doesn't handle Action::FetchMetrics to set it to true.
+        assert!(!app.is_loading, "Initial state should not be loading");
+
+        app.update(Action::FetchMetrics);
+        assert!(app.is_loading, "Should be loading after FetchMetrics");
+
+        app.update(Action::SetJobs(vec![]));
+        assert!(!app.is_loading, "Should not be loading after SetJobs");
+
+        app.update(Action::FetchMetrics);
+        assert!(app.is_loading, "Should be loading after FetchMetrics again");
+
+        app.update(Action::FetchError("error".to_string()));
+        assert!(!app.is_loading, "Should not be loading after FetchError");
     }
 }
