@@ -37,77 +37,25 @@ pub struct App {
     pub metric: Metric,
     pub jobs: Vec<JobMetrics>,
     pub table_state: TableState,
+    pub error_message: Option<String>,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl App {
     pub fn new() -> Self {
-        let mut app = Self {
+        Self {
             running: true,
             window: TimeWindow::W1h,
             metric: Metric::WallTime,
             jobs: Vec::new(),
             table_state: TableState::default(),
-        };
-
-        // Dummy data for visual testing
-        app.jobs = vec![
-            JobMetrics {
-                started_at: "2023-10-27T10:00:00Z".to_string(),
-                program_name: "data_proc".to_string(),
-                user_name: "alice".to_string(),
-                wall_time_ms: 100,
-                cpu_time_sec: 0.1,
-                cpu_percent: 10.0,
-                max_rss_kb: 1024,
-                exit_code_int: 0,
-            },
-            JobMetrics {
-                started_at: "2023-10-27T10:05:00Z".to_string(),
-                program_name: "ml_train".to_string(),
-                user_name: "bob".to_string(),
-                wall_time_ms: 200,
-                cpu_time_sec: 0.2,
-                cpu_percent: 20.0,
-                max_rss_kb: 2048,
-                exit_code_int: 0,
-            },
-            JobMetrics {
-                started_at: "2023-10-27T10:10:00Z".to_string(),
-                program_name: "data_proc".to_string(),
-                user_name: "alice".to_string(),
-                wall_time_ms: 150,
-                cpu_time_sec: 0.15,
-                cpu_percent: 15.0,
-                max_rss_kb: 1536,
-                exit_code_int: 1,
-            },
-            JobMetrics {
-                started_at: "2023-10-27T10:15:00Z".to_string(),
-                program_name: "data_proc".to_string(),
-                user_name: "bob".to_string(),
-                wall_time_ms: 300,
-                cpu_time_sec: 0.3,
-                cpu_percent: 30.0,
-                max_rss_kb: 3072,
-                exit_code_int: 0,
-            },
-            JobMetrics {
-                started_at: "2023-10-27T10:20:00Z".to_string(),
-                program_name: "db_backup".to_string(),
-                user_name: "system".to_string(),
-                wall_time_ms: 250,
-                cpu_time_sec: 0.25,
-                cpu_percent: 25.0,
-                max_rss_kb: 2560,
-                exit_code_int: 0,
-            },
-        ];
-
-        if !app.jobs.is_empty() {
-            app.table_state.select(Some(0));
+            error_message: None,
         }
-
-        app
     }
 
     pub fn update(&mut self, action: Action) {
@@ -118,6 +66,16 @@ impl App {
             Action::PreviousMetric => self.previous_metric(),
             Action::NextRow => self.next_row(),
             Action::PreviousRow => self.previous_row(),
+            Action::SetJobs(jobs) => {
+                self.jobs = jobs;
+                if self.table_state.selected().is_none() && !self.jobs.is_empty() {
+                    self.table_state.select(Some(0));
+                }
+                self.error_message = None;
+            }
+            Action::FetchError(err) => {
+                self.error_message = Some(err);
+            }
             _ => {}
         }
     }
@@ -147,9 +105,13 @@ impl App {
     }
 
     pub fn next_row(&mut self) {
+        let count = self.summarize_jobs().len();
+        if count == 0 {
+            self.table_state.select(None);
+            return;
+        }
         let i = match self.table_state.selected() {
             Some(i) => {
-                let count = self.summarize_jobs().len();
                 if i >= count - 1 { 0 } else { i + 1 }
             }
             None => 0,
@@ -158,9 +120,13 @@ impl App {
     }
 
     pub fn previous_row(&mut self) {
+        let count = self.summarize_jobs().len();
+        if count == 0 {
+            self.table_state.select(None);
+            return;
+        }
         let i = match self.table_state.selected() {
             Some(i) => {
-                let count = self.summarize_jobs().len();
                 if i == 0 { count - 1 } else { i - 1 }
             }
             None => 0,
@@ -208,7 +174,7 @@ mod tests {
     fn test_app_quit_action() {
         let mut app = App::new();
         app.update(Action::Quit);
-        assert_eq!(app.running, false, "App should stop running after Quit action");
+        assert!(!app.running, "App should stop running after Quit action");
     }
 
     #[test]
@@ -216,7 +182,7 @@ mod tests {
         let app = App::new();
         assert_eq!(app.window, TimeWindow::W1h);
         assert_eq!(app.metric, Metric::WallTime);
-        assert!(app.table_state.selected().is_some());
+        assert!(app.table_state.selected().is_none());
     }
 
     #[test]
@@ -258,6 +224,29 @@ mod tests {
     #[test]
     fn test_table_navigation_wrap_around() {
         let mut app = App::new();
+        // Add some jobs so we have something to navigate
+        app.jobs = vec![
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "job1".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+            JobMetrics {
+                started_at: "2023-10-27T10:10:00Z".to_string(),
+                program_name: "job2".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 200,
+                cpu_time_sec: 0.2,
+                cpu_percent: 15.0,
+                max_rss_kb: 2000,
+                exit_code_int: 0,
+            },
+        ];
         let count = app.summarize_jobs().len();
         app.table_state.select(Some(0));
 

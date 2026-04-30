@@ -1,6 +1,7 @@
 use serde::Deserialize;
+use std::error::Error;
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct JobMetrics {
     pub started_at: String,
     pub program_name: String,
@@ -14,6 +15,12 @@ pub struct JobMetrics {
 
 pub fn parse_job_metrics(json: &str) -> serde_json::Result<Vec<JobMetrics>> {
     serde_json::from_str(json)
+}
+
+pub async fn fetch_metrics(window: &str) -> Result<Vec<JobMetrics>, Box<dyn Error>> {
+    let url = format!("http://localhost:8080/metrics?window={}", window);
+    let resp = reqwest::get(url).await?.json::<Vec<JobMetrics>>().await?;
+    Ok(resp)
 }
 
 #[cfg(test)]
@@ -50,5 +57,17 @@ mod tests {
         assert_eq!(metrics.len(), 2);
         assert_eq!(metrics[0].program_name, "data_proc");
         assert_eq!(metrics[1].user_name, "bob");
+    }
+}
+
+#[cfg(test)]
+mod network_error_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_fetch_metrics_connection_failure() {
+        // We assume nothing is listening on port 1 (standard practice for connection failure)
+        let result = fetch_metrics("1h").await;
+        assert!(result.is_err(), "Should return Err on connection failure");
     }
 }
