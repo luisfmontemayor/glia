@@ -50,7 +50,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
 
     let text = vec![Line::from(vec![
         Span::styled(
-            "Glia Dashboard",
+            " Glia ",
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Window: "),
@@ -60,14 +60,14 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
     let paragraph = Paragraph::new(text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title("Status")
+            .title(" Status ")
             .style(Style::default().fg(TEXT)),
     );
     f.render_widget(paragraph, area);
 }
 
 fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
-    let titles = vec!["WallTime", "CpuTime", "CpuPercent", "MaxRss", "JobStatus"];
+    let titles = vec!["Wall Time", "CPU Time", "CPU Percent", "Max RSS", "Job Status"];
 
     let active_index = match app.metric {
         Metric::WallTime => 0,
@@ -81,7 +81,7 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Metrics")
+                .title(" Metrics ")
                 .style(Style::default().fg(TEXT)),
         )
         .select(active_index)
@@ -93,14 +93,14 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     let chart_title = if app.metric == Metric::JobStatus {
-        "Job Status (Success: Green | Fail: Red)"
+        " Job Status (Success: Green | Fail: Red) "
     } else {
         match app.metric {
-            Metric::WallTime => "Wall Time (ms)",
-            Metric::CpuTime => "CPU Time (ms)",
-            Metric::CpuPercent => "CPU Percent (%)",
-            Metric::MaxRss => "Max RSS (KB)",
-            _ => "Metrics",
+            Metric::WallTime => " Wall Time (ms) ",
+            Metric::CpuTime => " CPU Time (ms) ",
+            Metric::CpuPercent => " CPU Percent (%) ",
+            Metric::MaxRss => " Max RSS (KB) ",
+            _ => " Metrics ",
         }
     };
 
@@ -159,7 +159,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Job Status (Success: Green | Fail: Red)")
+                    .title(" Job Status (Success: Green | Fail: Red) ")
                     .style(Style::default().fg(TEXT)),
             )
             .bar_width(2)
@@ -183,11 +183,11 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         }
     } else {
         let (y_title, bar_color) = match app.metric {
-            Metric::WallTime => ("Wall Time (ms)", BLUE),
-            Metric::CpuTime => ("CPU Time (ms)", PEACH),
-            Metric::CpuPercent => ("CPU Percent (%)", GREEN),
-            Metric::MaxRss => ("Max RSS (KB)", RED),
-            _ => ("", BLUE),
+            Metric::WallTime => (" Wall Time (ms) ", BLUE),
+            Metric::CpuTime => (" CPU Time (ms) ", PEACH),
+            Metric::CpuPercent => (" CPU Percent (%) ", GREEN),
+            Metric::MaxRss => (" Max RSS (KB) ", RED),
+            _ => (" Metrics ", BLUE),
         };
 
         barchart = barchart
@@ -254,7 +254,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Error")
+                    .title(" Error ")
                     .style(Style::default().fg(RED)),
             );
         f.render_widget(p, ea);
@@ -274,7 +274,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Top Scripts")
+                    .title(" Jobs ")
                     .style(Style::default().fg(TEXT)),
             );
         f.render_widget(p, table_area);
@@ -286,10 +286,10 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         .map(|s| {
             Row::new(vec![
                 Cell::from(s.program_name.clone()),
-                Cell::from(s.count.to_string()),
-                Cell::from(format!("{}ms", s.avg_wall_time_ms)),
+                Cell::from(format_with_commas(s.count as u64)),
+                Cell::from(format!("{}ms", format_with_commas(s.avg_wall_time_ms))),
                 Cell::from(format!("{:.2}s", s.total_cpu_time_sec)),
-                Cell::from(format!("{}KB", s.max_rss_kb)),
+                Cell::from(format!("{}KB", format_with_commas(s.max_rss_kb))),
             ])
             .style(Style::default().fg(TEXT))
         })
@@ -306,14 +306,14 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         ],
     )
     .header(
-        Row::new(vec!["Script", "Uses", "Avg Wall", "Total CPU", "Max RSS"])
+        Row::new(vec!["Name", "Uses", "Avg Wall", "Total CPU", "Max RSS"])
             .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
             .bottom_margin(1),
     )
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .title("Top Scripts")
+            .title(" Jobs ")
             .style(Style::default().fg(TEXT)),
     )
     .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
@@ -355,6 +355,20 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
             .style(Style::default().fg(OVERLAY2)),
     );
     f.render_widget(paragraph, area);
+}
+
+fn format_with_commas(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::new();
+    let mut count = 0;
+    for c in s.chars().rev() {
+        if count > 0 && count % 3 == 0 {
+            result.push(',');
+        }
+        result.push(c);
+        count += 1;
+    }
+    result.chars().rev().collect()
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
