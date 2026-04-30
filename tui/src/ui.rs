@@ -14,7 +14,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .constraints([
             Constraint::Length(3), // Header
             Constraint::Length(3), // Tabs
-            Constraint::Percentage(70), // Main Body
+            Constraint::Min(0), // Main Body
             Constraint::Length(3), // Footer
         ])
         .split(f.size());
@@ -34,7 +34,14 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 }
 
 fn render_header(f: &mut Frame, app: &App, area: Rect) {
-    let window_str = format!("{:?}", app.window);
+    let window_str = match app.window {
+        TimeWindow::W1h => "1 Hour",
+        TimeWindow::W3h => "3 Hours",
+        TimeWindow::W6h => "6 Hours",
+        TimeWindow::W12h => "12 Hours",
+        TimeWindow::W24h => "24 Hours",
+        TimeWindow::WMax => "All Time",
+    };
 
     let text = vec![Line::from(vec![
         Span::styled(
@@ -213,7 +220,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let (table_area, error_area) = if let Some(_) = &app.error_message {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(3)])
+            .constraints([Constraint::Min(0), Constraint::Min(3)])
             .split(area);
         (chunks[0], Some(chunks[1]))
     } else {
@@ -223,6 +230,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     if let Some(ea) = error_area {
         let p = Paragraph::new(app.error_message.as_ref().unwrap().clone())
             .style(Style::default().fg(RED))
+            .wrap(ratatui::widgets::Wrap { trim: true })
             .block(
                 Block::default()
                     .borders(Borders::ALL)
