@@ -1,21 +1,47 @@
 {
-  "current_phase": "Data & Interaction",
+  "current_phase": "Optimization & Hardening",
   "tasks": [
     {
-      "id": "async_event_loop",
-      "status": "completed",
-      "description": "Implement Asynchronous Event Loop & mpsc channels"
+      "id": "T1",
+      "name": "Git History Hygiene",
+      "description": "Reword non-conforming commits to type(tui/scope): message format.",
+      "agent": "@janitor",
+      "status": "pending"
     },
     {
-      "id": "action_system",
-      "status": "completed",
-      "description": "Implement centralized Action system"
+      "id": "T2.1",
+      "name": "Cache: Add Field",
+      "description": "Add summaries field to App struct.",
+      "agent": "@flash-executor",
+      "status": "pending"
     },
     {
-      "id": "stateful_widgets",
-      "status": "pending",
-      "description": "Refactor UI for TableState/ListState"
+      "id": "T2.2",
+      "name": "Cache: Method",
+      "description": "Implement refresh_summaries method in App.",
+      "agent": "@flash-executor",
+      "status": "pending"
+    },
+    {
+      "id": "T2.3",
+      "name": "Cache: Trigger",
+      "description": "Call refresh_summaries on SetJobs and init.",
+      "agent": "@flash-executor",
+      "status": "pending"
+    },
+    {
+      "id": "T2.4",
+      "name": "Cache: UI",
+      "description": "Update ui.rs to use cached summaries.",
+      "agent": "@flash-executor",
+      "status": "pending"
+    },
+    {
+      "id": "T3",
+      "name": "Loop Draining",
+      "description": "Move terminal.draw to bottom of main loop.",
+      "agent": "@flash-executor",
+      "status": "pending"
     }
-  ],
-  "completed_at": null
+  ]
 }
