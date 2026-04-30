@@ -232,7 +232,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         f.render_widget(p, ea);
     }
 
-    let summaries = app.summarize_jobs();
+    let summaries = &app.summaries;
 
     if summaries.is_empty() {
         let msg = if app.is_loading {
