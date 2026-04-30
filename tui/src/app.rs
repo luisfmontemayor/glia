@@ -36,6 +36,7 @@ pub struct App {
     pub window: TimeWindow,
     pub metric: Metric,
     pub jobs: Vec<JobMetrics>,
+    pub summaries: Vec<JobSummary>,
     pub table_state: TableState,
     pub error_message: Option<String>,
     pub is_loading: bool,
@@ -49,15 +50,22 @@ impl Default for App {
 
 impl App {
     pub fn new() -> Self {
-        Self {
+        let mut app = Self {
             running: true,
             window: TimeWindow::W1h,
             metric: Metric::WallTime,
             jobs: Vec::new(),
+            summaries: Vec::new(),
             table_state: TableState::default(),
             error_message: None,
             is_loading: false,
-        }
+        };
+        app.refresh_summaries();
+        app
+    }
+
+    pub fn refresh_summaries(&mut self) {
+        self.summaries = self.summarize_jobs();
     }
 
     pub fn update(&mut self, action: Action) {
@@ -71,6 +79,7 @@ impl App {
             Action::FetchMetrics => self.is_loading = true,
             Action::SetJobs(jobs) => {
                 self.jobs = jobs;
+                self.refresh_summaries();
                 if self.table_state.selected().is_none() && !self.jobs.is_empty() {
                     self.table_state.select(Some(0));
                 }
