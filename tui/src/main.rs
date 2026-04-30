@@ -94,47 +94,57 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
     });
 
     while app.running {
-        terminal.draw(|f| ui::draw(f, &mut app))?;
-
-        if let Some(action) = rx.recv().await {
-            match action {
-                Action::Tick => {}
-                Action::FetchMetrics => {
-                    let tx_res = tx.clone();
-                    let window = match app.window {
-                        crate::app::TimeWindow::W1h => "1h",
-                        crate::app::TimeWindow::W3h => "3h",
-                        crate::app::TimeWindow::W6h => "6h",
-                        crate::app::TimeWindow::W12h => "12h",
-                        crate::app::TimeWindow::W24h => "24h",
-                        crate::app::TimeWindow::WMax => "max",
-                    }.to_string();
-                    tokio::spawn(async move {
-                        match crate::network::fetch_metrics(&window).await {
-                            Ok(jobs) => {
-                                let _ = tx_res.send(Action::SetJobs(jobs));
+        if let Some(mut action) = rx.recv().await {
+            loop {
+                match action {
+                    Action::Tick => {}
+                    Action::FetchMetrics => {
+                        let tx_res = tx.clone();
+                        let window = match app.window {
+                            crate::app::TimeWindow::W1h => "1h",
+                            crate::app::TimeWindow::W3h => "3h",
+                            crate::app::TimeWindow::W6h => "6h",
+                            crate::app::TimeWindow::W12h => "12h",
+                            crate::app::TimeWindow::W24h => "24h",
+                            crate::app::TimeWindow::WMax => "max",
+                        }.to_string();
+                        tokio::spawn(async move {
+                            match crate::network::fetch_metrics(&window).await {
+                                Ok(jobs) => {
+                                    let _ = tx_res.send(Action::SetJobs(jobs));
+                                }
+                                Err(e) => {
+                                    let _ = tx_res.send(Action::FetchError(e.to_string()));
+                                }
                             }
-                            Err(e) => {
-                                let _ = tx_res.send(Action::FetchError(e.to_string()));
-                            }
-                        }
-                    });
-                }
-                Action::Key(key) => match key.code {
-                    KeyCode::Char('q') => app.update(Action::Quit),
-                    KeyCode::Tab => app.update(Action::NextMetric),
-                    KeyCode::BackTab => app.update(Action::PreviousMetric),
-                    KeyCode::Char('t') => {
-                        app.update(Action::NextWindow);
-                        let _ = tx.send(Action::FetchMetrics);
+                        });
                     }
-                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
-                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
-                    _ => {}
-                },
-                _ => app.update(action),
+                    Action::Key(key) => match key.code {
+                        KeyCode::Char('q') => app.update(Action::Quit),
+                        KeyCode::Tab => app.update(Action::NextMetric),
+                        KeyCode::BackTab => app.update(Action::PreviousMetric),
+                        KeyCode::Char('t') => {
+                            app.update(Action::NextWindow);
+                            let _ = tx.send(Action::FetchMetrics);
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
+                        KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                        _ => {}
+                    },
+                    _ => app.update(action),
+                }
+
+                if !app.running {
+                    break;
+                }
+
+                match rx.try_recv() {
+                    Ok(next_action) => action = next_action,
+                    Err(_) => break,
+                }
             }
         }
+        terminal.draw(|f| ui::draw(f, &mut app))?;
     }
     Ok(())
 }
