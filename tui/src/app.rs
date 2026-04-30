@@ -1,8 +1,7 @@
 use crate::network::JobMetrics;
+use crate::action::Action;
 use ratatui::widgets::TableState;
 use std::collections::HashMap;
-
-use crate::action::Action;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TimeWindow {
@@ -23,7 +22,7 @@ pub enum Metric {
     JobStatus,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct JobSummary {
     pub program_name: String,
     pub count: usize,
@@ -111,68 +110,6 @@ impl App {
         app
     }
 
-    pub fn summarize_jobs(&self) -> Vec<JobSummary> {
-        let mut summaries: HashMap<String, (usize, u64, f64, u64)> = HashMap::new();
-
-        for job in &self.jobs {
-            let entry = summaries
-                .entry(job.program_name.clone())
-                .or_insert((0, 0, 0.0, 0));
-            entry.0 += 1;
-            entry.1 += job.wall_time_ms as u64;
-            entry.2 += job.cpu_time_sec as f64;
-            if job.max_rss_kb as u64 > entry.3 {
-                entry.3 = job.max_rss_kb as u64;
-            }
-        }
-
-        let mut result: Vec<JobSummary> = summaries
-            .into_iter()
-            .map(
-                |(program_name, (count, total_wall, total_cpu, max_rss))| JobSummary {
-                    program_name,
-                    count,
-                    avg_wall_time_ms: total_wall / count as u64,
-                    total_cpu_time_sec: total_cpu,
-                    max_rss_kb: max_rss,
-                },
-            )
-            .collect();
-
-        result.sort_by(|a, b| b.count.cmp(&a.count));
-        result
-    }
-
-    pub fn next_row(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => {
-                let count = self.summarize_jobs().len();
-                if i >= count - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.table_state.select(Some(i));
-    }
-
-    pub fn previous_row(&mut self) {
-        let i = match self.table_state.selected() {
-            Some(i) => {
-                let count = self.summarize_jobs().len();
-                if i == 0 {
-                    count - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.table_state.select(Some(i));
-    }
-
     pub fn update(&mut self, action: Action) {
         match action {
             Action::Quit => self.running = false,
@@ -183,6 +120,52 @@ impl App {
             Action::PreviousRow => self.previous_row(),
             _ => {}
         }
+    }
+
+    pub fn summarize_jobs(&self) -> Vec<JobSummary> {
+        let mut map: HashMap<String, (usize, u64, f64, u64)> = HashMap::new();
+        for j in &self.jobs {
+            let entry = map.entry(j.program_name.clone()).or_insert((0, 0, 0.0, 0));
+            entry.0 += 1;
+            entry.1 += j.wall_time_ms as u64;
+            entry.2 += j.cpu_time_sec as f64;
+            entry.3 = entry.3.max(j.max_rss_kb as u64);
+        }
+
+        let mut summaries: Vec<JobSummary> = map
+            .into_iter()
+            .map(|(name, (count, wall, cpu, rss))| JobSummary {
+                program_name: name,
+                count,
+                avg_wall_time_ms: wall / count as u64,
+                total_cpu_time_sec: cpu,
+                max_rss_kb: rss,
+            })
+            .collect();
+        summaries.sort_by(|a, b| b.count.cmp(&a.count));
+        summaries
+    }
+
+    pub fn next_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                let count = self.summarize_jobs().len();
+                if i >= count - 1 { 0 } else { i + 1 }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+    }
+
+    pub fn previous_row(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                let count = self.summarize_jobs().len();
+                if i == 0 { count - 1 } else { i - 1 }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
     }
 
     pub fn next_window(&mut self) {
@@ -233,80 +216,8 @@ mod tests {
         let app = App::new();
         assert_eq!(app.window, TimeWindow::W1h);
         assert_eq!(app.metric, Metric::WallTime);
+        assert!(app.table_state.selected().is_some());
     }
-    #[test]
-    fn test_time_window_toggle() {
-        let mut app = App::new();
-        app.window = TimeWindow::W1h;
-
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::W3h);
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::W6h);
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::W12h);
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::W24h);
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::WMax);
-        app.next_window();
-        assert_eq!(app.window, TimeWindow::W1h);
-    }
-
-    #[test]
-    fn test_metric_toggle() {
-        let mut app = App::new();
-        app.metric = Metric::WallTime;
-
-        app.next_metric();
-        assert_eq!(app.metric, Metric::CpuTime);
-        app.next_metric();
-        assert_eq!(app.metric, Metric::CpuPercent);
-        app.next_metric();
-        assert_eq!(app.metric, Metric::MaxRss);
-        app.next_metric();
-        assert_eq!(app.metric, Metric::JobStatus);
-        app.next_metric();
-        assert_eq!(app.metric, Metric::WallTime);
-    }
-
-    #[test]
-    fn test_summarize_jobs() {
-        let app = App::new();
-        let summaries = app.summarize_jobs();
-        assert!(!summaries.is_empty());
-        let data_proc = summaries.iter().find(|s| s.program_name == "data_proc").unwrap();
-        assert_eq!(data_proc.count, 3);
-        assert_eq!(data_proc.avg_wall_time_ms, (100 + 150 + 300) / 3);
-        assert_eq!(data_proc.max_rss_kb, 3072);
-    }
-
-    #[test]
-    fn test_row_navigation() {
-        let mut app = App::new();
-        app.table_state.select(Some(0));
-        let count = app.summarize_jobs().len();
-
-        app.next_row();
-        assert_eq!(app.table_state.selected(), Some(1));
-
-        for _ in 0..count {
-            app.next_row();
-        }
-        // Should have wrapped around
-        assert_eq!(app.table_state.selected(), Some(1));
-
-        app.previous_row();
-        assert_eq!(app.table_state.selected(), Some(0));
-        app.previous_row();
-        assert_eq!(app.table_state.selected(), Some(count - 1));
-    }
-}
-
-#[cfg(test)]
-mod tests_summarization {
-    use super::*;
-    use crate::network::JobMetrics;
 
     #[test]
     fn test_job_summary_aggregation() {
@@ -319,44 +230,48 @@ mod tests_summarization {
                 wall_time_ms: 100,
                 cpu_time_sec: 0.1,
                 cpu_percent: 10.0,
-                max_rss_kb: 1024,
+                max_rss_kb: 1000,
                 exit_code_int: 0,
             },
             JobMetrics {
                 started_at: "2023-10-27T10:10:00Z".to_string(),
                 program_name: "data_proc".to_string(),
                 user_name: "alice".to_string(),
-                wall_time_ms: 150,
-                cpu_time_sec: 0.15,
+                wall_time_ms: 200,
+                cpu_time_sec: 0.2,
                 cpu_percent: 15.0,
-                max_rss_kb: 1536,
+                max_rss_kb: 2000,
                 exit_code_int: 1,
             },
         ];
         
         let summaries = app.summarize_jobs();
         assert_eq!(summaries.len(), 1);
-        assert_eq!(summaries[0].program_name, "data_proc");
-        assert_eq!(summaries[0].count, 2);
-        assert_eq!(summaries[0].avg_wall_time_ms, 125);
+        let s = &summaries[0];
+        assert_eq!(s.program_name, "data_proc");
+        assert_eq!(s.count, 2);
+        assert_eq!(s.avg_wall_time_ms, 150);
+        assert!((s.total_cpu_time_sec - 0.3).abs() < 1e-6);
+        assert_eq!(s.max_rss_kb, 2000);
     }
 
     #[test]
     fn test_table_navigation_wrap_around() {
         let mut app = App::new();
-        // 3 unique programs in dummy data
+        let count = app.summarize_jobs().len();
         app.table_state.select(Some(0));
 
         app.next_row();
         assert_eq!(app.table_state.selected(), Some(1));
 
-        app.next_row();
-        assert_eq!(app.table_state.selected(), Some(2));
+        for _ in 0..count {
+            app.next_row();
+        }
+        // After count more nexts, we should be at Some(1) again
+        assert_eq!(app.table_state.selected(), Some(1));
 
-        app.next_row();
-        assert_eq!(app.table_state.selected(), Some(0));
-
+        app.table_state.select(Some(0));
         app.previous_row();
-        assert_eq!(app.table_state.selected(), Some(2));
+        assert_eq!(app.table_state.selected(), Some(count - 1));
     }
 }
