@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::app::{App, Metric, TimeWindow};
 use crate::theme::*;
 use ratatui::{
