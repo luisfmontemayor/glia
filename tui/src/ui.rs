@@ -319,6 +319,8 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
 fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
     let text = vec![Line::from(vec![
+        Span::styled("[Enter]", Style::default().add_modifier(Modifier::BOLD)),
+        Span::raw(" Detail | "),
         Span::styled("[Tab]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Next Metric | "),
         Span::styled("[Shift+Tab]", Style::default().add_modifier(Modifier::BOLD)),
