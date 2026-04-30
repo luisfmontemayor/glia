@@ -78,10 +78,9 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
         loop {
             if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false) 
                 && let Ok(Event::Key(key)) = event::read() 
+                && tx_event.send(Action::Key(key)).is_err() 
             {
-                if tx_event.send(Action::Key(key)).is_err() {
-                    break;
-                }
+                break;
             }
         }
     });
