@@ -129,6 +129,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                         }
                         KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                         KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                        KeyCode::Enter => app.update(Action::ToggleDetail),
                         _ => {}
                     },
                     _ => app.update(action),
