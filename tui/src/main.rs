@@ -1,3 +1,4 @@
+mod test_set_jobs;
 pub mod action;
 pub mod app;
 pub mod network;
@@ -75,13 +76,21 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
     let tx_event = tx.clone();
     tokio::task::spawn_blocking(move || {
         loop {
-            if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false) {
-                if let Ok(Event::Key(key)) = event::read() {
-                    if tx_event.send(Action::Key(key)).is_err() {
-                        break;
-                    }
+            if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false) 
+                && let Ok(Event::Key(key)) = event::read() 
+            {
+                if tx_event.send(Action::Key(key)).is_err() {
+                    break;
                 }
             }
+        }
+    });
+
+    let tx_fetch = tx.clone();
+    tokio::spawn(async move {
+        loop {
+            let _ = tx_fetch.send(Action::FetchMetrics);
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
         }
     });
 
@@ -90,14 +99,36 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
 
         if let Some(action) = rx.recv().await {
             match action {
-                Action::Tick => {
-                    // Tick logic goes here
+                Action::Tick => {}
+                Action::FetchMetrics => {
+                    let tx_res = tx.clone();
+                    let window = match app.window {
+                        crate::app::TimeWindow::W1h => "1h",
+                        crate::app::TimeWindow::W3h => "3h",
+                        crate::app::TimeWindow::W6h => "6h",
+                        crate::app::TimeWindow::W12h => "12h",
+                        crate::app::TimeWindow::W24h => "24h",
+                        crate::app::TimeWindow::WMax => "max",
+                    }.to_string();
+                    tokio::spawn(async move {
+                        match crate::network::fetch_metrics(&window).await {
+                            Ok(jobs) => {
+                                let _ = tx_res.send(Action::SetJobs(jobs));
+                            }
+                            Err(e) => {
+                                let _ = tx_res.send(Action::FetchError(e.to_string()));
+                            }
+                        }
+                    });
                 }
                 Action::Key(key) => match key.code {
                     KeyCode::Char('q') => app.update(Action::Quit),
                     KeyCode::Tab => app.update(Action::NextMetric),
                     KeyCode::BackTab => app.update(Action::PreviousMetric),
-                    KeyCode::Char('t') => app.update(Action::NextWindow),
+                    KeyCode::Char('t') => {
+                        app.update(Action::NextWindow);
+                        let _ = tx.send(Action::FetchMetrics);
+                    }
                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
                     _ => {}
