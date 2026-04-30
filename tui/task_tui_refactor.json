@@ -1,0 +1,21 @@
+{
+  "current_phase": "Data & Interaction",
+  "tasks": [
+    {
+      "id": "async_event_loop",
+      "status": "completed",
+      "description": "Implement Asynchronous Event Loop & mpsc channels"
+    },
+    {
+      "id": "action_system",
+      "status": "completed",
+      "description": "Implement centralized Action system"
+    },
+    {
+      "id": "stateful_widgets",
+      "status": "pending",
+      "description": "Refactor UI for TableState/ListState"
+    }
+  ],
+  "completed_at": null
+}

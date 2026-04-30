@@ -1,5 +1,7 @@
 use crate::network::JobMetrics;
 
+use crate::action::Action;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TimeWindow {
     W1h,
@@ -92,6 +94,16 @@ impl App {
         app
     }
 
+    pub fn update(&mut self, action: Action) {
+        match action {
+            Action::Quit => self.running = false,
+            Action::NextWindow => self.next_window(),
+            Action::NextMetric => self.next_metric(),
+            Action::PreviousMetric => self.previous_metric(),
+            _ => {}
+        }
+    }
+
     pub fn next_window(&mut self) {
         self.window = match self.window {
             TimeWindow::W1h => TimeWindow::W3h,
@@ -129,12 +141,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_app_quit_action() {
+        let mut app = App::new();
+        app.update(Action::Quit);
+        assert_eq!(app.running, false, "App should stop running after Quit action");
+    }
+
+    #[test]
     fn test_app_initialization() {
         let app = App::new();
         assert_eq!(app.window, TimeWindow::W1h);
         assert_eq!(app.metric, Metric::WallTime);
     }
-
     #[test]
     fn test_time_window_toggle() {
         let mut app = App::new();
@@ -183,6 +201,7 @@ mod tests {
         app.previous_metric();
         assert_eq!(app.metric, Metric::CpuPercent);
         app.previous_metric();
+        assert_eq!(app.metric, Metric::CpuTime);
         assert_eq!(app.metric, Metric::CpuTime);
         app.previous_metric();
         assert_eq!(app.metric, Metric::WallTime);
