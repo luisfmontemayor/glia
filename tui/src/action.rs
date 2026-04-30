@@ -15,4 +15,5 @@ pub enum Action {
     FetchMetrics,
     SetJobs(Vec<JobMetrics>),
     FetchError(String),
+    ToggleDetail,
 }

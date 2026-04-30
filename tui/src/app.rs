@@ -40,6 +40,7 @@ pub struct App {
     pub table_state: TableState,
     pub error_message: Option<String>,
     pub is_loading: bool,
+    pub show_detail: bool,
 }
 
 impl Default for App {
@@ -59,24 +60,26 @@ impl App {
             table_state: TableState::default(),
             error_message: None,
             is_loading: false,
+            show_detail: false,
         };
         app.refresh_summaries();
         app
     }
 
-    pub fn refresh_summaries(&mut self) {
-        self.summaries = self.summarize_jobs();
-    }
+pub fn refresh_summaries(&mut self) {
+    self.summaries = self.summarize_jobs();
+}
 
-    pub fn update(&mut self, action: Action) {
-        match action {
-            Action::Quit => self.running = false,
-            Action::NextWindow => self.next_window(),
-            Action::NextMetric => self.next_metric(),
-            Action::PreviousMetric => self.previous_metric(),
-            Action::NextRow => self.next_row(),
-            Action::PreviousRow => self.previous_row(),
-            Action::FetchMetrics => self.is_loading = true,
+pub fn update(&mut self, action: Action) {
+    match action {
+        Action::Quit => self.running = false,
+        Action::NextWindow => self.next_window(),
+        Action::NextMetric => self.next_metric(),
+        Action::PreviousMetric => self.previous_metric(),
+        Action::NextRow => self.next_row(),
+        Action::PreviousRow => self.previous_row(),
+        Action::FetchMetrics => self.is_loading = true,
+            Action::ToggleDetail => self.show_detail = !self.show_detail,
             Action::SetJobs(jobs) => {
                 self.jobs = jobs;
                 self.refresh_summaries();
@@ -296,5 +299,15 @@ mod tests {
 
         app.update(Action::FetchError("error".to_string()));
         assert!(!app.is_loading, "Should not be loading after FetchError");
+    }
+
+    #[test]
+    fn test_toggle_detail() {
+        let mut app = App::new();
+        assert!(!app.show_detail);
+        app.update(Action::ToggleDetail);
+        assert!(app.show_detail);
+        app.update(Action::ToggleDetail);
+        assert!(!app.show_detail);
     }
 }
