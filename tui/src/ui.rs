@@ -4,6 +4,7 @@ use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
+    symbols,
     text::{Line, Span},
     widgets::{Bar, BarChart, BarGroup, Block, Borders, Cell, Clear, Paragraph, Row, Table, Tabs},
 };
@@ -118,29 +119,40 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     }
 
     let format_time = |started_at: &str| -> String {
+        // Expected format: 2023-10-27T10:30:00Z or similar ISO8601
         let parts: Vec<&str> = started_at.split('T').collect();
-        if parts.len() == 2 {
-            if app.window == TimeWindow::WMax {
-                let date_parts: Vec<&str> = parts[0].split('-').collect();
-                if date_parts.len() >= 3 {
-                    format!("{}-{}", date_parts[1], date_parts[2])
-                } else {
-                    parts[0].to_string()
-                }
-            } else if parts[1].len() >= 5 {
-                parts[1][0..5].to_string()
-            } else {
-                parts[1].to_string()
-            }
+        if parts.len() < 2 {
+            return started_at.chars().take(10).collect();
+        }
+        let date = parts[0]; // YYYY-MM-DD
+        let time = parts[1]; // HH:MM:SS...
+
+        let date_parts: Vec<&str> = date.split('-').collect();
+        let mm_dd = if date_parts.len() >= 3 {
+            format!("{}-{}", date_parts[1], date_parts[2])
         } else {
-            started_at.to_string()
+            date.to_string()
+        };
+
+        let time_parts: Vec<&str> = time.split(':').collect();
+        let hh_mm = if time_parts.len() >= 2 {
+            format!("{}:{}", time_parts[0], time_parts[1])
+        } else {
+            time.to_string()
+        };
+
+        if app.window == TimeWindow::WMax {
+            format!("{} {}", mm_dd, hh_mm)
+        } else {
+            hh_mm
         }
     };
 
     let mut barchart = BarChart::default()
         .bar_width(5)
         .bar_gap(1)
-        .value_style(Style::default().fg(CRUST));
+        .bar_set(symbols::bar::NINE_LEVELS)
+        .value_style(Style::default().fg(CRUST).bg(TEXT));
 
     if app.metric == Metric::JobStatus {
         barchart = barchart
@@ -151,7 +163,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .style(Style::default().fg(TEXT)),
             )
             .bar_width(2)
-            .bar_gap(0)
+            .bar_gap(1)
             .group_gap(2);
 
         for j in &app.jobs {
@@ -171,10 +183,10 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         }
     } else {
         let (y_title, bar_color) = match app.metric {
-            Metric::WallTime => ("Wall Time (ms)", MAUVE),
-            Metric::CpuTime => ("CPU Time (ms)", GREEN),
-            Metric::CpuPercent => ("CPU Percent (%)", PEACH),
-            Metric::MaxRss => ("Max RSS (KB)", BLUE),
+            Metric::WallTime => ("Wall Time (ms)", BLUE),
+            Metric::CpuTime => ("CPU Time (ms)", PEACH),
+            Metric::CpuPercent => ("CPU Percent (%)", GREEN),
+            Metric::MaxRss => ("Max RSS (KB)", RED),
             _ => ("", BLUE),
         };
 
@@ -221,10 +233,14 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
-    let (table_area, error_area) = if let Some(_) = &app.error_message {
+    let (table_area, error_area) = if let Some(msg) = &app.error_message {
+        let text_len = msg.chars().count() as u16;
+        let available_width = area.width.saturating_sub(2).max(1);
+        let required_height = (text_len.saturating_add(available_width - 1) / available_width) + 2;
+        
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Min(3)])
+            .constraints([Constraint::Min(0), Constraint::Length(required_height)])
             .split(area);
         (chunks[0], Some(chunks[1]))
     } else {
@@ -362,30 +378,74 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 }
 
 fn render_detail_popup(f: &mut Frame, app: &App) {
-    let area = centered_rect(60, 40, f.size());
+    let area = centered_rect(50, 35, f.size());
     f.render_widget(Clear, area);
     
-    let content = if let Some(selected) = app.table_state.selected() {
+    let (title, content) = if let Some(selected) = app.table_state.selected() {
         if let Some(summary) = app.summaries.get(selected) {
-            format!(
-                "Program: {}\nCount: {}\nAvg WallTime: {} ms\nTotal CPU: {:.2} s\nMax RSS: {} KB",
-                summary.program_name, summary.count, summary.avg_wall_time_ms, summary.total_cpu_time_sec, summary.max_rss_kb
+            let prog_name = &summary.program_name;
+            let prog_jobs: Vec<_> = app.jobs.iter().filter(|j| &j.program_name == prog_name).collect();
+            
+            let successes = prog_jobs.iter().filter(|j| j.exit_code_int == 0).count();
+            let failures = prog_jobs.len() - successes;
+            let last_exit = prog_jobs.last().map(|j| j.exit_code_int).unwrap_or(0);
+            
+            let mut unique_users: Vec<_> = prog_jobs.iter().map(|j| &j.user_name).collect();
+            unique_users.sort();
+            unique_users.dedup();
+            let users_str = if unique_users.is_empty() {
+                "None".to_string()
+            } else {
+                unique_users.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ")
+            };
+
+            (
+                format!(" Detail: {} ", prog_name),
+                vec![
+                    Line::from(vec![
+                        Span::styled("Status: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::styled(format!("{} Success", successes), Style::default().fg(GREEN)),
+                        Span::raw(" | "),
+                        Span::styled(format!("{} Failure", failures), Style::default().fg(RED)),
+                    ]),
+                    Line::from(vec![
+                        Span::styled("Last Exit Code: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::styled(last_exit.to_string(), if last_exit == 0 { Style::default().fg(GREEN) } else { Style::default().fg(RED) }),
+                    ]),
+                    Line::from(vec![
+                        Span::styled("Users: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::raw(users_str),
+                    ]),
+                    Line::from(""),
+                    Line::from(vec![
+                        Span::styled("Avg WallTime: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::styled(format!("{} ms", summary.avg_wall_time_ms), Style::default().fg(BLUE)),
+                    ]),
+                    Line::from(vec![
+                        Span::styled("Total CPU: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::styled(format!("{:.2} s", summary.total_cpu_time_sec), Style::default().fg(PEACH)),
+                    ]),
+                    Line::from(vec![
+                        Span::styled("Max RSS: ", Style::default().add_modifier(Modifier::BOLD)),
+                        Span::styled(format!("{} KB", summary.max_rss_kb), Style::default().fg(RED)),
+                    ]),
+                ]
             )
         } else {
-            "No script selected".to_string()
+            (" No Selection ".to_string(), vec![Line::from("No script selected")])
         }
     } else {
-        "No script selected".to_string()
+        (" No Selection ".to_string(), vec![Line::from("No script selected")])
     };
 
     let block = Block::default()
-        .title(" Script Detail ")
+        .title(title)
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(crate::theme::SAPPHIRE));
+        .border_style(Style::default().fg(SAPPHIRE));
         
     let paragraph = Paragraph::new(content)
         .block(block)
-        .alignment(Alignment::Center);
+        .alignment(Alignment::Left);
         
     f.render_widget(paragraph, area);
 }
