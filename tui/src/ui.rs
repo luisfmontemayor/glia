@@ -12,10 +12,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Percentage(10), // Header
-            Constraint::Percentage(10), // Tabs
+            Constraint::Length(3), // Header
+            Constraint::Length(3), // Tabs
             Constraint::Percentage(70), // Main Body
-            Constraint::Percentage(10), // Footer
+            Constraint::Length(3), // Footer
         ])
         .split(f.size());
 
@@ -270,11 +270,11 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let table = Table::new(
         rows,
         [
-            Constraint::Percentage(30),
-            Constraint::Percentage(10),
-            Constraint::Percentage(20),
-            Constraint::Percentage(20),
-            Constraint::Percentage(20),
+            Constraint::Min(20),
+            Constraint::Length(10),
+            Constraint::Length(15),
+            Constraint::Length(15),
+            Constraint::Length(15),
         ],
     )
     .header(
