@@ -31,6 +31,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     render_top_scripts_table(f, app, main_chunks[1]);
 
     render_footer(f, app, chunks[3]);
+
+    if app.show_detail {
+        render_detail_popup(f, app);
+    }
 }
 
 fn render_header(f: &mut Frame, app: &App, area: Rect) {
@@ -353,4 +357,33 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
+}
+
+fn render_detail_popup(f: &mut Frame, app: &App) {
+    let area = centered_rect(60, 40, f.size());
+    f.render_widget(Clear, area);
+    
+    let content = if let Some(selected) = app.table_state.selected() {
+        if let Some(summary) = app.summaries.get(selected) {
+            format!(
+                "Program: {}\nCount: {}\nAvg WallTime: {} ms\nTotal CPU: {:.2} s\nMax RSS: {} KB",
+                summary.program_name, summary.count, summary.avg_wall_time_ms, summary.total_cpu_time_sec, summary.max_rss_kb
+            )
+        } else {
+            "No script selected".to_string()
+        }
+    } else {
+        "No script selected".to_string()
+    };
+
+    let block = Block::default()
+        .title(" Script Detail ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(crate::theme::SAPPHIRE));
+        
+    let paragraph = Paragraph::new(content)
+        .block(block)
+        .alignment(Alignment::Center);
+        
+    f.render_widget(paragraph, area);
 }

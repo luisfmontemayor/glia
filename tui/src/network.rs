@@ -28,7 +28,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_job_metrics() {
+    fn test_fetch_metrics_success() {
         let data = r#"
         [
             {
@@ -57,6 +57,28 @@ mod tests {
         assert_eq!(metrics.len(), 2);
         assert_eq!(metrics[0].program_name, "data_proc");
         assert_eq!(metrics[1].user_name, "bob");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_metrics_polling_logic() {
+        use crate::action::Action;
+        use tokio::sync::mpsc;
+
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let tx_res = tx.clone();
+        
+        tokio::spawn(async move {
+            let data = r#"[{"started_at":"2023-10-27T10:00:00Z","program_name":"test","user_name":"user","wall_time_ms":100,"cpu_time_sec":0.1,"cpu_percent":10.0,"max_rss_kb":1024,"exit_code_int":0}]"#;
+            let jobs = parse_job_metrics(data).unwrap();
+            let _ = tx_res.send(Action::SetJobs(jobs));
+        });
+
+        if let Some(Action::SetJobs(jobs)) = rx.recv().await {
+            assert_eq!(jobs.len(), 1);
+            assert_eq!(jobs[0].program_name, "test");
+        } else {
+            panic!("Expected Action::SetJobs");
+        }
     }
 }
 
