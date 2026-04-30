@@ -86,7 +86,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
     });
 
     while app.running {
-        terminal.draw(|f| ui::draw(f, &app))?;
+        terminal.draw(|f| ui::draw(f, &mut app))?;
 
         if let Some(action) = rx.recv().await {
             match action {
@@ -98,6 +98,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                     KeyCode::Tab => app.update(Action::NextMetric),
                     KeyCode::BackTab => app.update(Action::PreviousMetric),
                     KeyCode::Char('t') => app.update(Action::NextWindow),
+                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
+                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
                     _ => {}
                 },
                 _ => app.update(action),
