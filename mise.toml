@@ -28,6 +28,8 @@ API_PORT       = "8000"
 POSTGRES_PORT  = "5432"
 POSTGRES_HOST  = "localhost"
 GLIA_API_URL = "http://{{ env.API_HOST }}:{{ env.API_PORT }}/ingest"
+GLIA_TELEMETRY_URL = "http://{{ env.API_HOST }}:{{ env.API_PORT }}/telemetry"
+GLIA_ORG_NAME = "Glia Base Team"
 
 CORE_QUEUE_LIMIT = "1000"
 CORE_BATCH_SIZE = "1000"

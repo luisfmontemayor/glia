@@ -18,7 +18,8 @@ pub fn parse_job_metrics(json: &str) -> serde_json::Result<Vec<JobMetrics>> {
 }
 
 pub async fn fetch_metrics(window: &str) -> Result<Vec<JobMetrics>, Box<dyn Error>> {
-    let url = format!("http://localhost:8000/telemetry?window={}&limit=1000", window);
+    let base_url = std::env::var("GLIA_TELEMETRY_URL").unwrap_or_else(|_| "http://localhost:8000/telemetry".to_string());
+    let url = format!("{}?window={}&limit=1000", base_url, window);
     let resp = reqwest::get(url).await?.json::<Vec<JobMetrics>>().await?;
     Ok(resp)
 }
