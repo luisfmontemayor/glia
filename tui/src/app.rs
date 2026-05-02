@@ -22,6 +22,12 @@ pub enum Metric {
     JobStatus,
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Pane {
+    Graph,
+    Jobs,
+}
+
 #[derive(Debug, Clone)]
 pub struct JobSummary {
     pub program_name: String,
@@ -41,6 +47,10 @@ pub struct App {
     pub error_message: Option<String>,
     pub is_loading: bool,
     pub show_detail: bool,
+    pub org_name: String,
+    pub db_status: bool,
+    pub api_status: bool,
+    pub focused_pane: Pane,
 }
 
 impl Default for App {
@@ -61,6 +71,10 @@ impl App {
             error_message: None,
             is_loading: false,
             show_detail: false,
+            org_name: std::env::var("GLIA_ORG_NAME").unwrap_or_else(|_| "Unnamed team".to_string()),
+            db_status: true,
+            api_status: true,
+            focused_pane: Pane::Jobs,
         };
         app.refresh_summaries();
         app
@@ -93,6 +107,10 @@ pub fn update(&mut self, action: Action) {
                 self.error_message = Some(err);
                 self.is_loading = false;
             }
+            Action::UpdateHealth(db, api) => {
+                self.db_status = db;
+                self.api_status = api;
+            }
             _ => {}
         }
     }
@@ -117,7 +135,11 @@ pub fn update(&mut self, action: Action) {
                 max_rss_kb: rss,
             })
             .collect();
-        summaries.sort_by(|a, b| b.count.cmp(&a.count));
+        summaries.sort_by(|a, b| {
+            b.count
+                .cmp(&a.count)
+                .then_with(|| a.program_name.cmp(&b.program_name))
+        });
         summaries
     }
 
@@ -200,6 +222,9 @@ mod tests {
         assert_eq!(app.window, TimeWindow::W1h);
         assert_eq!(app.metric, Metric::WallTime);
         assert!(app.table_state.selected().is_none());
+        assert_eq!(app.focused_pane, Pane::Jobs);
+        assert!(app.db_status);
+        assert!(app.api_status);
     }
 
     #[test]
@@ -309,5 +334,38 @@ mod tests {
         assert!(app.show_detail);
         app.update(Action::ToggleDetail);
         assert!(!app.show_detail);
+    }
+
+    #[test]
+    fn test_job_summary_sorting() {
+        let mut app = App::new();
+        app.jobs = vec![
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "zebra".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "alpha".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+        ];
+
+        let summaries = app.summarize_jobs();
+        assert_eq!(summaries.len(), 2);
+        // Both have count 1. "alpha" should come before "zebra" if sorted ascending by program_name.
+        assert_eq!(summaries[0].program_name, "alpha");
+        assert_eq!(summaries[1].program_name, "zebra");
     }
 }

@@ -18,7 +18,7 @@ pub fn parse_job_metrics(json: &str) -> serde_json::Result<Vec<JobMetrics>> {
 }
 
 pub async fn fetch_metrics(window: &str) -> Result<Vec<JobMetrics>, Box<dyn Error>> {
-    let url = format!("http://localhost:8080/metrics?window={}", window);
+    let url = format!("http://localhost:8000/telemetry?window={}&limit=1000", window);
     let resp = reqwest::get(url).await?.json::<Vec<JobMetrics>>().await?;
     Ok(resp)
 }
@@ -91,5 +91,14 @@ mod network_error_tests {
         // We assume nothing is listening on port 1 (standard practice for connection failure)
         let result = fetch_metrics("1h").await;
         assert!(result.is_err(), "Should return Err on connection failure");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_metrics_reaches_backend() {
+        // This test actually attempts to reach the backend.
+        let result = fetch_metrics("1h").await;
+        println!("Result from backend: {:?}", result);
+        // We just assert that it is Ok to satisfy TDD, and we print it out to verify what's there.
+        assert!(result.is_ok(), "Expected Ok but got an Err. Make sure the backend is running at the configured port.");
     }
 }

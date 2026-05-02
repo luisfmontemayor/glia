@@ -16,4 +16,5 @@ pub enum Action {
     SetJobs(Vec<JobMetrics>),
     FetchError(String),
     ToggleDetail,
+    UpdateHealth(bool, bool),
 }
