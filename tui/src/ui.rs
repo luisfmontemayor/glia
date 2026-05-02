@@ -522,13 +522,11 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         Constraint::Length(15),
     ];
 
-    if focus_cell {
-        if let Some(col) = selected_col {
-            if col < constraints.len() {
+    if focus_cell
+        && let Some(col) = selected_col
+            && col < constraints.len() {
                 constraints[col] = Constraint::Min(25);
             }
-        }
-    }
 
     let mut table = Table::new(rows, constraints)
         .header(
@@ -590,13 +588,11 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
 fn format_with_commas(n: u64) -> String {
     let s = n.to_string();
     let mut result = String::new();
-    let mut count = 0;
-    for c in s.chars().rev() {
+    for (count, c) in s.chars().rev().enumerate() {
         if count > 0 && count % 3 == 0 {
             result.push(',');
         }
         result.push(c);
-        count += 1;
     }
     result.chars().rev().collect()
 }
