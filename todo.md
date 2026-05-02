@@ -1,12 +1,13 @@
 # TUI Dashboard (Session: 2026-04-10)
 
+- [ ] fix tui, make consistent with spinup title etc 
 - [ ] add env var to add cores to the R installation
 - [ ] add most up to date conventional commits and make sure that the descriptions files for it are retained
 - [ ] Make README pitch-ready
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [ ] Readme needs r installation path mapping
   - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
-- [x] cli gui (TUI Dashboard)
+- [ ] cli gui (TUI Dashboard)
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
 
 #######
@@ -125,6 +126,7 @@
         - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
 
 # ARCHIVE
+- [x] Create `tui/tui-design.md` detailing the color palette, functional mappings, and layout aesthetics.
 - [x] Phase 1: Scaffold TUI project with Ratatui and Tokio.
 - [x] Phase 2: Implement route mapping and data models.
 - [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).

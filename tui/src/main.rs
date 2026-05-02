@@ -114,7 +114,6 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                     let _ = tx_res.send(Action::SetJobs(jobs));
                                 }
                                 Err(e) => {
-                                    eprintln!("[NETWORK]: ERROR - Failed to fetch metrics: {}", e);
                                     let _ = tx_res.send(Action::FetchError(e.to_string()));
                                 }
                             }

@@ -1,4 +1,4 @@
-use crate::app::{App, Metric, TimeWindow};
+use crate::app::{App, Metric, Pane, TimeWindow};
 use crate::theme::*;
 use ratatui::{
     Frame,
@@ -48,13 +48,20 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
         TimeWindow::WMax => "All Time",
     };
 
+    let db_color = if app.db_status { GREEN } else { RED };
+    let api_color = if app.api_status { GREEN } else { RED };
+
     let text = vec![Line::from(vec![
         Span::styled(
-            " Glia ",
+            format!(" {} ", app.org_name),
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Window: "),
         Span::styled(window_str, Style::default().fg(YELLOW)),
+        Span::raw(" | DB: "),
+        Span::styled("●", Style::default().fg(db_color)),
+        Span::raw(" | API: "),
+        Span::styled("●", Style::default().fg(api_color)),
     ])];
 
     let paragraph = Paragraph::new(text).block(
@@ -92,6 +99,8 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
+    let border_color = if app.focused_pane == Pane::Graph { PINK } else { TEXT };
+
     let chart_title = if app.metric == Metric::JobStatus {
         " Job Status (Success: Green | Fail: Red) "
     } else {
@@ -112,6 +121,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Block::default()
                     .borders(Borders::ALL)
                     .title(chart_title)
+                    .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             );
         f.render_widget(loading, area);
@@ -160,6 +170,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Block::default()
                     .borders(Borders::ALL)
                     .title(" Job Status (Success: Green | Fail: Red) ")
+                    .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             )
             .bar_width(2)
@@ -195,6 +206,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Block::default()
                     .borders(Borders::ALL)
                     .title(y_title)
+                    .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             )
             .bar_style(Style::default().fg(bar_color));
@@ -233,6 +245,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
+    let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEXT };
     let (table_area, error_area) = if let Some(msg) = &app.error_message {
         let text_len = msg.chars().count() as u16;
         let available_width = area.width.saturating_sub(2).max(1);
@@ -275,6 +288,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                 Block::default()
                     .borders(Borders::ALL)
                     .title(" Jobs ")
+                    .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             );
         f.render_widget(p, table_area);
@@ -287,7 +301,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             Row::new(vec![
                 Cell::from(s.program_name.clone()),
                 Cell::from(format_with_commas(s.count as u64)),
-                Cell::from(format!("{}ms", format_with_commas(s.avg_wall_time_ms))),
+                Cell::from(format!("{:.2}s", s.avg_wall_time_ms as f64 / 1000.0)),
                 Cell::from(format!("{:.2}s", s.total_cpu_time_sec)),
                 Cell::from(format!("{}KB", format_with_commas(s.max_rss_kb))),
             ])
@@ -306,7 +320,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         ],
     )
     .header(
-        Row::new(vec!["Name", "Uses", "Avg Wall", "Total CPU", "Max RSS"])
+        Row::new(vec!["Name", "Uses", "Avg Wall (s)", "Total CPU (s)", "Max RSS"])
             .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
             .bottom_margin(1),
     )
@@ -314,6 +328,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .title(" Jobs ")
+            .border_style(Style::default().fg(border_color))
             .style(Style::default().fg(TEXT)),
     )
     .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
