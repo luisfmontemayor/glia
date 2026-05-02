@@ -438,4 +438,77 @@ mod tests {
         assert_eq!(summaries[0].program_name, "alpha");
         assert_eq!(summaries[1].program_name, "zebra");
     }
+
+    #[test]
+    fn test_row_to_cell_focus_transition() {
+        use crate::table_state::TableFocusMode;
+        let mut app = App::new();
+        assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
+        
+        app.update(Action::TableFocusCell);
+        assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Cell);
+        
+        app.update(Action::TableFocusRow);
+        assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
+    }
+
+    #[test]
+    fn test_search_filtering() {
+        let mut app = App::new();
+        app.jobs = vec![
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "find_me".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "hide_me".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+        ];
+        
+        // Initial state: both should be there
+        assert_eq!(app.summarize_jobs().len(), 2);
+        
+        // Apply filter
+        app.update(Action::TableSearch("find".to_string()));
+        
+        // Case-insensitive check
+        app.update(Action::TableSearch("FIND".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 1);
+        let summaries = app.summarize_jobs();
+        
+        // Case-insensitive check
+        app.update(Action::TableSearch("FIND".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 1);
+        assert_eq!(summaries.len(), 1);
+        
+        // Case-insensitive check
+        app.update(Action::TableSearch("FIND".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 1);
+        assert_eq!(summaries[0].program_name, "find_me");
+        
+        // Case-insensitive check
+        app.update(Action::TableSearch("FIND".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 1);
+        
+        // Apply filter that matches nothing
+        app.update(Action::TableSearch("nothing".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 0);
+        
+        // Clear filter (empty string)
+        app.update(Action::TableSearch("".to_string()));
+        assert_eq!(app.summarize_jobs().len(), 2);
+    }
 }
