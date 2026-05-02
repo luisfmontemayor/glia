@@ -43,7 +43,7 @@ This module reads the `App` state and draws the `ratatui` components. It does no
 
 ### 5. Networking (`network.rs`)
 This module handles network requests.
-- **`fetch_metrics`**: An asynchronous function that uses `reqwest` to request data from `localhost:8000/telemetry`. It parses the JSON response into `JobMetrics` structs and sends them to the main loop as an `Action::SetJobs` message.
+- **`fetch_metrics`**: An asynchronous function that uses `reqwest` to request data from the URL defined in the `GLIA_TELEMETRY_URL` environment variable (defaulting to `http://localhost:8000/telemetry`). It parses the JSON response into `JobMetrics` structs and sends them to the main loop as an `Action::SetJobs` message.
 
 ### 6. Table State (`table_state.rs`)
 This module manages the state of the interface specifically for the jobs table.
