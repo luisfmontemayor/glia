@@ -94,6 +94,7 @@ mod network_error_tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_fetch_metrics_reaches_backend() {
         // This test actually attempts to reach the backend.
         let result = fetch_metrics("1h").await;

@@ -1,3 +1,5 @@
+- [ ] add support for ñ and other non-ansii characters in latin alphabet languages for now 
+
 # Glia TUI Refactor TODO
 - [ ] Add a search bar for names of scripts in the jobs table 
 - [ ] The "all time" x axis reads 04-09 04-09 04-09 04-09 01-01 01-01 04-09 04-09 04-09 04-09 01-01 00:16. They make no sense (the postgres data is always the same)

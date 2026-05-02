@@ -1,5 +1,6 @@
 use crossterm::event::KeyEvent;
 use crate::network::JobMetrics;
+use crate::app::Pane;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -16,5 +17,15 @@ pub enum Action {
     SetJobs(Vec<JobMetrics>),
     FetchError(String),
     ToggleDetail,
+    ToggleUserLines,
     UpdateHealth(bool, bool),
+    FocusPane(Pane),
+    TableFocusRow,
+    TableFocusCell,
+    TableNextCol,
+    TablePrevCol,
+    TableSearch(String),
+    TableEndSearch,
+    TableChar(char),
+    TableBackspace,
 }

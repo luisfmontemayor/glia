@@ -1,6 +1,6 @@
 use crate::network::JobMetrics;
 use crate::action::Action;
-use ratatui::widgets::TableState;
+use crate::table_state::JobsTableState;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -11,6 +11,19 @@ pub enum TimeWindow {
     W12h,
     W24h,
     WMax,
+}
+
+impl TimeWindow {
+    pub fn to_duration(&self) -> Option<std::time::Duration> {
+        match self {
+            TimeWindow::W1h => Some(std::time::Duration::from_secs(3600)),
+            TimeWindow::W3h => Some(std::time::Duration::from_secs(3600 * 3)),
+            TimeWindow::W6h => Some(std::time::Duration::from_secs(3600 * 6)),
+            TimeWindow::W12h => Some(std::time::Duration::from_secs(3600 * 12)),
+            TimeWindow::W24h => Some(std::time::Duration::from_secs(3600 * 24)),
+            TimeWindow::WMax => None,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -43,10 +56,11 @@ pub struct App {
     pub metric: Metric,
     pub jobs: Vec<JobMetrics>,
     pub summaries: Vec<JobSummary>,
-    pub table_state: TableState,
+    pub jobs_table_state: JobsTableState,
     pub error_message: Option<String>,
     pub is_loading: bool,
     pub show_detail: bool,
+    pub show_user_lines: bool,
     pub org_name: String,
     pub db_status: bool,
     pub api_status: bool,
@@ -67,10 +81,11 @@ impl App {
             metric: Metric::WallTime,
             jobs: Vec::new(),
             summaries: Vec::new(),
-            table_state: TableState::default(),
+            jobs_table_state: JobsTableState::default(),
             error_message: None,
             is_loading: false,
             show_detail: false,
+            show_user_lines: false,
             org_name: std::env::var("GLIA_ORG_NAME").unwrap_or_else(|_| "Unnamed team".to_string()),
             db_status: true,
             api_status: true,
@@ -94,11 +109,27 @@ pub fn update(&mut self, action: Action) {
         Action::PreviousRow => self.previous_row(),
         Action::FetchMetrics => self.is_loading = true,
             Action::ToggleDetail => self.show_detail = !self.show_detail,
+            Action::ToggleUserLines => self.show_user_lines = !self.show_user_lines,
             Action::SetJobs(jobs) => {
-                self.jobs = jobs;
+                let now = std::time::SystemTime::now();
+                let cutoff = self.window.to_duration().and_then(|d| now.checked_sub(d));
+
+                self.jobs = jobs.into_iter().filter(|job| {
+                    if let Some(cutoff_time) = cutoff {
+                        if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&job.started_at) {
+                            let job_time: std::time::SystemTime = dt.into();
+                            job_time >= cutoff_time
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                }).collect();
+
                 self.refresh_summaries();
-                if self.table_state.selected().is_none() && !self.jobs.is_empty() {
-                    self.table_state.select(Some(0));
+                if self.jobs_table_state.row_state.selected().is_none() && !self.jobs.is_empty() {
+                    self.jobs_table_state.row_state.select(Some(0));
                 }
                 self.error_message = None;
                 self.is_loading = false;
@@ -111,13 +142,52 @@ pub fn update(&mut self, action: Action) {
                 self.db_status = db;
                 self.api_status = api;
             }
+            Action::FocusPane(pane) => {
+                self.focused_pane = pane;
+            }
+            Action::TableFocusRow => {
+                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Row;
+            }
+            Action::TableFocusCell => {
+                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Cell;
+            }
+            Action::TableNextCol => {
+                self.jobs_table_state.next_col(5); // 5 columns in total
+            }
+            Action::TablePrevCol => {
+                self.jobs_table_state.prev_col();
+            }
+            Action::TableSearch(query) => {
+                self.jobs_table_state.is_searching = true;
+                self.jobs_table_state.search_query = query;
+                self.refresh_summaries();
+            }
+            Action::TableEndSearch => {
+                self.jobs_table_state.is_searching = false;
+            }
+            Action::TableChar(c) => {
+                if self.jobs_table_state.is_searching {
+                    self.jobs_table_state.search_query.push(c);
+                    self.refresh_summaries();
+                }
+            }
+            Action::TableBackspace => {
+                if self.jobs_table_state.is_searching {
+                    self.jobs_table_state.search_query.pop();
+                    self.refresh_summaries();
+                }
+            }
             _ => {}
         }
     }
 
     pub fn summarize_jobs(&self) -> Vec<JobSummary> {
+        let query = self.jobs_table_state.search_query.to_lowercase();
         let mut map: HashMap<String, (usize, u64, f64, u64)> = HashMap::new();
         for j in &self.jobs {
+            if !query.is_empty() && !j.program_name.to_lowercase().contains(&query) {
+                continue;
+            }
             let entry = map.entry(j.program_name.clone()).or_insert((0, 0, 0.0, 0));
             entry.0 += 1;
             entry.1 += j.wall_time_ms as u64;
@@ -146,31 +216,31 @@ pub fn update(&mut self, action: Action) {
     pub fn next_row(&mut self) {
         let count = self.summarize_jobs().len();
         if count == 0 {
-            self.table_state.select(None);
+            self.jobs_table_state.row_state.select(None);
             return;
         }
-        let i = match self.table_state.selected() {
+        let i = match self.jobs_table_state.row_state.selected() {
             Some(i) => {
                 if i >= count - 1 { 0 } else { i + 1 }
             }
             None => 0,
         };
-        self.table_state.select(Some(i));
+        self.jobs_table_state.row_state.select(Some(i));
     }
 
     pub fn previous_row(&mut self) {
         let count = self.summarize_jobs().len();
         if count == 0 {
-            self.table_state.select(None);
+            self.jobs_table_state.row_state.select(None);
             return;
         }
-        let i = match self.table_state.selected() {
+        let i = match self.jobs_table_state.row_state.selected() {
             Some(i) => {
                 if i == 0 { count - 1 } else { i - 1 }
             }
             None => 0,
         };
-        self.table_state.select(Some(i));
+        self.jobs_table_state.row_state.select(Some(i));
     }
 
     pub fn next_window(&mut self) {
@@ -221,7 +291,7 @@ mod tests {
         let app = App::new();
         assert_eq!(app.window, TimeWindow::W1h);
         assert_eq!(app.metric, Metric::WallTime);
-        assert!(app.table_state.selected().is_none());
+        assert!(app.jobs_table_state.row_state.selected().is_none());
         assert_eq!(app.focused_pane, Pane::Jobs);
         assert!(app.db_status);
         assert!(app.api_status);
@@ -290,20 +360,20 @@ mod tests {
             },
         ];
         let count = app.summarize_jobs().len();
-        app.table_state.select(Some(0));
+        app.jobs_table_state.row_state.select(Some(0));
 
         app.next_row();
-        assert_eq!(app.table_state.selected(), Some(1));
+        assert_eq!(app.jobs_table_state.row_state.selected(), Some(1));
 
         for _ in 0..count {
             app.next_row();
         }
         // After count more nexts, we should be at Some(1) again
-        assert_eq!(app.table_state.selected(), Some(1));
+        assert_eq!(app.jobs_table_state.row_state.selected(), Some(1));
 
-        app.table_state.select(Some(0));
+        app.jobs_table_state.row_state.select(Some(0));
         app.previous_row();
-        assert_eq!(app.table_state.selected(), Some(count - 1));
+        assert_eq!(app.jobs_table_state.row_state.selected(), Some(count - 1));
     }
 
     #[test]
