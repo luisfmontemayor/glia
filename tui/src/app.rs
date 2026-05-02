@@ -133,10 +133,12 @@ pub fn update(&mut self, action: Action) {
                 }
                 self.error_message = None;
                 self.is_loading = false;
+                self.api_status = true;
             }
-            Action::FetchError(err) => {
-                self.error_message = Some(err);
+            Action::FetchError(_) => {
+                self.error_message = None;
                 self.is_loading = false;
+                self.api_status = false;
             }
             Action::UpdateHealth(db, api) => {
                 self.db_status = db;
