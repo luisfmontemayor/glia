@@ -1,12 +1,16 @@
 use crate::app::{App, Metric, Pane, TimeWindow};
 use crate::theme::*;
+use std::collections::HashMap;
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     symbols,
     text::{Line, Span},
-    widgets::{Bar, BarChart, BarGroup, Block, Borders, Cell, Clear, Paragraph, Row, Table, Tabs},
+    widgets::{
+        Axis, Bar, BarChart, BarGroup, Block, Borders, Cell, Chart, Clear, Dataset, GraphType,
+        Paragraph, Row, Table, Tabs,
+    },
 };
 
 pub fn draw(f: &mut Frame, app: &mut App) {
@@ -101,16 +105,12 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Graph { PINK } else { TEXT };
 
-    let chart_title = if app.metric == Metric::JobStatus {
-        " Job Status (Success: Green | Fail: Red) "
-    } else {
-        match app.metric {
-            Metric::WallTime => " Wall Time (ms) ",
-            Metric::CpuTime => " CPU Time (ms) ",
-            Metric::CpuPercent => " CPU Percent (%) ",
-            Metric::MaxRss => " Max RSS (KB) ",
-            _ => " Metrics ",
-        }
+    let chart_title = match app.metric {
+        Metric::WallTime => " Wall Time (ms) ",
+        Metric::CpuTime => " CPU Time (ms) ",
+        Metric::CpuPercent => " CPU Percent (%) ",
+        Metric::MaxRss => " Max RSS (KB) ",
+        Metric::JobStatus => " Job Status (Success: Green | Fail: Red) ",
     };
 
     if app.is_loading && app.jobs.is_empty() {
@@ -128,108 +128,279 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    let format_time = |started_at: &str| -> String {
-        // Expected format: 2023-10-27T10:30:00Z or similar ISO8601
+    let parse_time = |started_at: &str| -> (String, String, String) {
         let parts: Vec<&str> = started_at.split('T').collect();
         if parts.len() < 2 {
-            return started_at.chars().take(10).collect();
+            return ("??:??".to_string(), "????".to_string(), started_at.to_string());
         }
-        let date = parts[0]; // YYYY-MM-DD
-        let time = parts[1]; // HH:MM:SS...
-
+        let date = parts[0];
+        let time = parts[1];
         let date_parts: Vec<&str> = date.split('-').collect();
         let mm_dd = if date_parts.len() >= 3 {
             format!("{}-{}", date_parts[1], date_parts[2])
         } else {
             date.to_string()
         };
-
         let time_parts: Vec<&str> = time.split(':').collect();
         let hh_mm = if time_parts.len() >= 2 {
             format!("{}:{}", time_parts[0], time_parts[1])
         } else {
-            time.to_string()
+            time.chars().take(5).collect()
         };
-
-        if app.window == TimeWindow::WMax {
-            format!("{} {}", mm_dd, hh_mm)
-        } else {
-            hh_mm
-        }
+        (hh_mm, mm_dd, date.to_string())
     };
 
-    let mut barchart = BarChart::default()
-        .bar_width(5)
-        .bar_gap(1)
-        .bar_set(symbols::bar::NINE_LEVELS)
-        .value_style(Style::default().fg(CRUST).bg(TEXT));
+    if app.show_user_lines {
+        let mut user_data: HashMap<String, Vec<(f64, f64)>> = HashMap::new();
+        let mut min_x = f64::MAX;
+        let mut max_x = f64::MIN;
+        let mut max_y = 0.0f64;
 
-    if app.metric == Metric::JobStatus {
-        barchart = barchart
+        for j in &app.jobs {
+            if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&j.started_at) {
+                let x = dt.timestamp() as f64;
+                let val = match app.metric {
+                    Metric::WallTime => j.wall_time_ms as f64,
+                    Metric::CpuTime => (j.cpu_time_sec * 1000.0) as f64,
+                    Metric::CpuPercent => j.cpu_percent as f64,
+                    Metric::MaxRss => j.max_rss_kb as f64,
+                    Metric::JobStatus => {
+                        if j.exit_code_int == 0 {
+                            1.0
+                        } else {
+                            0.0
+                        }
+                    }
+                };
+                user_data.entry(j.user_name.clone()).or_default().push((x, val));
+                min_x = min_x.min(x);
+                max_x = max_x.max(x);
+                max_y = max_y.max(val);
+            }
+        }
+
+        if min_x == f64::MAX {
+            min_x = 0.0;
+            max_x = 1.0;
+        }
+        if max_x <= min_x {
+            max_x = min_x + 1.0;
+        }
+        if max_y <= 0.0 {
+            max_y = 1.0;
+        }
+
+        let mut user_names: Vec<_> = user_data.keys().cloned().collect();
+        user_names.sort();
+
+        let mut sorted_data = Vec::new();
+        for name in &user_names {
+            let mut d = user_data.get(name).unwrap().clone();
+            d.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            sorted_data.push(d);
+        }
+
+        let colors = [PINK, GREEN, BLUE];
+        let datasets: Vec<_> = sorted_data
+            .iter()
+            .enumerate()
+            .map(|(i, data)| {
+                Dataset::default()
+                    .name(user_names[i].as_str())
+                    .marker(symbols::Marker::Dot)
+                    .graph_type(GraphType::Line)
+                    .style(Style::default().fg(colors[i % colors.len()]))
+                    .data(data)
+            })
+            .collect();
+
+        let x_labels = vec![
+            Span::raw(
+                chrono::DateTime::from_timestamp(min_x as i64, 0)
+                    .unwrap_or_default()
+                    .format("%H:%M")
+                    .to_string(),
+            ),
+            Span::raw(
+                chrono::DateTime::from_timestamp(max_x as i64, 0)
+                    .unwrap_or_default()
+                    .format("%H:%M")
+                    .to_string(),
+            ),
+        ];
+
+        let chart = Chart::new(datasets)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(" Job Status (Success: Green | Fail: Red) ")
+                    .title(chart_title)
                     .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             )
-            .bar_width(2)
-            .bar_gap(1)
-            .group_gap(2);
+            .x_axis(
+                Axis::default()
+                    .title("Time")
+                    .style(Style::default().fg(TEXT))
+                    .bounds([min_x, max_x])
+                    .labels(x_labels),
+            )
+            .y_axis(
+                Axis::default()
+                    .title("Value")
+                    .style(Style::default().fg(TEXT))
+                    .bounds([0.0, max_y * 1.1])
+                    .labels(vec![Span::raw("0"), Span::raw(format!("{:.0}", max_y))]),
+            );
 
-        for j in &app.jobs {
-            let label = format_time(&j.started_at);
-            let success_val = if j.exit_code_int == 0 { 1 } else { 0 };
-            let fail_val = if j.exit_code_int != 0 { 1 } else { 0 };
-
-            let group = BarGroup::default().label(Line::from(label)).bars(&[
-                Bar::default()
-                    .value(success_val)
-                    .style(Style::default().fg(GREEN)),
-                Bar::default()
-                    .value(fail_val)
-                    .style(Style::default().fg(RED)),
-            ]);
-            barchart = barchart.data(group);
-        }
+        f.render_widget(chart, area);
     } else {
-        let (y_title, bar_color) = match app.metric {
-            Metric::WallTime => (" Wall Time (ms) ", BLUE),
-            Metric::CpuTime => (" CPU Time (ms) ", PEACH),
-            Metric::CpuPercent => (" CPU Percent (%) ", GREEN),
-            Metric::MaxRss => (" Max RSS (KB) ", RED),
-            _ => (" Metrics ", BLUE),
+        let is_wmax = app.window == TimeWindow::WMax;
+        let (main_area, label_area) = if is_wmax && !app.jobs.is_empty() {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Min(0), Constraint::Length(2)])
+                .split(area);
+            (chunks[0], Some(chunks[1]))
+        } else {
+            (area, None)
         };
 
-        barchart = barchart
+        let mut barchart = BarChart::default()
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(y_title)
+                    .title(chart_title)
                     .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             )
-            .bar_style(Style::default().fg(bar_color));
+            .bar_set(symbols::bar::NINE_LEVELS)
+            .value_style(Style::default().fg(CRUST).bg(TEXT));
 
-        for j in &app.jobs {
-            let label = format_time(&j.started_at);
-            let val = match app.metric {
-                Metric::WallTime => j.wall_time_ms as u64,
-                Metric::CpuTime => (j.cpu_time_sec * 1000.0) as u64,
-                Metric::CpuPercent => j.cpu_percent as u64,
-                Metric::MaxRss => j.max_rss_kb as u64,
-                _ => 0,
+        let mut labels_hhmm = Vec::new();
+        let mut labels_mmdd = Vec::new();
+        let mut last_date = String::new();
+
+        if app.metric == Metric::JobStatus {
+            barchart = barchart.bar_width(2).bar_gap(1).group_gap(2);
+            for j in &app.jobs {
+                let success_val = if j.exit_code_int == 0 { 1 } else { 0 };
+                let fail_val = if j.exit_code_int != 0 { 1 } else { 0 };
+
+                let (hhmm, mmdd, date) = parse_time(&j.started_at);
+                let label = if is_wmax {
+                    "".to_string()
+                } else if app.window == TimeWindow::WMax {
+                    format!("{} {}", mmdd, hhmm)
+                } else {
+                    hhmm.clone()
+                };
+
+                if is_wmax {
+                    let is_new_day = !last_date.is_empty() && date != last_date;
+                    let hhmm_style = if is_new_day {
+                        Style::default().fg(PINK)
+                    } else {
+                        Style::default().fg(TEXT)
+                    };
+                    let mut text = hhmm;
+                    if is_new_day {
+                        text = format!("|{}", text);
+                    }
+                    labels_hhmm.push(Span::styled(format!("{:^7}", text), hhmm_style));
+                    if is_new_day || labels_mmdd.is_empty() {
+                        labels_mmdd.push(Span::styled(
+                            format!("{:^7}", mmdd),
+                            Style::default().fg(YELLOW),
+                        ));
+                    } else {
+                        labels_mmdd.push(Span::raw("       "));
+                    }
+                    last_date = date;
+                }
+
+                let group = BarGroup::default().label(Line::from(label)).bars(&[
+                    Bar::default()
+                        .value(success_val)
+                        .style(Style::default().fg(GREEN)),
+                    Bar::default()
+                        .value(fail_val)
+                        .style(Style::default().fg(RED)),
+                ]);
+                barchart = barchart.data(group);
+            }
+        } else {
+            let bar_color = match app.metric {
+                Metric::WallTime => BLUE,
+                Metric::CpuTime => PEACH,
+                Metric::CpuPercent => GREEN,
+                Metric::MaxRss => RED,
+                _ => BLUE,
             };
-            let group = BarGroup::default()
-                .label(Line::from(label))
-                .bars(&[Bar::default()
-                    .value(val)
-                    .style(Style::default().fg(bar_color))]);
-            barchart = barchart.data(group);
+            barchart = barchart
+                .bar_width(5)
+                .bar_gap(1)
+                .bar_style(Style::default().fg(bar_color));
+            for j in &app.jobs {
+                let val = match app.metric {
+                    Metric::WallTime => j.wall_time_ms as u64,
+                    Metric::CpuTime => (j.cpu_time_sec * 1000.0) as u64,
+                    Metric::CpuPercent => j.cpu_percent as u64,
+                    Metric::MaxRss => j.max_rss_kb as u64,
+                    _ => 0,
+                };
+                let (hhmm, mmdd, date) = parse_time(&j.started_at);
+                let label = if is_wmax {
+                    "".to_string()
+                } else if app.window == TimeWindow::WMax {
+                    format!("{} {}", mmdd, hhmm)
+                } else {
+                    hhmm.clone()
+                };
+
+                if is_wmax {
+                    let is_new_day = !last_date.is_empty() && date != last_date;
+                    let hhmm_style = if is_new_day {
+                        Style::default().fg(PINK)
+                    } else {
+                        Style::default().fg(TEXT)
+                    };
+                    let mut text = hhmm;
+                    if is_new_day {
+                        text = format!("|{}", text);
+                    }
+                    labels_hhmm.push(Span::styled(format!("{:^6}", text), hhmm_style));
+                    if is_new_day || labels_mmdd.is_empty() {
+                        labels_mmdd.push(Span::styled(
+                            format!("{:^6}", mmdd),
+                            Style::default().fg(YELLOW),
+                        ));
+                    } else {
+                        labels_mmdd.push(Span::raw("      "));
+                    }
+                    last_date = date;
+                }
+
+                let group = BarGroup::default()
+                    .label(Line::from(label))
+                    .bars(&[Bar::default().value(val).style(Style::default().fg(bar_color))]);
+                barchart = barchart.data(group);
+            }
+        }
+        f.render_widget(barchart, main_area);
+
+        if let Some(la) = label_area {
+            let inner_la = Rect {
+                x: la.x + 1,
+                y: la.y,
+                width: la.width.saturating_sub(2),
+                height: 2,
+            };
+            f.render_widget(
+                Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]),
+                inner_la,
+            );
         }
     }
-
-    f.render_widget(barchart, area);
 
     if app.is_loading {
         let area = centered_rect(30, 10, area);
@@ -238,7 +409,11 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             Paragraph::new("Loading...")
                 .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
                 .alignment(Alignment::Center)
-                .block(Block::default().borders(Borders::ALL).style(Style::default().fg(YELLOW))),
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .style(Style::default().fg(YELLOW)),
+                ),
             area,
         );
     }

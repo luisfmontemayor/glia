@@ -133,6 +133,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                 match app.focused_pane {
                                     crate::app::Pane::Graph => match key.code {
                                         KeyCode::Char('j') => app.update(Action::FocusPane(crate::app::Pane::Jobs)),
+                                        KeyCode::Char('u') => app.update(Action::ToggleUserLines),
                                         _ => {}
                                     },
                                     crate::app::Pane::Jobs => {

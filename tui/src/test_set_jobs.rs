@@ -7,6 +7,7 @@ mod tests {
     #[test]
     fn test_app_set_jobs_action() {
         let mut app = App::new();
+        app.window = crate::app::TimeWindow::WMax;
         let new_jobs = vec![
             JobMetrics {
                 started_at: "2023-10-27T12:00:00Z".to_string(),
