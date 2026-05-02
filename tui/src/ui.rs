@@ -275,6 +275,12 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
     let summaries = &app.summaries;
 
+    let table_title = if app.jobs_table_state.is_searching {
+        format!(" Jobs (Search: {}) ", app.jobs_table_state.search_query)
+    } else {
+        " Jobs ".to_string()
+    };
+
     if summaries.is_empty() {
         let msg = if app.is_loading {
             "Loading..."
@@ -287,7 +293,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(" Jobs ")
+                    .title(table_title)
                     .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             );
@@ -295,45 +301,79 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         return;
     }
 
+    let focus_cell = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Cell;
+    let selected_col = app.jobs_table_state.selected_col;
+
     let rows: Vec<Row> = summaries
         .iter()
-        .map(|s| {
-            Row::new(vec![
-                Cell::from(s.program_name.clone()),
-                Cell::from(format_with_commas(s.count as u64)),
-                Cell::from(format!("{:.2}s", s.avg_wall_time_ms as f64 / 1000.0)),
-                Cell::from(format!("{:.2}s", s.total_cpu_time_sec)),
-                Cell::from(format!("{}KB", format_with_commas(s.max_rss_kb))),
-            ])
-            .style(Style::default().fg(TEXT))
+        .enumerate()
+        .map(|(i, s)| {
+            let is_selected_row = app.jobs_table_state.row_state.selected() == Some(i);
+            let cells_content = vec![
+                s.program_name.clone(),
+                format_with_commas(s.count as u64),
+                format!("{:.2}s", s.avg_wall_time_ms as f64 / 1000.0),
+                format!("{:.2}s", s.total_cpu_time_sec),
+                format!("{}KB", format_with_commas(s.max_rss_kb)),
+            ];
+
+            let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
+                let is_selected_cell = is_selected_row && focus_cell && selected_col == Some(j);
+                
+                let display_content = if focus_cell && selected_col == Some(j) {
+                    content
+                } else if content.len() > 8 {
+                    format!("{}...", &content[..8])
+                } else {
+                    content
+                };
+
+                let mut style = Style::default();
+                if is_selected_cell {
+                    style = style.add_modifier(Modifier::REVERSED).fg(SAPPHIRE);
+                }
+                Cell::from(display_content).style(style)
+            }).collect();
+
+            Row::new(row_cells).style(Style::default().fg(TEXT))
         })
         .collect();
 
-    let table = Table::new(
-        rows,
-        [
-            Constraint::Min(20),
-            Constraint::Length(10),
-            Constraint::Length(15),
-            Constraint::Length(15),
-            Constraint::Length(15),
-        ],
-    )
-    .header(
-        Row::new(vec!["Name", "Uses", "Avg Wall (s)", "Total CPU (s)", "Max RSS"])
-            .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
-            .bottom_margin(1),
-    )
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Jobs ")
-            .border_style(Style::default().fg(border_color))
-            .style(Style::default().fg(TEXT)),
-    )
-    .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
+    let mut constraints = vec![
+        Constraint::Min(20),
+        Constraint::Length(10),
+        Constraint::Length(15),
+        Constraint::Length(15),
+        Constraint::Length(15),
+    ];
 
-    f.render_stateful_widget(table, table_area, &mut app.table_state);
+    if focus_cell {
+        if let Some(col) = selected_col {
+            if col < constraints.len() {
+                constraints[col] = Constraint::Min(25);
+            }
+        }
+    }
+
+    let mut table = Table::new(rows, constraints)
+        .header(
+            Row::new(vec!["Name", "Uses", "Avg Wall (s)", "Total CPU (s)", "Max RSS"])
+                .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
+                .bottom_margin(1),
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(table_title)
+                .border_style(Style::default().fg(border_color))
+                .style(Style::default().fg(TEXT)),
+        );
+
+    if !focus_cell {
+        table = table.highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
+    }
+
+    f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
 
     if app.is_loading {
         let area = centered_rect(30, 10, table_area);
@@ -410,7 +450,7 @@ fn render_detail_popup(f: &mut Frame, app: &App) {
     let area = centered_rect(50, 35, f.size());
     f.render_widget(Clear, area);
     
-    let (title, content) = if let Some(selected) = app.table_state.selected() {
+    let (title, content) = if let Some(selected) = app.jobs_table_state.row_state.selected() {
         if let Some(summary) = app.summaries.get(selected) {
             let prog_name = &summary.program_name;
             let prog_jobs: Vec<_> = app.jobs.iter().filter(|j| &j.program_name == prog_name).collect();

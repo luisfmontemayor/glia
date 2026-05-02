@@ -2,6 +2,7 @@ mod test_set_jobs;
 pub mod action;
 pub mod app;
 pub mod network;
+pub mod table_state;
 pub mod theme;
 pub mod ui;
 
@@ -119,18 +120,52 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                             }
                         });
                     }
-                    Action::Key(key) => match key.code {
-                        KeyCode::Char('q') => app.update(Action::Quit),
-                        KeyCode::Tab => app.update(Action::NextMetric),
-                        KeyCode::BackTab => app.update(Action::PreviousMetric),
-                        KeyCode::Char('t') => {
-                            app.update(Action::NextWindow);
-                            let _ = tx.send(Action::FetchMetrics);
+                    Action::Key(key) => {
+                        match key.code {
+                            KeyCode::Char('q') => app.update(Action::Quit),
+                            KeyCode::Tab => app.update(Action::NextMetric),
+                            KeyCode::BackTab => app.update(Action::PreviousMetric),
+                            KeyCode::Char('t') => {
+                                app.update(Action::NextWindow);
+                                let _ = tx.send(Action::FetchMetrics);
+                            }
+                            _ => {
+                                match app.focused_pane {
+                                    crate::app::Pane::Graph => match key.code {
+                                        KeyCode::Char('j') => app.update(Action::FocusPane(crate::app::Pane::Jobs)),
+                                        _ => {}
+                                    },
+                                    crate::app::Pane::Jobs => {
+                                        if app.jobs_table_state.is_searching {
+                                            match key.code {
+                                                KeyCode::Backspace => app.update(Action::TableBackspace),
+                                                KeyCode::Esc | KeyCode::Enter => app.update(Action::TableEndSearch),
+                                                KeyCode::Char(c) => app.update(Action::TableChar(c)),
+                                                _ => {}
+                                            }
+                                        } else {
+                                            match app.jobs_table_state.focus_mode {
+                                                crate::table_state::TableFocusMode::Row => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                    KeyCode::Char('/') => app.update(Action::TableSearch("".to_string())),
+                                                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
+                                                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                                                    KeyCode::Enter => app.update(Action::TableFocusCell),
+                                                    _ => {}
+                                                },
+                                                crate::table_state::TableFocusMode::Cell => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                    KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
+                                                    KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
+                                                    KeyCode::Esc => app.update(Action::TableFocusRow),
+                                                    _ => {}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
-                        KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
-                        KeyCode::Enter => app.update(Action::ToggleDetail),
-                        _ => {}
                     },
                     _ => app.update(action),
                 }
