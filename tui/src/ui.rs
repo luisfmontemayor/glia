@@ -43,6 +43,15 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 }
 
 fn render_header(f: &mut Frame, app: &App, area: Rect) {
+    let header_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Min(0),
+            Constraint::Length(10),
+            Constraint::Length(10),
+        ])
+        .split(area);
+
     let window_str = match app.window {
         TimeWindow::W1h => "1 Hour",
         TimeWindow::W3h => "3 Hours",
@@ -52,29 +61,54 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
         TimeWindow::WMax => "All Time",
     };
 
-    let db_color = if app.db_status { GREEN } else { RED };
-    let api_color = if app.api_status { GREEN } else { RED };
-
-    let text = vec![Line::from(vec![
+    let main_text = vec![Line::from(vec![
         Span::styled(
             format!(" {} ", app.org_name),
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Window: "),
         Span::styled(window_str, Style::default().fg(YELLOW)),
-        Span::raw(" | DB: "),
-        Span::styled("●", Style::default().fg(db_color)),
-        Span::raw(" | API: "),
-        Span::styled("●", Style::default().fg(api_color)),
     ])];
 
-    let paragraph = Paragraph::new(text).block(
+    let main_paragraph = Paragraph::new(main_text).block(
         Block::default()
             .borders(Borders::ALL)
             .title(" Status ")
             .style(Style::default().fg(TEXT)),
     );
-    f.render_widget(paragraph, area);
+    f.render_widget(main_paragraph, header_chunks[0]);
+
+    let (db_text, db_color) = if app.db_status {
+        ("ACTIVE", GREEN)
+    } else {
+        ("INACTIVE", RED)
+    };
+    let db_paragraph = Paragraph::new(db_text)
+        .alignment(Alignment::Center)
+        .style(Style::default().fg(db_color).add_modifier(Modifier::BOLD))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" DB ")
+                .style(Style::default().fg(TEXT)),
+        );
+    f.render_widget(db_paragraph, header_chunks[1]);
+
+    let (api_text, api_color) = if app.api_status {
+        ("ACTIVE", GREEN)
+    } else {
+        ("INACTIVE", RED)
+    };
+    let api_paragraph = Paragraph::new(api_text)
+        .alignment(Alignment::Center)
+        .style(Style::default().fg(api_color).add_modifier(Modifier::BOLD))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" API ")
+                .style(Style::default().fg(TEXT)),
+        );
+    f.render_widget(api_paragraph, header_chunks[2]);
 }
 
 fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
@@ -421,32 +455,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEXT };
-    let (table_area, error_area) = if let Some(msg) = &app.error_message {
-        let text_len = msg.chars().count() as u16;
-        let available_width = area.width.saturating_sub(2).max(1);
-        let required_height = (text_len.saturating_add(available_width - 1) / available_width) + 2;
-        
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(required_height)])
-            .split(area);
-        (chunks[0], Some(chunks[1]))
-    } else {
-        (area, None)
-    };
-
-    if let Some(ea) = error_area {
-        let p = Paragraph::new(app.error_message.as_ref().unwrap().clone())
-            .style(Style::default().fg(RED))
-            .wrap(ratatui::widgets::Wrap { trim: true })
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Error ")
-                    .style(Style::default().fg(RED)),
-            );
-        f.render_widget(p, ea);
-    }
+    let table_area = area;
 
     let summaries = &app.summaries;
 
