@@ -47,3 +47,42 @@ impl JobsTableState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_column_navigation() {
+        let mut state = JobsTableState::default();
+        assert_eq!(state.selected_col, None);
+
+        state.next_col(3);
+        assert_eq!(state.selected_col, Some(0));
+
+        state.next_col(3);
+        assert_eq!(state.selected_col, Some(1));
+
+        state.next_col(3);
+        assert_eq!(state.selected_col, Some(2));
+
+        state.next_col(3);
+        assert_eq!(state.selected_col, Some(2)); // Should stop at max_cols - 1
+
+        state.prev_col();
+        assert_eq!(state.selected_col, Some(1));
+
+        state.prev_col();
+        assert_eq!(state.selected_col, Some(0));
+
+        state.prev_col();
+        assert_eq!(state.selected_col, Some(0)); // Should stop at 0
+    }
+
+    #[test]
+    fn test_empty_cols() {
+        let mut state = JobsTableState::default();
+        state.next_col(0);
+        assert_eq!(state.selected_col, None);
+    }
+}
