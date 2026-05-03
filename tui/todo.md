@@ -1,9 +1,9 @@
-- [ ] fix: up arrows up and down / j and k for up and down do not work. 
-- [ ] too much distance between each column. Up the cropping limit to 21 for job names
-- [ ] table Headers should not be cropped
-- [ ] Remove the metric units from the values in each cell in the tables. Values only in the headers
-- [ ] return original colour to the time window value on app header
-- [ ] make each window (header, graph, jobs table, etc) it's own colour according to the app's palette
+- [x] fix: up arrows up and down / j and k for up and down do not work. 
+- [x] too much distance between each column. Up the cropping limit to 21 for job names
+- [x] table Headers should not be cropped
+- [x] Remove the metric units from the values in each cell in the tables. Values only in the headers
+- [x] return original colour to the time window value on app header
+- [x] make each window (header, graph, jobs table, etc) it's own colour according to the app's palette
 
 # Glia TUI Refactor TODO
 
