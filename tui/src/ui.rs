@@ -147,17 +147,8 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         Metric::JobStatus => " Job Status (Success: Green | Fail: Red) ",
     };
 
-    if app.jobs.is_empty() {
-        let msg = if !app.api_status {
-            "API is offline or unreachable."
-        } else if !app.db_status {
-            "Database is offline or unreachable."
-        } else if app.is_loading {
-            "Loading..."
-        } else {
-            "No data available in this time window."
-        };
-        let loading = Paragraph::new(msg)
+    if app.is_loading && app.jobs.is_empty() {
+        let loading = Paragraph::new("Loading...")
             .style(Style::default().fg(YELLOW))
             .alignment(Alignment::Center)
             .block(
@@ -464,7 +455,32 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEXT };
-    let table_area = area;
+    let (table_area, error_area) = if let Some(msg) = &app.error_message {
+        let text_len = msg.chars().count() as u16;
+        let available_width = area.width.saturating_sub(2).max(1);
+        let required_height = (text_len.saturating_add(available_width - 1) / available_width) + 2;
+        
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(required_height)])
+            .split(area);
+        (chunks[0], Some(chunks[1]))
+    } else {
+        (area, None)
+    };
+
+    if let Some(ea) = error_area {
+        let p = Paragraph::new(app.error_message.as_ref().unwrap().clone())
+            .style(Style::default().fg(RED))
+            .wrap(ratatui::widgets::Wrap { trim: true })
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Error ")
+                    .style(Style::default().fg(RED)),
+            );
+        f.render_widget(p, ea);
+    }
 
     let summaries = &app.summaries;
 
@@ -475,14 +491,10 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     };
 
     if summaries.is_empty() {
-        let msg = if !app.api_status {
-            "API is offline or unreachable. Please start the backend service."
-        } else if !app.db_status {
-            "Database is offline or unreachable."
-        } else if app.is_loading {
+        let msg = if app.is_loading {
             "Loading..."
         } else {
-            "No data available in this time window."
+            "No data available. Waiting for updates..."
         };
         let p = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
