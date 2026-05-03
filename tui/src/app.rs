@@ -135,8 +135,8 @@ pub fn update(&mut self, action: Action) {
                 self.is_loading = false;
                 self.api_status = true;
             }
-            Action::FetchError(_) => {
-                self.error_message = None;
+            Action::FetchError(err) => {
+                self.error_message = Some(err);
                 self.is_loading = false;
                 self.api_status = false;
             }
