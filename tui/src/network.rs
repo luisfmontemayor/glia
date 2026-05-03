@@ -90,8 +90,11 @@ mod network_error_tests {
     #[tokio::test]
     async fn test_fetch_metrics_connection_failure() {
         // We assume nothing is listening on port 1 (standard practice for connection failure)
+        let base_url = "http://localhost:1/telemetry"; // Use a port that should definitely fail
+        unsafe { std::env::set_var("GLIA_TELEMETRY_URL", base_url); }
         let result = fetch_metrics("1h").await;
-        assert!(result.is_err(), "Should return Err on connection failure");
+        unsafe { std::env::remove_var("GLIA_TELEMETRY_URL"); }
+        assert!(result.is_err(), "Should return Err on connection failure, got {:?}", result);
     }
 
     #[tokio::test]

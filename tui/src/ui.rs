@@ -147,8 +147,17 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         Metric::JobStatus => " Job Status (Success: Green | Fail: Red) ",
     };
 
-    if app.is_loading && app.jobs.is_empty() {
-        let loading = Paragraph::new("Loading...")
+    if app.jobs.is_empty() {
+        let msg = if !app.api_status {
+            "API is offline or unreachable."
+        } else if !app.db_status {
+            "Database is offline or unreachable."
+        } else if app.is_loading {
+            "Loading..."
+        } else {
+            "No data available in this time window."
+        };
+        let loading = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
             .alignment(Alignment::Center)
             .block(
@@ -466,10 +475,14 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     };
 
     if summaries.is_empty() {
-        let msg = if app.is_loading {
+        let msg = if !app.api_status {
+            "API is offline or unreachable. Please start the backend service."
+        } else if !app.db_status {
+            "Database is offline or unreachable."
+        } else if app.is_loading {
             "Loading..."
         } else {
-            "No data available. Waiting for updates..."
+            "No data available in this time window."
         };
         let p = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
