@@ -52,13 +52,13 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
         ])
         .split(area);
 
-    let window_str = match app.window {
-        TimeWindow::W1h => "1 Hour",
-        TimeWindow::W3h => "3 Hours",
-        TimeWindow::W6h => "6 Hours",
-        TimeWindow::W12h => "12 Hours",
-        TimeWindow::W24h => "24 Hours",
-        TimeWindow::WMax => "All Time",
+    let (window_str, window_color) = match app.window {
+        TimeWindow::W1h => ("1 Hour", GREEN),
+        TimeWindow::W3h => ("3 Hours", TEAL),
+        TimeWindow::W6h => ("6 Hours", BLUE),
+        TimeWindow::W12h => ("12 Hours", LAVENDER),
+        TimeWindow::W24h => ("24 Hours", MAUVE),
+        TimeWindow::WMax => ("All Time", PINK),
     };
 
     let main_text = vec![Line::from(vec![
@@ -67,7 +67,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Window: "),
-        Span::styled(window_str, Style::default().fg(YELLOW)),
+        Span::styled(window_str, Style::default().fg(window_color).add_modifier(Modifier::BOLD)),
     ])];
 
     let main_paragraph = Paragraph::new(main_text).block(
