@@ -158,6 +158,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
                                                     KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
                                                     KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
+                                                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
+                                                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
                                                     KeyCode::Esc => app.update(Action::TableFocusRow),
                                                     _ => {}
                                                 }

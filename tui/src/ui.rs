@@ -52,13 +52,13 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
         ])
         .split(area);
 
-    let (window_str, window_color) = match app.window {
-        TimeWindow::W1h => ("1 Hour", GREEN),
-        TimeWindow::W3h => ("3 Hours", TEAL),
-        TimeWindow::W6h => ("6 Hours", BLUE),
-        TimeWindow::W12h => ("12 Hours", LAVENDER),
-        TimeWindow::W24h => ("24 Hours", MAUVE),
-        TimeWindow::WMax => ("All Time", PINK),
+    let window_str = match app.window {
+        TimeWindow::W1h => "1 Hour",
+        TimeWindow::W3h => "3 Hours",
+        TimeWindow::W6h => "6 Hours",
+        TimeWindow::W12h => "12 Hours",
+        TimeWindow::W24h => "24 Hours",
+        TimeWindow::WMax => "All Time",
     };
 
     let main_text = vec![Line::from(vec![
@@ -67,13 +67,17 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Window: "),
-        Span::styled(window_str, Style::default().fg(window_color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            window_str,
+            Style::default().fg(YELLOW).add_modifier(Modifier::BOLD),
+        ),
     ])];
 
     let main_paragraph = Paragraph::new(main_text).block(
         Block::default()
             .borders(Borders::ALL)
             .title(" Status ")
+            .border_style(Style::default().fg(SAPPHIRE))
             .style(Style::default().fg(TEXT)),
     );
     f.render_widget(main_paragraph, header_chunks[0]);
@@ -90,6 +94,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" DB ")
+                .border_style(Style::default().fg(SAPPHIRE))
                 .style(Style::default().fg(TEXT)),
         );
     f.render_widget(db_paragraph, header_chunks[1]);
@@ -106,6 +111,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" API ")
+                .border_style(Style::default().fg(SAPPHIRE))
                 .style(Style::default().fg(TEXT)),
         );
     f.render_widget(api_paragraph, header_chunks[2]);
@@ -127,6 +133,7 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Metrics ")
+                .border_style(Style::default().fg(LAVENDER))
                 .style(Style::default().fg(TEXT)),
         )
         .select(active_index)
@@ -137,7 +144,7 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
-    let border_color = if app.focused_pane == Pane::Graph { PINK } else { TEXT };
+    let border_color = if app.focused_pane == Pane::Graph { PINK } else { BLUE };
 
     let chart_title = match app.metric {
         Metric::WallTime => " Wall Time (ms) ",
@@ -446,7 +453,8 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
-                        .style(Style::default().fg(YELLOW)),
+                        .border_style(Style::default().fg(border_color))
+                        .style(Style::default().fg(TEXT)),
                 ),
             area,
         );
@@ -454,7 +462,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
-    let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEXT };
+    let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEAL };
     let (table_area, error_area) = if let Some(msg) = &app.error_message {
         let text_len = msg.chars().count() as u16;
         let available_width = area.width.saturating_sub(2).max(1);
@@ -521,9 +529,9 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             let cells_content = vec![
                 s.program_name.clone(),
                 format_with_commas(s.count as u64),
-                format!("{:.2}s", s.avg_wall_time_ms as f64 / 1000.0),
-                format!("{:.2}s", s.total_cpu_time_sec),
-                format!("{}KB", format_with_commas(s.max_rss_kb)),
+                format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0),
+                format!("{:.2}", s.total_cpu_time_sec),
+                format_with_commas(s.max_rss_kb),
             ];
 
             let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
@@ -531,8 +539,8 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                 
                 let display_content = if focus_cell && selected_col == Some(j) {
                     content
-                } else if content.len() > 8 {
-                    format!("{}...", &content[..8])
+                } else if content.len() > 21 {
+                    format!("{}...", &content[..21])
                 } else {
                     content
                 };
@@ -549,17 +557,17 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         .collect();
 
     let mut constraints = vec![
-        Constraint::Min(20),
-        Constraint::Length(10),
+        Constraint::Min(25),
+        Constraint::Length(8),
+        Constraint::Length(14),
         Constraint::Length(15),
-        Constraint::Length(15),
-        Constraint::Length(15),
+        Constraint::Length(12),
     ];
 
     if focus_cell
         && let Some(col) = selected_col
             && col < constraints.len() {
-                constraints[col] = Constraint::Min(25);
+                constraints[col] = Constraint::Min(30);
             }
 
     let mut table = Table::new(rows, constraints)
@@ -589,7 +597,12 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             Paragraph::new("Loading...")
                 .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
                 .alignment(Alignment::Center)
-                .block(Block::default().borders(Borders::ALL).style(Style::default().fg(YELLOW))),
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_style(Style::default().fg(border_color))
+                        .style(Style::default().fg(TEXT)),
+                ),
             area,
         );
     }
