@@ -151,7 +151,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         Metric::CpuTime => " CPU Time (ms) ",
         Metric::CpuPercent => " CPU Percent (%) ",
         Metric::MaxRss => " Max RSS (KB) ",
-        Metric::JobStatus => " Job Status (Success: Green | Fail: Red) ",
+        Metric::JobStatus => " Job Status (Success | Fail) ",
     };
 
     if app.is_loading && app.jobs.is_empty() {
@@ -362,20 +362,20 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let group = BarGroup::default().label(Line::from(label)).bars(&[
                     Bar::default()
                         .value(success_val)
-                        .style(Style::default().fg(GREEN)),
+                        .style(Style::default().fg(SUBTEXT0)),
                     Bar::default()
                         .value(fail_val)
-                        .style(Style::default().fg(RED)),
+                        .style(Style::default().fg(SURFACE2)),
                 ]);
                 barchart = barchart.data(group);
             }
         } else {
             let bar_color = match app.metric {
-                Metric::WallTime => BLUE,
-                Metric::CpuTime => PEACH,
-                Metric::CpuPercent => GREEN,
-                Metric::MaxRss => RED,
-                _ => BLUE,
+                Metric::WallTime => SUBTEXT0,
+                Metric::CpuTime => OVERLAY2,
+                Metric::CpuPercent => OVERLAY1,
+                Metric::MaxRss => SURFACE2,
+                _ => SUBTEXT0,
             };
             barchart = barchart
                 .bar_width(5)
