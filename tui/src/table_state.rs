@@ -7,13 +7,29 @@ pub enum TableFocusMode {
     Cell,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct JobsTableState {
     pub row_state: TableState,
     pub selected_col: Option<usize>,
     pub focus_mode: TableFocusMode,
     pub search_query: String,
     pub is_searching: bool,
+    pub sort_col: Option<usize>,
+    pub sort_desc: bool,
+}
+
+impl Default for JobsTableState {
+    fn default() -> Self {
+        Self {
+            row_state: TableState::default(),
+            selected_col: None,
+            focus_mode: TableFocusMode::default(),
+            search_query: String::new(),
+            is_searching: false,
+            sort_col: None,
+            sort_desc: true,
+        }
+    }
 }
 
 impl JobsTableState {

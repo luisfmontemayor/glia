@@ -151,6 +151,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Char('/') => app.update(Action::TableSearch("".to_string())),
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                                                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                                                    KeyCode::Char('s') => app.update(Action::TableSort),
                                                     KeyCode::Enter => app.update(Action::TableFocusCell),
                                                     _ => {}
                                                 },
@@ -160,6 +161,7 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                                                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                                                    KeyCode::Char('s') => app.update(Action::TableSort),
                                                     KeyCode::Esc => app.update(Action::TableFocusRow),
                                                     _ => {}
                                                 }

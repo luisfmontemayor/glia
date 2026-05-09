@@ -1,11 +1,11 @@
-- [ ] prioritise time windows where there is data. If the 1h time window has no data, move to the next up until there's data, respecting the cycling nature of the options. 
+- [x] prioritise time windows where there is data. If the 1h time window has no data, move to the next up until there's data, respecting the cycling nature of the options. 
 - [ ] when in cell focus mode, if cell is focused, entire text must be displayed, by displacing cells away to show it's value. All is to be displaded to the right unless it's final column, then it must displace columns to the left and the window must expand dynamically like it is the spec for the error and table windows.
 - [ ] 0 value bars must be displayed on the graph window with a small square with the value displayed inside, narrower than the bar and just a few pixels taller than the value display
 - [ ] Implement column selection when clicking c. If cell is focused, pressing c selects it's column. If row is selected, pressing c selects first column. Arrows and h and l move column selection left and right
 - [ ] Implement rowselection when clicking r. If cell is focused, pressing r selects it's row. If column is selected, pressing r selects first row. Up down arrows and j k should move up and down the row selection
 - [ ] pressing r when on a cell focus selects it's entire row. pressing c on a cell focus focuses the entire column
-- [ ] pressing s when column is selected sorts table by it, pressing s when cell is selected means column is sorted, pressing s when row is selected is no op
-- [ ] Add blame mode, where pressing b renders line charts with different colours for each user for each metric, with x and y axis and a legend like that in the barchart section of https://blog.orhun.dev/ratatui-0-22-0/
+- [x] pressing s when column is selected sorts table by it, pressing s when cell is selected means column is sorted, pressing s when row is selected is no op
+- [x] Add blame mode, where pressing b renders line charts with different colours for each user for each metric, with x and y axis and a legend like that in the barchart section of https://blog.orhun.dev/ratatui-0-22-0/
 - [x] confirm that these barchart features are being used: https://ratatui.rs/highlights/v028/ 
 - [x] fix: up arrows up and down / j and k for up and down do not work. 
 - [x] too much distance between each column. Up the cropping limit to 21 for job names

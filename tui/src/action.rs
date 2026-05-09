@@ -28,4 +28,5 @@ pub enum Action {
     TableEndSearch,
     TableChar(char),
     TableBackspace,
+    TableSort,
 }
