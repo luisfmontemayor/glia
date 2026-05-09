@@ -1,5 +1,5 @@
 # TUI Dashboard (Session: 2026-04-10)
-
+- [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
 - [ ] fix tui, make consistent with spinup title etc 
 - [ ] add env var to add cores to the R installation
 - [ ] add most up to date conventional commits and make sure that the descriptions files for it are retained
@@ -11,7 +11,13 @@
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
 
 #######
-- [ ] You are currently using sources and outputs for R dependencies, but you aren't using them for the Python uv sync or Rust cargo build task>
+- [ ] fix: why does backend to db benchmark not show any throughput:
+```
+## Benchmark:   Backend-to-DB
+Latency (ms):           268.09      719.26     2976.05     6436.28     9690.97
+Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
+```
+- [ ] mise tasks: You are currently using sources and outputs for R dependencies, but you aren't using them for the Python uv sync or Rust cargo build task>
 - [ ] mise watch for automatic migrations on changes to the schema. Why would I not want to migrate? THink of that too.
 - [ ] assess depend in mise tomls and assess if it needs to be changed to a "pre" hook
 - [ ] RENV_CONFIG_PAK_ENABLED should always be enabled. always use pak
@@ -25,8 +31,8 @@
 - [ ] Test the R installation in a bare container
   - **Plan**: Create a Dockerfile starting from a minimal Ubuntu image. Install `R`, `rustc`, `cargo`, `mise`, and all identified system depend>
 
-- [ ] encrypt comms, start with https (STASHED)
-- [ ] cloud, by using the sandbpx software for aws, k8 and ansible
+- [ ] encrypt comms, start with https?
+- [ ] cloud, by using the sandbox software for aws, k8 and ansible
 - [x] cli gui (TUI Dashboard)
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
