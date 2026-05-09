@@ -14,6 +14,17 @@ pub enum TimeWindow {
 }
 
 impl TimeWindow {
+    pub fn next(&self) -> Self {
+        match self {
+            TimeWindow::W1h => TimeWindow::W3h,
+            TimeWindow::W3h => TimeWindow::W6h,
+            TimeWindow::W6h => TimeWindow::W12h,
+            TimeWindow::W12h => TimeWindow::W24h,
+            TimeWindow::W24h => TimeWindow::WMax,
+            TimeWindow::WMax => TimeWindow::W1h,
+        }
+    }
+
     pub fn to_duration(&self) -> Option<std::time::Duration> {
         match self {
             TimeWindow::W1h => Some(std::time::Duration::from_secs(3600)),
@@ -111,21 +122,34 @@ pub fn update(&mut self, action: Action) {
             Action::ToggleDetail => self.show_detail = !self.show_detail,
             Action::ToggleUserLines => self.show_user_lines = !self.show_user_lines,
             Action::SetJobs(jobs) => {
-                let now = std::time::SystemTime::now();
-                let cutoff = self.window.to_duration().and_then(|d| now.checked_sub(d));
+                let all_jobs = jobs;
+                if !all_jobs.is_empty() {
+                    for _ in 0..6 {
+                        let now = std::time::SystemTime::now();
+                        let cutoff = self.window.to_duration().and_then(|d| now.checked_sub(d));
 
-                self.jobs = jobs.into_iter().filter(|job| {
-                    if let Some(cutoff_time) = cutoff {
-                        if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&job.started_at) {
-                            let job_time: std::time::SystemTime = dt.into();
-                            job_time >= cutoff_time
-                        } else {
-                            true
+                        let matched_indices: Vec<usize> = all_jobs.iter().enumerate().filter_map(|(i, job)| {
+                            if let Some(cutoff_time) = cutoff {
+                                if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&job.started_at) {
+                                    let job_time: std::time::SystemTime = dt.into();
+                                    if job_time >= cutoff_time { Some(i) } else { None }
+                                } else {
+                                    Some(i)
+                                }
+                            } else {
+                                Some(i)
+                            }
+                        }).collect();
+
+                        if !matched_indices.is_empty() || self.window == TimeWindow::WMax {
+                            self.jobs = matched_indices.into_iter().map(|i| all_jobs[i].clone()).collect();
+                            break;
                         }
-                    } else {
-                        true
+                        self.window = self.window.next();
                     }
-                }).collect();
+                } else {
+                    self.jobs = Vec::new();
+                }
 
                 self.refresh_summaries();
                 if self.jobs_table_state.row_state.selected().is_none() && !self.jobs.is_empty() {
@@ -179,6 +203,19 @@ pub fn update(&mut self, action: Action) {
                     self.refresh_summaries();
                 }
             }
+            Action::TableSort => {
+                if self.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Cell {
+                    if let Some(selected) = self.jobs_table_state.selected_col {
+                        if self.jobs_table_state.sort_col == Some(selected) {
+                            self.jobs_table_state.sort_desc = !self.jobs_table_state.sort_desc;
+                        } else {
+                            self.jobs_table_state.sort_col = Some(selected);
+                            self.jobs_table_state.sort_desc = true;
+                        }
+                        self.refresh_summaries();
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -207,11 +244,30 @@ pub fn update(&mut self, action: Action) {
                 max_rss_kb: rss,
             })
             .collect();
-        summaries.sort_by(|a, b| {
-            b.count
-                .cmp(&a.count)
-                .then_with(|| a.program_name.cmp(&b.program_name))
-        });
+
+        if let Some(col) = self.jobs_table_state.sort_col {
+            summaries.sort_by(|a, b| {
+                let res = match col {
+                    0 => a.program_name.cmp(&b.program_name),
+                    1 => a.count.cmp(&b.count),
+                    2 => a.avg_wall_time_ms.cmp(&b.avg_wall_time_ms),
+                    3 => a.total_cpu_time_sec.partial_cmp(&b.total_cpu_time_sec).unwrap_or(std::cmp::Ordering::Equal),
+                    4 => a.max_rss_kb.cmp(&b.max_rss_kb),
+                    _ => std::cmp::Ordering::Equal,
+                };
+                if self.jobs_table_state.sort_desc {
+                    res.reverse()
+                } else {
+                    res
+                }
+            });
+        } else {
+            summaries.sort_by(|a, b| {
+                b.count
+                    .cmp(&a.count)
+                    .then_with(|| a.program_name.cmp(&b.program_name))
+            });
+        }
         summaries
     }
 
@@ -246,14 +302,7 @@ pub fn update(&mut self, action: Action) {
     }
 
     pub fn next_window(&mut self) {
-        self.window = match self.window {
-            TimeWindow::W1h => TimeWindow::W3h,
-            TimeWindow::W3h => TimeWindow::W6h,
-            TimeWindow::W6h => TimeWindow::W12h,
-            TimeWindow::W12h => TimeWindow::W24h,
-            TimeWindow::W24h => TimeWindow::WMax,
-            TimeWindow::WMax => TimeWindow::W1h,
-        };
+        self.window = self.window.next();
     }
 
     pub fn next_metric(&mut self) {
@@ -439,6 +488,64 @@ mod tests {
         // Both have count 1. "alpha" should come before "zebra" if sorted ascending by program_name.
         assert_eq!(summaries[0].program_name, "alpha");
         assert_eq!(summaries[1].program_name, "zebra");
+    }
+
+    #[test]
+    fn test_table_sorting() {
+        let mut app = App::new();
+        app.jobs = vec![
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "b".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 200,
+                cpu_time_sec: 0.1,
+                cpu_percent: 10.0,
+                max_rss_kb: 1000,
+                exit_code_int: 0,
+            },
+            JobMetrics {
+                started_at: "2023-10-27T10:00:00Z".to_string(),
+                program_name: "a".to_string(),
+                user_name: "user".to_string(),
+                wall_time_ms: 100,
+                cpu_time_sec: 0.2,
+                cpu_percent: 10.0,
+                max_rss_kb: 2000,
+                exit_code_int: 0,
+            },
+        ];
+
+        // Default sort: by count (both 1) then program_name ASC -> "a", "b"
+        let s = app.summarize_jobs();
+        assert_eq!(s[0].program_name, "a");
+        assert_eq!(s[1].program_name, "b");
+
+        // Sort by program_name (col 0) DESC
+        app.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Cell;
+        app.jobs_table_state.selected_col = Some(0);
+        app.update(Action::TableSort);
+        assert_eq!(app.jobs_table_state.sort_col, Some(0));
+        assert!(app.jobs_table_state.sort_desc);
+        let s = app.summarize_jobs();
+        assert_eq!(s[0].program_name, "b");
+        assert_eq!(s[1].program_name, "a");
+
+        // Sort by program_name (col 0) ASC
+        app.update(Action::TableSort);
+        assert!(!app.jobs_table_state.sort_desc);
+        let s = app.summarize_jobs();
+        assert_eq!(s[0].program_name, "a");
+        assert_eq!(s[1].program_name, "b");
+
+        // Sort by avg_wall_time_ms (col 2) DESC
+        app.jobs_table_state.selected_col = Some(2);
+        app.update(Action::TableSort);
+        assert_eq!(app.jobs_table_state.sort_col, Some(2));
+        assert!(app.jobs_table_state.sort_desc);
+        let s = app.summarize_jobs();
+        assert_eq!(s[0].program_name, "b"); // 200ms
+        assert_eq!(s[1].program_name, "a"); // 100ms
     }
 
     #[test]

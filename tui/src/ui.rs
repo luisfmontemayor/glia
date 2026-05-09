@@ -601,9 +601,29 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                 constraints[col] = Constraint::Min(30);
             }
 
+    let mut header_titles = vec![
+        "Name".to_string(),
+        "Uses".to_string(),
+        "Avg Wall (s)".to_string(),
+        "Total CPU (s)".to_string(),
+        "Max RSS".to_string(),
+    ];
+
+    if let Some(col) = app.jobs_table_state.sort_col {
+        if col < header_titles.len() {
+            let indicator = if app.jobs_table_state.sort_desc { " ▼" } else { " ▲" };
+            header_titles[col].push_str(indicator);
+        }
+    }
+
+    let header_cells: Vec<Cell> = header_titles
+        .into_iter()
+        .map(|t| Cell::from(t))
+        .collect();
+
     let mut table = Table::new(rows, constraints)
         .header(
-            Row::new(vec!["Name", "Uses", "Avg Wall (s)", "Total CPU (s)", "Max RSS"])
+            Row::new(header_cells)
                 .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
                 .bottom_margin(1),
         )
@@ -651,6 +671,8 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
         Span::raw(" Time Window | "),
         Span::styled("[j/k]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Navigate | "),
+        Span::styled("[s]", Style::default().add_modifier(Modifier::BOLD)),
+        Span::raw(" Sort | "),
         Span::styled("[q]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Quit"),
     ])];
