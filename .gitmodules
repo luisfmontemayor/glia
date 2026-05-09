@@ -1,3 +1,4 @@
 [submodule "scripts/conventional_commits"]
 	path = scripts/conventional_commits
 	url = ../conventional_commits
+	branch = main
