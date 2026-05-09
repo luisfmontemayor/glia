@@ -61,10 +61,14 @@ description = "View Postgres logs"
 run         = "docker compose -f backend/compose.yml logs -f"
 
 [tasks."db:json-dump"]
-description = "Dump job records from DB as a JSON array"
+description = "Dump job records from DB as a JSON array (Warning: use with limit to save tokens)"
 alias       = "jd"
-depends  = ["db:status"]
+depends     = ["db:status"]
+quiet       = true
 run         = """
+#!/bin/bash
 LIMIT_VAL=${1:-ALL}
-docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -q -c "SELECT coalesce(json_agg(t), '[]'::json) FROM (SELECT * FROM jobs ORDER BY started_at DESC LIMIT $LIMIT_VAL) t"
+QUERY="SET client_min_messages TO warning; SELECT coalesce(json_agg(t), '[]'::json) FROM (SELECT * FROM jobs ORDER BY started_at DESC LIMIT $LIMIT_VAL) t"
+echo "$QUERY" | docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -q -A --no-psqlrc
 """
+
