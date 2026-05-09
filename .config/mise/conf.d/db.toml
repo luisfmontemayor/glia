@@ -59,3 +59,12 @@ run         = "docker compose -f backend/compose.yml down -v && mise run spinup:
 [tasks."db:logs"]
 description = "View Postgres logs"
 run         = "docker compose -f backend/compose.yml logs -f"
+
+[tasks."db:json-dump"]
+description = "Dump job records from DB as a JSON array"
+alias       = "jd"
+depends  = ["db:status"]
+run         = """
+LIMIT_VAL=${1:-ALL}
+docker compose -f backend/compose.yml exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -q -c "SELECT coalesce(json_agg(t), '[]'::json) FROM (SELECT * FROM jobs ORDER BY started_at DESC LIMIT $LIMIT_VAL) t"
+"""
