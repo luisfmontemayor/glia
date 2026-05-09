@@ -6,7 +6,7 @@
 - [ ] pressing r when on a cell focus selects it's entire row. pressing c on a cell focus focuses the entire column
 - [ ] pressing s when column is selected sorts table by it, pressing s when cell is selected means column is sorted, pressing s when row is selected is no op
 - [ ] Add blame mode, where pressing b renders line charts with different colours for each user for each metric, with x and y axis and a legend like that in the barchart section of https://blog.orhun.dev/ratatui-0-22-0/
-- [ ] confirm that these barchart features are being used: https://ratatui.rs/highlights/v028/ 
+- [x] confirm that these barchart features are being used: https://ratatui.rs/highlights/v028/ 
 - [x] fix: up arrows up and down / j and k for up and down do not work. 
 - [x] too much distance between each column. Up the cropping limit to 21 for job names
 - [x] table Headers should not be cropped
