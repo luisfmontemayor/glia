@@ -9,7 +9,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{
         Axis, Bar, BarChart, BarGroup, Block, Borders, Cell, Chart, Clear, Dataset, GraphType,
-        Paragraph, Row, Table, Tabs,
+        LegendPosition, Paragraph, Row, Table, Tabs,
     },
 };
 
@@ -271,6 +271,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         ];
 
         let chart = Chart::new(datasets)
+            .legend_position(Some(LegendPosition::TopRight))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
