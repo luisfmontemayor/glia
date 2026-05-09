@@ -323,10 +323,15 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let mut last_date = String::new();
 
         if app.metric == Metric::JobStatus {
-            barchart = barchart.bar_width(2).bar_gap(1).group_gap(2);
+            barchart = barchart.bar_width(2).bar_gap(1).group_gap(2).max(8);
             for j in &app.jobs {
-                let success_val = if j.exit_code_int == 0 { 1 } else { 0 };
-                let fail_val = if j.exit_code_int != 0 { 1 } else { 0 };
+                let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
+                let s_text = if j.exit_code_int == 0 { "1".to_string() } else { "0".to_string() };
+                let s_style = if j.exit_code_int == 0 { Style::default().fg(GREEN) } else { Style::default().fg(SURFACE2) };
+
+                let f_render_val = if j.exit_code_int != 0 { 8 } else { 1 };
+                let f_text = if j.exit_code_int != 0 { "1".to_string() } else { "0".to_string() };
+                let f_style = if j.exit_code_int != 0 { Style::default().fg(RED) } else { Style::default().fg(SURFACE2) };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 let label = if is_wmax {
@@ -362,11 +367,13 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let group = BarGroup::default().label(Line::from(label)).bars(&[
                     Bar::default()
-                        .value(success_val)
-                        .style(Style::default().fg(GREEN)),
+                        .value(s_render_val)
+                        .text_value(s_text)
+                        .style(s_style),
                     Bar::default()
-                        .value(fail_val)
-                        .style(Style::default().fg(RED)),
+                        .value(f_render_val)
+                        .text_value(f_text)
+                        .style(f_style),
                 ]);
                 barchart = barchart.data(group);
             }
@@ -378,18 +385,41 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Metric::MaxRss => LAVENDER,
                 _ => TEXT,
             };
-            barchart = barchart
-                .bar_width(5)
-                .bar_gap(1)
-                .bar_style(Style::default().fg(bar_color));
+
+            let mut max_val = 0;
             for j in &app.jobs {
-                let val = match app.metric {
+                let v = match app.metric {
                     Metric::WallTime => j.wall_time_ms as u64,
                     Metric::CpuTime => (j.cpu_time_sec * 1000.0) as u64,
                     Metric::CpuPercent => j.cpu_percent as u64,
                     Metric::MaxRss => j.max_rss_kb as u64,
                     _ => 0,
                 };
+                if v > max_val { max_val = v; }
+            }
+
+            barchart = barchart
+                .bar_width(5)
+                .bar_gap(1)
+                .bar_style(Style::default().fg(bar_color))
+                .max(max_val.max(8));
+
+            for j in &app.jobs {
+                let orig_val = match app.metric {
+                    Metric::WallTime => j.wall_time_ms as u64,
+                    Metric::CpuTime => (j.cpu_time_sec * 1000.0) as u64,
+                    Metric::CpuPercent => j.cpu_percent as u64,
+                    Metric::MaxRss => j.max_rss_kb as u64,
+                    _ => 0,
+                };
+                let render_val = if orig_val == 0 { 1 } else { orig_val };
+                let text_val = format!("{}", orig_val);
+                let style = if orig_val == 0 {
+                    Style::default().fg(SURFACE2)
+                } else {
+                    Style::default().fg(bar_color)
+                };
+
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 let label = if is_wmax {
                     "".to_string()
@@ -424,7 +454,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let group = BarGroup::default()
                     .label(Line::from(label))
-                    .bars(&[Bar::default().value(val).style(Style::default().fg(bar_color))]);
+                    .bars(&[Bar::default().value(render_val).text_value(text_val).style(style)]);
                 barchart = barchart.data(group);
             }
         }
