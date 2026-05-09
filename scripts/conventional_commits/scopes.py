@@ -9,11 +9,12 @@ from typing import Literal
 from common import cli, system
 
 from .constants import (
+    EXACT_FILE_MATCHES,
     INFRA_DIRS,
     INFRA_FILES,
-    MISE_FILES,
     NO_SCOPE_STR,
     NOTHING_STAGED_STR,
+    PATH_PREFIX_MATCHES,
     SCOPE_CATEGORIES,
 )
 
@@ -63,17 +64,12 @@ def add_scope_category(filepath: str) -> str:
     category: str | Literal[""] = parts[0] if parts else ""
     filename = path.name
 
-    if parts[:3] == ("backend", "migrations", "versions"):
-        return "backend/migrations/versions"
+    if filename in EXACT_FILE_MATCHES:
+        return EXACT_FILE_MATCHES[filename]
 
-    if filename == "README.md":
-        return "README"
-
-    if filename in MISE_FILES:
-        return filename
-
-    if parts[:-1] == (".config", "mise", "conf.d"):
-        return f"mise/{filename.rstrip('.toml')}"
+    for prefix, template in PATH_PREFIX_MATCHES:
+        if parts[: len(prefix)] == prefix:
+            return template.format(filename_no_ext=path.stem)
 
     if is_infra_file(filename, filepath=path):
         return f"infrastructural/{filename}"
