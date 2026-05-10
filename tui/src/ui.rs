@@ -191,7 +191,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         (hh_mm, mm_dd, date.to_string())
     };
 
-    if app.show_user_lines {
+    if false { // app.show_user_lines {
         let mut user_data: HashMap<String, Vec<(f64, f64)>> = HashMap::new();
         let mut min_x = f64::MAX;
         let mut max_x = f64::MIN;
@@ -327,11 +327,11 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             for j in &app.jobs {
                 let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
                 let s_text = if j.exit_code_int == 0 { "1".to_string() } else { "0".to_string() };
-                let s_style = if j.exit_code_int == 0 { Style::default().fg(GREEN) } else { Style::default().fg(SURFACE2) };
+                let s_style = if j.exit_code_int == 0 { Style::default().fg(GREEN) } else { Style::default().fg(SURFACE1) };
 
                 let f_render_val = if j.exit_code_int != 0 { 8 } else { 1 };
                 let f_text = if j.exit_code_int != 0 { "1".to_string() } else { "0".to_string() };
-                let f_style = if j.exit_code_int != 0 { Style::default().fg(RED) } else { Style::default().fg(SURFACE2) };
+                let f_style = if j.exit_code_int != 0 { Style::default().fg(RED) } else { Style::default().fg(SURFACE1) };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 let label = if is_wmax {
@@ -415,7 +415,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let render_val = if orig_val == 0 { 1 } else { orig_val };
                 let text_val = format!("{}", orig_val);
                 let style = if orig_val == 0 {
-                    Style::default().fg(SURFACE2)
+                    Style::default().fg(SURFACE1)
                 } else {
                     Style::default().fg(bar_color)
                 };
@@ -492,7 +492,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
+pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEAL };
     let (table_area, error_area) = if let Some(msg) = &app.error_message {
         let text_len = msg.chars().count() as u16;
@@ -595,11 +595,13 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         Constraint::Length(12),
     ];
 
-    if focus_cell
-        && let Some(col) = selected_col
-            && col < constraints.len() {
+    if focus_cell {
+        if let Some(col) = selected_col {
+            if col < constraints.len() {
                 constraints[col] = Constraint::Min(30);
             }
+        }
+    }
 
     let mut header_titles = vec![
         "Name".to_string(),
@@ -621,7 +623,7 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         .map(|t| Cell::from(t))
         .collect();
 
-    let mut table = Table::new(rows, constraints)
+    let table = Table::new(rows, constraints)
         .header(
             Row::new(header_cells)
                 .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
@@ -633,11 +635,8 @@ fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                 .title(table_title)
                 .border_style(Style::default().fg(border_color))
                 .style(Style::default().fg(TEXT)),
-        );
-
-    if !focus_cell {
-        table = table.highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
-    }
+        )
+        .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
 
     f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
 
