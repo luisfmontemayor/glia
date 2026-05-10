@@ -133,7 +133,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                 match app.focused_pane {
                                     crate::app::Pane::Graph => match key.code {
                                         KeyCode::Char('j') => app.update(Action::FocusPane(crate::app::Pane::Jobs)),
-                                        KeyCode::Char('u') => app.update(Action::ToggleUserLines),
+                                        KeyCode::Char('b') => app.update(Action::ToggleBlameMode),
+                                        // KeyCode::Char('u') => app.update(Action::ToggleUserLines),
                                         _ => {}
                                     },
                                     crate::app::Pane::Jobs => {
@@ -161,6 +162,14 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                                                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
+                                                    KeyCode::Char('s') => app.update(Action::TableSort),
+                                                    KeyCode::Esc => app.update(Action::TableFocusRow),
+                                                    _ => {}
+                                                },
+                                                crate::table_state::TableFocusMode::Column => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                    KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
+                                                    KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
                                                     KeyCode::Char('s') => app.update(Action::TableSort),
                                                     KeyCode::Esc => app.update(Action::TableFocusRow),
                                                     _ => {}
