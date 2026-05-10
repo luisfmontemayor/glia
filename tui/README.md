@@ -3,9 +3,12 @@
 A minimalistic, highly visual terminal user interface for monitoring Glia telemetry data in real-time. Built with Rust and `ratatui`.
 
 ## Features
-- **Visual-First Design**: All metrics are presented graphically using sparklines or bar charts to provide immediate context without overwhelming the user with raw numbers.
-- **Dynamic Time Windows**: Toggle between viewing data from the past 1h, 3h, 6h, 12h, or 24h.
-- **Interactive Metric Selection**: Cycle through key metrics one at a time:
+- **Interactive Dashboard**: Multi-pane layout showing aggregated metric graphs alongside detailed job lists.
+- **Blame Mode**: Track resource usage per user to identify heavy workloads.
+- **Advanced Table Navigation**: Navigate through jobs with dedicated Row, Column, and Cell focus modes.
+- **Dynamic UI**: Auto-expanding cells for better visibility and prioritized time windows for granular analysis.
+- **Visual-First Design**: Metrics are presented graphically using sparklines or bar charts to provide immediate context.
+- **Interactive Metric Selection**: Cycle through key metrics:
   - Wall Time
   - CPU Time
   - CPU Percentage
@@ -23,6 +26,15 @@ cargo run
 ```
 
 ## Keyboard Controls
-- `Tab`: Cycle to the next metric.
-- `t`: Cycle to the next time window.
-- `q` or `Ctrl+C`: Quit the application.
+| Key | Action |
+|-----|--------|
+| `q` | Quit |
+| `Tab` / `Shift+Tab` | Cycle Metrics |
+| `t` | Cycle Time Windows (1h, 3h, 6h, 12h, 24h) |
+| `b` | Toggle Blame Mode (User-based aggregation) |
+| `r` | Row Focus Mode (Navigate through jobs/users) |
+| `c` | Column Focus Mode (Navigate through metrics) |
+| `Enter` | Select Cell (in Row mode) or Show Details |
+| `Esc` | Go back (Cell -> Row, Column -> Row) |
+| `s` | Sort Table (based on selected Cell or Column) |
+| `/` | Search jobs |
