@@ -1,4 +1,9 @@
 # TUI Dashboard (Session: 2026-04-10)
+- [x] Fix TUI bugs: Blame mode, Column mode, Cell expansion, Enter key selection, Unused mut warning.
+- [x] UI/UX: Lower 0 value grey tone of barchart to half the whiteness.
+- [x] UI/UX: Improve TUI legend/footer (ESC to select up, 'b' command, etc.).
+- [x] Documentation: Update TUI README with current features.
+- [ ] Technical Debt: Rename `core` crate to avoid namespace collision (User task).
 - [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
 - [ ] fix tui, make consistent with spinup title etc 
 - [ ] add env var to add cores to the R installation

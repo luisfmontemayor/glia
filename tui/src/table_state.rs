@@ -5,6 +5,7 @@ pub enum TableFocusMode {
     #[default]
     Row,
     Cell,
+    Column,
 }
 
 #[derive(Debug, Clone)]
