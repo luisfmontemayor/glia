@@ -550,6 +550,8 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
     }
 
     let focus_cell = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Cell;
+    let focus_col = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Column;
+    let focus_row = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Row;
     let selected_col = app.jobs_table_state.selected_col;
 
     let rows: Vec<Row> = summaries
@@ -566,9 +568,11 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
             ];
 
             let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
-                let is_selected_cell = is_selected_row && focus_cell && selected_col == Some(j);
+                let is_active_col = selected_col == Some(j);
+                let is_selected_cell = is_selected_row && focus_cell && is_active_col;
+                let is_highlighted_col = focus_col && is_active_col;
                 
-                let display_content = if focus_cell && selected_col == Some(j) {
+                let display_content = if (focus_cell || focus_col) && is_active_col {
                     content
                 } else if content.len() > 21 {
                     format!("{}...", &content[..21])
@@ -577,7 +581,7 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
                 };
 
                 let mut style = Style::default();
-                if is_selected_cell {
+                if is_selected_cell || is_highlighted_col {
                     style = style.add_modifier(Modifier::REVERSED).fg(SAPPHIRE);
                 }
                 Cell::from(display_content).style(style)
@@ -595,10 +599,47 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
         Constraint::Length(12),
     ];
 
-    if focus_cell {
+    if focus_cell || focus_col {
         if let Some(col) = selected_col {
             if col < constraints.len() {
-                constraints[col] = Constraint::Min(30);
+                let mut max_len = match col {
+                    0 => 25,
+                    1 => 8,
+                    2 => 14,
+                    3 => 15,
+                    4 => 12,
+                    _ => 0,
+                };
+
+                if focus_cell {
+                    if let Some(row_idx) = app.jobs_table_state.row_state.selected() {
+                        if let Some(s) = summaries.get(row_idx) {
+                             let content_len = match col {
+                                 0 => s.program_name.chars().count() as u16,
+                                 1 => format_with_commas(s.count as u64).chars().count() as u16,
+                                 2 => format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0).chars().count() as u16,
+                                 3 => format!("{:.2}", s.total_cpu_time_sec).chars().count() as u16,
+                                 4 => format_with_commas(s.max_rss_kb).chars().count() as u16,
+                                 _ => 0,
+                             };
+                             max_len = max_len.max(content_len);
+                        }
+                    }
+                } else if focus_col {
+                    for s in summaries {
+                         let content_len = match col {
+                                 0 => s.program_name.chars().count() as u16,
+                                 1 => format_with_commas(s.count as u64).chars().count() as u16,
+                                 2 => format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0).chars().count() as u16,
+                                 3 => format!("{:.2}", s.total_cpu_time_sec).chars().count() as u16,
+                                 4 => format_with_commas(s.max_rss_kb).chars().count() as u16,
+                                 _ => 0,
+                         };
+                         max_len = max_len.max(content_len);
+                    }
+                }
+                
+                constraints[col] = Constraint::Min(max_len);
             }
         }
     }
@@ -623,7 +664,7 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
         .map(|t| Cell::from(t))
         .collect();
 
-    let table = Table::new(rows, constraints)
+    let mut table = Table::new(rows, constraints)
         .header(
             Row::new(header_cells)
                 .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
@@ -635,8 +676,11 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
                 .title(table_title)
                 .border_style(Style::default().fg(border_color))
                 .style(Style::default().fg(TEXT)),
-        )
-        .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
+        );
+
+    if focus_row {
+        table = table.highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
+    }
 
     f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
 

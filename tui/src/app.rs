@@ -71,7 +71,7 @@ pub struct App {
     pub error_message: Option<String>,
     pub is_loading: bool,
     pub show_detail: bool,
-    pub show_user_lines: bool,
+    pub blame_mode: bool,
     pub org_name: String,
     pub db_status: bool,
     pub api_status: bool,
@@ -96,7 +96,7 @@ impl App {
             error_message: None,
             is_loading: false,
             show_detail: false,
-            show_user_lines: false,
+            blame_mode: false,
             org_name: std::env::var("GLIA_ORG_NAME").unwrap_or_else(|_| "Unnamed team".to_string()),
             db_status: true,
             api_status: true,
@@ -120,7 +120,7 @@ pub fn update(&mut self, action: Action) {
         Action::PreviousRow => self.previous_row(),
         Action::FetchMetrics => self.is_loading = true,
             Action::ToggleDetail => self.show_detail = !self.show_detail,
-            Action::ToggleUserLines => self.show_user_lines = !self.show_user_lines,
+            Action::ToggleBlameMode => self.blame_mode = !self.blame_mode,
             Action::SetJobs(jobs) => {
                 let all_jobs = jobs;
                 if !all_jobs.is_empty() {
@@ -176,6 +176,9 @@ pub fn update(&mut self, action: Action) {
             }
             Action::TableFocusCell => {
                 self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Cell;
+                if self.jobs_table_state.selected_col.is_none() {
+                    self.jobs_table_state.selected_col = Some(0);
+                }
             }
             Action::TableNextCol => {
                 self.jobs_table_state.next_col(5); // 5 columns in total
@@ -287,6 +290,9 @@ pub fn update(&mut self, action: Action) {
     }
 
     pub fn previous_row(&mut self) {
+        if self.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Column {
+            return;
+        }
         let count = self.summarize_jobs().len();
         if count == 0 {
             self.jobs_table_state.row_state.select(None);

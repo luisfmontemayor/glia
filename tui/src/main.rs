@@ -1,4 +1,8 @@
 mod test_set_jobs;
+mod test_column_mode;
+mod test_selection;
+mod test_cell_expansion;
+mod test_highlighting;
 pub mod action;
 pub mod app;
 pub mod network;

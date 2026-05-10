@@ -1,9 +1,43 @@
+# Glia TUI Refactor TODO
+- [x] lower 0 value grey tone of barchart to half the whiteness, should be darker but still grey
+- [x] no esc legend to say select up. Enter doesn't actually give details, it selects cell. exit unselects cell
+- [x] no blame mode command below signalled below with b and it doesn't work (legend/footer update needed)
+- [x] Update README with all current features
+- [x] fix: cannot display 1h time window when there's no data there. The "prioritise time windows with data" issue means that in the cycle of time windows (1h, 3h, 6h, 12h, 24h, max), the default app state should land on the smallest time window possible for which there is data. It should still display "no available data" if there is no available data, respecting the flow
+- [x] this warning happens when I run cargo run: unused_mut in `src/ui.rs:662:9`
+- [x] blame mode doesn't work. When b is toggled, it will change the bar plot for a line plot tracking resource usage (y) across the time scale (x) with each line representing a user
+- [x] column mode doesn't seem to work
+- [x] fix: selecting a cell still doesn't display the entire long cell name. The selection-less display of the cell is actually longer than that of the selected cell. Column width now expands to display the cell contents.
+- [x] when pressing enter, it doesn't actually select the cell. I have to click on the arrows or hjkl to be able to get a cell to be actually selected.
+- [x] Task 1: Verify Ratatui v0.28 BarChart features usage (e.g., NINE_LEVELS) (@analyst)
+- [x] Task 2: Add Legend to Blame Mode Chart (@flash-executor)
+- [x] Task 3: Prioritize time windows with data (auto-cycle TimeWindow on fetch) (@flash-executor)
+- [x] Task 4: Render 0 value bars distinctly with a "0" text value (@pro-executor)
+- [x] Task 5: Implement table sorting by selected column ('s' key) (@flash-executor)
+- [x] Task 6: Implement Column selection mode ('c' key) and Row selection mode ('r' key)
+    - [x] State logic: Added `TableFocusMode::Column`, handled `Action::TableFocusCol/Row` in `app.rs`, and bound `c`/`r` keys in `main.rs` (@pro-executor)
+    - [x] UI logic: Column Highlighting
+        - [x] Micro-task 6.1: Define mode flags (is_row_mode, is_col_mode, is_cell_mode) in `render_top_scripts_table`.
+        - [x] Micro-task 6.2: Conditionalize `Table::highlight_style` to only apply in Row mode.
+        - [x] Micro-task 6.3: Apply `REVERSED` sapphire style to the cell at `selected_col` in the row loop.
+- [x] Task 7: Dynamic cell expansion on focus in Cell mode
+    - [x] Micro-task 7.1: Retrieve full content of the active cell before constraint calculation.
+    - [x] Micro-task 7.2: Skip truncation (`...`) for the active cell in the rendering loop.
+    - [x] Micro-task 7.3: Calculate dynamic `Constraint::Length` for the focused column.
+    - [x] Micro-task 7.4: Implement horizontal displacement for final column expansion.
+
+### Technical Decisions
+- **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
+
+# ARCHIVE
+
+### TUI Refactor Part 3 (Completed)
 - [x] prioritise time windows where there is data. If the 1h time window has no data, move to the next up until there's data, respecting the cycling nature of the options. 
-- [ ] when in cell focus mode, if cell is focused, entire text must be displayed, by displacing cells away to show it's value. All is to be displaded to the right unless it's final column, then it must displace columns to the left and the window must expand dynamically like it is the spec for the error and table windows.
-- [ ] 0 value bars must be displayed on the graph window with a small square with the value displayed inside, narrower than the bar and just a few pixels taller than the value display
-- [ ] Implement column selection when clicking c. If cell is focused, pressing c selects it's column. If row is selected, pressing c selects first column. Arrows and h and l move column selection left and right
-- [ ] Implement rowselection when clicking r. If cell is focused, pressing r selects it's row. If column is selected, pressing r selects first row. Up down arrows and j k should move up and down the row selection
-- [ ] pressing r when on a cell focus selects it's entire row. pressing c on a cell focus focuses the entire column
+- [x] when in cell focus mode, if cell is focused, entire text must be displayed, by displacing cells away to show it's value. All is to be displaded to the right unless it's final column, then it must displace columns to the left and the window must expand dynamically like it is the spec for the error and table windows.
+- [x] 0 value bars must be displayed on the graph window with a small square with the value displayed inside, narrower than the bar and just a few pixels taller than the value display
+- [x] Implement column selection when clicking c. If cell is focused, pressing c selects it's column. If row is selected, pressing c selects first column. Arrows and h and l move column selection left and right
+- [x] Implement rowselection when clicking r. If cell is focused, pressing r selects it's row. If column is selected, pressing r selects first row. Up down arrows and j k should move up and down the row selection
+- [x] pressing r when on a cell focus selects it's entire row. pressing c on a cell focus focuses the entire column
 - [x] pressing s when column is selected sorts table by it, pressing s when cell is selected means column is sorted, pressing s when row is selected is no op
 - [x] Add blame mode, where pressing b renders line charts with different colours for each user for each metric, with x and y axis and a legend like that in the barchart section of https://blog.orhun.dev/ratatui-0-22-0/
 - [x] confirm that these barchart features are being used: https://ratatui.rs/highlights/v028/ 
@@ -13,19 +47,6 @@
 - [x] Remove the metric units from the values in each cell in the tables. Values only in the headers
 - [x] return original colour to the time window value on app header
 - [x] make each window (header, graph, jobs table, etc) it's own colour according to the app's palette
-
-# Glia TUI Refactor TODO
-
-## HIGH PRIORITY
-*All high priority tasks are complete. See ARCHIVE.*
-
-## MEDIUM PRIORITY
-*All medium priority tasks are complete. See ARCHIVE.*
-
-## LOW PRIORITY
-*All low priority tasks are complete. See ARCHIVE.*
-
-## ARCHIVE
 
 ### TUI Refactor Part 2 (Completed)
 - [x] Add a search bar for names of scripts in the jobs table 
@@ -83,5 +104,5 @@
 - [x] **Action System** [BACKEND] (@pro-executor): Implement a centralized `Action` enum to handle state transitions.
 
 ## QA Audit
-- All tests passed successfully (16 passed, 0 failed, 1 ignored).
+- All tests passed successfully (17 passed, 0 failed, 1 ignored).
 - Refactor is complete and verified.
