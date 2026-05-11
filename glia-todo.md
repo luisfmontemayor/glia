@@ -1,4 +1,6 @@
-- [ ] Add 
+- [ ] changes in .config/.conf tomls should actually be mise/toml_fileroot scope
+- [ ] make sure the core name of core is not an issue, if not, rename 
+- [ ] if i have two different versions of glia running on the same server, can they both push to the db? Should they? Should the clients be able to push to the db only if they are version children?
 
 # Task Plan: R Installation & Documentation (Session: 2026-04-10)
 - [ ] **Mise R Plugin Integration**:
