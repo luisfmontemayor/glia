@@ -30,4 +30,5 @@ pub enum Action {
     TableChar(char),
     TableBackspace,
     TableSort,
+    ToggleCommandPalette,
 }

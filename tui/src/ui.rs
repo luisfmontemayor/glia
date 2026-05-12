@@ -76,7 +76,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
     let main_paragraph = Paragraph::new(main_text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Status ")
+            .title(" Time Window • [t] ")
             .border_style(Style::default().fg(SAPPHIRE))
             .style(Style::default().fg(TEXT)),
     );
@@ -132,7 +132,7 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" Metrics ")
+                .title(" Metrics • [Tab]/[Shift+Tab] ")
                 .border_style(Style::default().fg(LAVENDER))
                 .style(Style::default().fg(TEXT)),
         )
@@ -142,20 +142,24 @@ fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
 
     f.render_widget(tabs, area);
 }
-
 fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Graph { PINK } else { BLUE };
 
     let chart_title = match app.metric {
-        Metric::WallTime => " Wall Time (ms) ",
-        Metric::CpuTime => " CPU Time (ms) ",
-        Metric::CpuPercent => " CPU Percent (%) ",
-        Metric::MaxRss => " Max RSS (KB) ",
-        Metric::JobStatus => " Job Status ",
+        Metric::WallTime => " Wall Time (ms) • [g] ",
+        Metric::CpuTime => " CPU Time (ms) • [g] ",
+        Metric::CpuPercent => " CPU Percent (%) • [g] ",
+        Metric::MaxRss => " Max RSS (KB) • [g] ",
+        Metric::JobStatus => " Job Success/Failure • [g] ",
     };
 
-    if app.is_loading && app.jobs.is_empty() {
-        let loading = Paragraph::new("Loading...")
+    if app.jobs.is_empty() {
+        let msg = if app.is_loading {
+            "Loading..."
+        } else {
+            "No data available for this time window"
+        };
+        let p = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
             .alignment(Alignment::Center)
             .block(
@@ -165,7 +169,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .border_style(Style::default().fg(border_color))
                     .style(Style::default().fg(TEXT)),
             );
-        f.render_widget(loading, area);
+        f.render_widget(p, area);
         return;
     }
 
@@ -191,7 +195,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         (hh_mm, mm_dd, date.to_string())
     };
 
-    if false { // app.show_user_lines {
+    if app.blame_mode { // app.show_user_lines {
         let mut user_data: HashMap<String, Vec<(f64, f64)>> = HashMap::new();
         let mut min_x = f64::MAX;
         let mut max_x = f64::MIN;
@@ -248,7 +252,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .map(|(i, data)| {
                 Dataset::default()
                     .name(user_names[i].as_str())
-                    .marker(symbols::Marker::Dot)
+                    .marker(ratatui::symbols::Marker::Braille)
                     .graph_type(GraphType::Line)
                     .style(Style::default().fg(colors[i % colors.len()]))
                     .data(data)
@@ -492,7 +496,7 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
+pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let border_color = if app.focused_pane == Pane::Jobs { PINK } else { TEAL };
     let (table_area, error_area) = if let Some(msg) = &app.error_message {
         let text_len = msg.chars().count() as u16;
@@ -524,9 +528,9 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
     let summaries = &app.summaries;
 
     let table_title = if app.jobs_table_state.is_searching {
-        format!(" Jobs (Search: {}) ", app.jobs_table_state.search_query)
+        format!(" Jobs (Search: {}) • [j] ", app.jobs_table_state.search_query)
     } else {
-        " Jobs ".to_string()
+        " Jobs • [j] ".to_string()
     };
 
     if summaries.is_empty() {
@@ -557,8 +561,7 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
     let rows: Vec<Row> = summaries
         .iter()
         .enumerate()
-        .map(|(i, s)| {
-            let is_selected_row = app.jobs_table_state.row_state.selected() == Some(i);
+        .map(|(_i, s)| {
             let cells_content = vec![
                 s.program_name.clone(),
                 format_with_commas(s.count as u64),
@@ -569,21 +572,15 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
 
             let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
                 let is_active_col = selected_col == Some(j);
-                let is_selected_cell = is_selected_row && focus_cell && is_active_col;
-                let is_highlighted_col = focus_col && is_active_col;
-                
-                let display_content = if (focus_cell || focus_col) && is_active_col {
-                    content
+
+                let display_content = if (focus_cell || focus_col) && is_active_col {                    content
                 } else if content.len() > 21 {
                     format!("{}...", &content[..21])
                 } else {
                     content
                 };
 
-                let mut style = Style::default();
-                if is_selected_cell || is_highlighted_col {
-                    style = style.add_modifier(Modifier::REVERSED).fg(SAPPHIRE);
-                }
+                let style = Style::default();
                 Cell::from(display_content).style(style)
             }).collect();
 
@@ -664,7 +661,7 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
         .map(|t| Cell::from(t))
         .collect();
 
-    let mut table = Table::new(rows, constraints)
+    let mut table = Table::new(rows, constraints.clone())
         .header(
             Row::new(header_cells)
                 .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
@@ -683,6 +680,66 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
     }
 
     f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
+
+    if (focus_cell || focus_col) && selected_col.is_some() {
+        let col_idx = selected_col.unwrap();
+        let inner_area = Rect {
+            x: table_area.x + 1,
+            y: table_area.y + 1,
+            width: table_area.width.saturating_sub(2),
+            height: table_area.height.saturating_sub(2),
+        };
+        
+        let split = ratatui::layout::Layout::default()
+            .direction(ratatui::layout::Direction::Horizontal)
+            .constraints(constraints.clone())
+            .spacing(1)
+            .split(inner_area);
+            
+        if col_idx < split.len() {
+            let col_rect = split[col_idx];
+            
+            if focus_col {
+                let border_rect = Rect {
+                    x: col_rect.x.saturating_sub(1),
+                    y: table_area.y,
+                    width: col_rect.width + 2,
+                    height: table_area.height,
+                };
+                
+                f.render_widget(
+                    ratatui::widgets::Block::default()
+                        .borders(ratatui::widgets::Borders::ALL)
+                        .border_style(Style::default().fg(SAPPHIRE)),
+                    border_rect,
+                );
+            } else if focus_cell {
+                if let Some(selected_row) = app.jobs_table_state.row_state.selected() {
+                    let offset = app.jobs_table_state.row_state.offset();
+                    if selected_row >= offset {
+                        let relative_row = (selected_row - offset) as u16;
+                        let cell_y = inner_area.y + 2 + relative_row;
+                        
+                        if cell_y < inner_area.bottom() {
+                            let cell_rect = Rect {
+                                x: col_rect.x.saturating_sub(1),
+                                y: cell_y,
+                                width: col_rect.width + 2,
+                                height: 1,
+                            };
+                            
+                            f.render_widget(
+                                ratatui::widgets::Block::default()
+                                    .borders(ratatui::widgets::Borders::LEFT | ratatui::widgets::Borders::RIGHT)
+                                    .border_style(Style::default().fg(SAPPHIRE)),
+                                cell_rect,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if app.is_loading {
         let area = centered_rect(30, 10, table_area);
@@ -705,9 +762,9 @@ pub(crate) fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect)
 fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
     let text = vec![Line::from(vec![
         Span::styled("[Enter]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Select/Detail | "),
+        Span::raw(" Select Cell | "),
         Span::styled("[Esc]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Back | "),
+        Span::raw(" Unselect Cell | "),
         Span::styled("[b]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Blame | "),
         Span::styled("[Tab]", Style::default().add_modifier(Modifier::BOLD)),
@@ -716,10 +773,8 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
         Span::raw(" Prev Metric | "),
         Span::styled("[t]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Time Window | "),
-        Span::styled("[j/k]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Navigate | "),
         Span::styled("[s]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Sort | "),
+        Span::raw(" Sort Column| "),
         Span::styled("[q]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Quit"),
     ])];
