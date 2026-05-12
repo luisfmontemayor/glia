@@ -32,8 +32,45 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(chunks[2]);
 
-    render_metric_chart(f, app, main_chunks[0]);
-    render_top_scripts_table(f, app, main_chunks[1]);
+    let (graph_area, jobs_area) = if app.show_command_palette {
+        let graph_split = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .split(main_chunks[0]);
+        let jobs_split = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .split(main_chunks[1]);
+
+        let left_text = Line::from(vec![
+            Span::styled("[b]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Blame Mode"),
+        ]);
+        let right_text = Line::from(vec![
+            Span::styled("[/]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Search | "),
+            Span::styled("[Enter]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Select | "),
+            Span::styled("[Esc]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Unselect | "),
+            Span::styled("[s]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Sort | "),
+            Span::styled("[Arrows]", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" Navigate"),
+        ]);
+
+        let palette_style = Style::default().fg(OVERLAY2);
+        
+        f.render_widget(Paragraph::new(left_text).style(palette_style), graph_split[1]);
+        f.render_widget(Paragraph::new(right_text).style(palette_style), jobs_split[1]);
+
+        (graph_split[0], jobs_split[0])
+    } else {
+        (main_chunks[0], main_chunks[1])
+    };
+
+    render_metric_chart(f, app, graph_area);
+    render_top_scripts_table(f, app, jobs_area);
 
     render_footer(f, app, chunks[3]);
 
@@ -561,7 +598,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let rows: Vec<Row> = summaries
         .iter()
         .enumerate()
-        .map(|(_i, s)| {
+        .map(|(i, s)| {
             let cells_content = vec![
                 s.program_name.clone(),
                 format_with_commas(s.count as u64),
@@ -573,14 +610,23 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
                 let is_active_col = selected_col == Some(j);
 
-                let display_content = if (focus_cell || focus_col) && is_active_col {                    content
+                let display_content = if (focus_cell || focus_col) && is_active_col {
+                    content
                 } else if content.len() > 21 {
                     format!("{}...", &content[..21])
                 } else {
                     content
                 };
 
-                let style = Style::default();
+                let mut style = Style::default();
+                if focus_cell {
+                    if app.jobs_table_state.row_state.selected() == Some(i) && is_active_col {
+                        style = style.bg(SAPPHIRE).fg(BASE);
+                    }
+                } else if focus_col && is_active_col {
+                    style = style.bg(SAPPHIRE).fg(BASE);
+                }
+
                 Cell::from(display_content).style(style)
             }).collect();
 
@@ -658,13 +704,19 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
     let header_cells: Vec<Cell> = header_titles
         .into_iter()
-        .map(|t| Cell::from(t))
+        .enumerate()
+        .map(|(j, t)| {
+            if focus_col && Some(j) == selected_col {
+                Cell::from(t).style(Style::default().bg(DARK_BLUE).fg(TEXT).add_modifier(Modifier::BOLD))
+            } else {
+                Cell::from(t).style(Style::default().fg(LAVENDER).add_modifier(Modifier::BOLD))
+            }
+        })
         .collect();
 
     let mut table = Table::new(rows, constraints.clone())
         .header(
             Row::new(header_cells)
-                .style(Style::default().add_modifier(Modifier::BOLD).fg(LAVENDER))
                 .bottom_margin(1),
         )
         .block(
@@ -676,70 +728,10 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         );
 
     if focus_row {
-        table = table.highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(SAPPHIRE));
+        table = table.highlight_style(Style::default().bg(SAPPHIRE).fg(BASE));
     }
 
     f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
-
-    if (focus_cell || focus_col) && selected_col.is_some() {
-        let col_idx = selected_col.unwrap();
-        let inner_area = Rect {
-            x: table_area.x + 1,
-            y: table_area.y + 1,
-            width: table_area.width.saturating_sub(2),
-            height: table_area.height.saturating_sub(2),
-        };
-        
-        let split = ratatui::layout::Layout::default()
-            .direction(ratatui::layout::Direction::Horizontal)
-            .constraints(constraints.clone())
-            .spacing(1)
-            .split(inner_area);
-            
-        if col_idx < split.len() {
-            let col_rect = split[col_idx];
-            
-            if focus_col {
-                let border_rect = Rect {
-                    x: col_rect.x.saturating_sub(1),
-                    y: table_area.y,
-                    width: col_rect.width + 2,
-                    height: table_area.height,
-                };
-                
-                f.render_widget(
-                    ratatui::widgets::Block::default()
-                        .borders(ratatui::widgets::Borders::ALL)
-                        .border_style(Style::default().fg(SAPPHIRE)),
-                    border_rect,
-                );
-            } else if focus_cell {
-                if let Some(selected_row) = app.jobs_table_state.row_state.selected() {
-                    let offset = app.jobs_table_state.row_state.offset();
-                    if selected_row >= offset {
-                        let relative_row = (selected_row - offset) as u16;
-                        let cell_y = inner_area.y + 2 + relative_row;
-                        
-                        if cell_y < inner_area.bottom() {
-                            let cell_rect = Rect {
-                                x: col_rect.x.saturating_sub(1),
-                                y: cell_y,
-                                width: col_rect.width + 2,
-                                height: 1,
-                            };
-                            
-                            f.render_widget(
-                                ratatui::widgets::Block::default()
-                                    .borders(ratatui::widgets::Borders::LEFT | ratatui::widgets::Borders::RIGHT)
-                                    .border_style(Style::default().fg(SAPPHIRE)),
-                                cell_rect,
-                            );
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     if app.is_loading {
         let area = centered_rect(30, 10, table_area);
@@ -761,20 +753,8 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
 fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
     let text = vec![Line::from(vec![
-        Span::styled("[Enter]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Select Cell | "),
-        Span::styled("[Esc]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Unselect Cell | "),
-        Span::styled("[b]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Blame | "),
-        Span::styled("[Tab]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Next Metric | "),
-        Span::styled("[Shift+Tab]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Prev Metric | "),
-        Span::styled("[t]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Time Window | "),
-        Span::styled("[s]", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" Sort Column| "),
+        Span::styled("[p]", Style::default().add_modifier(Modifier::BOLD)),
+        Span::raw(" Command Palette | "),
         Span::styled("[q]", Style::default().add_modifier(Modifier::BOLD)),
         Span::raw(" Quit"),
     ])];

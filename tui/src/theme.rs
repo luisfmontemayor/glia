@@ -13,6 +13,7 @@ pub const TEAL: Color = Color::Rgb(139, 213, 202);
 pub const SKY: Color = Color::Rgb(145, 215, 227);
 pub const SAPPHIRE: Color = Color::Rgb(125, 196, 228);
 pub const BLUE: Color = Color::Rgb(138, 173, 244);
+pub const DARK_BLUE: Color = Color::Rgb(30, 60, 110);
 pub const LAVENDER: Color = Color::Rgb(183, 189, 248);
 
 pub const TEXT: Color = Color::Rgb(202, 211, 245);
