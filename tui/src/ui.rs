@@ -35,11 +35,11 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let (graph_area, jobs_area) = if app.show_command_palette {
         let graph_split = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .constraints([Constraint::Min(0), Constraint::Length(2)])
             .split(main_chunks[0]);
         let jobs_split = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .constraints([Constraint::Min(0), Constraint::Length(2)])
             .split(main_chunks[1]);
 
         let left_text = Line::from(vec![
@@ -61,8 +61,18 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
         let palette_style = Style::default().fg(OVERLAY2);
         
-        f.render_widget(Paragraph::new(left_text).style(palette_style), graph_split[1]);
-        f.render_widget(Paragraph::new(right_text).style(palette_style), jobs_split[1]);
+        f.render_widget(
+            Paragraph::new(left_text)
+                .style(palette_style)
+                .wrap(ratatui::widgets::Wrap { trim: true }),
+            graph_split[1],
+        );
+        f.render_widget(
+            Paragraph::new(right_text)
+                .style(palette_style)
+                .wrap(ratatui::widgets::Wrap { trim: true }),
+            jobs_split[1],
+        );
 
         (graph_split[0], jobs_split[0])
     } else {
@@ -690,9 +700,9 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     let mut header_titles = vec![
         "Name".to_string(),
         "Uses".to_string(),
-        "Avg Wall (s)".to_string(),
-        "Total CPU (s)".to_string(),
-        "Max RSS".to_string(),
+        "Avg Wall\n(s)".to_string(),
+        "Total CPU\n(s)".to_string(),
+        "Max RSS\n(KB)".to_string(),
     ];
 
     if let Some(col) = app.jobs_table_state.sort_col {
@@ -716,8 +726,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
     let mut table = Table::new(rows, constraints.clone())
         .header(
-            Row::new(header_cells)
-                .bottom_margin(1),
+            Row::new(header_cells),
         )
         .block(
             Block::default()
