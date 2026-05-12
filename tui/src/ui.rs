@@ -707,7 +707,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         .enumerate()
         .map(|(j, t)| {
             if focus_col && Some(j) == selected_col {
-                Cell::from(t).style(Style::default().bg(DARK_BLUE).fg(TEXT).add_modifier(Modifier::BOLD))
+                Cell::from(t).style(Style::default().fg(DARK_BLUE).add_modifier(Modifier::REVERSED | Modifier::BOLD))
             } else {
                 Cell::from(t).style(Style::default().fg(LAVENDER).add_modifier(Modifier::BOLD))
             }

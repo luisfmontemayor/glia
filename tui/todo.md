@@ -1,10 +1,12 @@
 # Glia TUI Refactor TODO
+- [x] update column header highlighting in `src/ui.rs` to use `REVERSED` modifier @flash-executor
 - [ ] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
 - [ ] move blame mode toggle to command palette toggleable at the bottom of of graph pane
 - [ ] make ctrl+c a program quit
 - [ ] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
 - [ ] rename top jobs window to jobs window, referring to the pane where the table is
 - [ ] add equal margin border within the graph pane, currently uneven
+- [ ] add the table units to the space below the header cell. Bring cells and headers closer
 
 ### Technical Decisions
 - **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
