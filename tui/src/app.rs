@@ -76,6 +76,8 @@ pub struct App {
     pub db_status: bool,
     pub api_status: bool,
     pub focused_pane: Pane,
+    pub has_user_changed_window: bool,
+    pub show_command_palette: bool,
 }
 
 impl Default for App {
@@ -101,6 +103,8 @@ impl App {
             db_status: true,
             api_status: true,
             focused_pane: Pane::Jobs,
+            has_user_changed_window: false,
+            show_command_palette: false,
         };
         app.refresh_summaries();
         app
@@ -124,7 +128,8 @@ pub fn update(&mut self, action: Action) {
             Action::SetJobs(jobs) => {
                 let all_jobs = jobs;
                 if !all_jobs.is_empty() {
-                    for _ in 0..6 {
+                    let max_iters = if self.has_user_changed_window { 1 } else { 6 };
+                    for _ in 0..max_iters {
                         let now = std::time::SystemTime::now();
                         let cutoff = self.window.to_duration().and_then(|d| now.checked_sub(d));
 
@@ -141,7 +146,7 @@ pub fn update(&mut self, action: Action) {
                             }
                         }).collect();
 
-                        if !matched_indices.is_empty() || self.window == TimeWindow::WMax {
+                        if !matched_indices.is_empty() || self.window == TimeWindow::WMax || self.has_user_changed_window {
                             self.jobs = matched_indices.into_iter().map(|i| all_jobs[i].clone()).collect();
                             break;
                         }
@@ -218,6 +223,9 @@ pub fn update(&mut self, action: Action) {
                         self.refresh_summaries();
                     }
                 }
+            }
+            Action::ToggleCommandPalette => {
+                self.show_command_palette = !self.show_command_palette;
             }
             _ => {}
         }
@@ -309,6 +317,7 @@ pub fn update(&mut self, action: Action) {
 
     pub fn next_window(&mut self) {
         self.window = self.window.next();
+        self.has_user_changed_window = true;
     }
 
     pub fn next_metric(&mut self) {

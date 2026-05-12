@@ -1,17 +1,10 @@
-mod test_set_jobs;
-mod test_column_mode;
-mod test_selection;
-mod test_cell_expansion;
-mod test_highlighting;
-pub mod action;
-pub mod app;
-pub mod network;
-pub mod table_state;
-pub mod theme;
-pub mod ui;
+use tui::action::Action;
+use tui::app::App;
+use tui::ui;
+use tui::app::Pane;
+use tui::table_state::TableFocusMode;
+use tui::app::TimeWindow;
 
-use crate::action::Action;
-use crate::app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -106,15 +99,15 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                     Action::FetchMetrics => {
                         let tx_res = tx.clone();
                         let window = match app.window {
-                            crate::app::TimeWindow::W1h => "1h",
-                            crate::app::TimeWindow::W3h => "3h",
-                            crate::app::TimeWindow::W6h => "6h",
-                            crate::app::TimeWindow::W12h => "12h",
-                            crate::app::TimeWindow::W24h => "24h",
-                            crate::app::TimeWindow::WMax => "max",
+                            TimeWindow::W1h => "1h",
+                            TimeWindow::W3h => "3h",
+                            TimeWindow::W6h => "6h",
+                            TimeWindow::W12h => "12h",
+                            TimeWindow::W24h => "24h",
+                            TimeWindow::WMax => "max",
                         }.to_string();
                         tokio::spawn(async move {
-                            match crate::network::fetch_metrics(&window).await {
+                            match tui::network::fetch_metrics(&window).await {
                                 Ok(jobs) => {
                                     let _ = tx_res.send(Action::SetJobs(jobs));
                                 }
@@ -133,15 +126,15 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                 app.update(Action::NextWindow);
                                 let _ = tx.send(Action::FetchMetrics);
                             }
+                            KeyCode::Char('p') => app.update(Action::ToggleCommandPalette),
                             _ => {
                                 match app.focused_pane {
-                                    crate::app::Pane::Graph => match key.code {
-                                        KeyCode::Char('j') => app.update(Action::FocusPane(crate::app::Pane::Jobs)),
+                                    Pane::Graph => match key.code {
+                                        KeyCode::Char('j') => app.update(Action::FocusPane(Pane::Jobs)),
                                         KeyCode::Char('b') => app.update(Action::ToggleBlameMode),
-                                        // KeyCode::Char('u') => app.update(Action::ToggleUserLines),
                                         _ => {}
                                     },
-                                    crate::app::Pane::Jobs => {
+                                    Pane::Jobs => {
                                         if app.jobs_table_state.is_searching {
                                             match key.code {
                                                 KeyCode::Backspace => app.update(Action::TableBackspace),
@@ -151,8 +144,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                             }
                                         } else {
                                             match app.jobs_table_state.focus_mode {
-                                                crate::table_state::TableFocusMode::Row => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                TableFocusMode::Row => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
                                                     KeyCode::Char('/') => app.update(Action::TableSearch("".to_string())),
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                                                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
@@ -160,8 +153,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Enter => app.update(Action::TableFocusCell),
                                                     _ => {}
                                                 },
-                                                crate::table_state::TableFocusMode::Cell => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                TableFocusMode::Cell => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
                                                     KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
                                                     KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
@@ -170,8 +163,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Esc => app.update(Action::TableFocusRow),
                                                     _ => {}
                                                 },
-                                                crate::table_state::TableFocusMode::Column => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(crate::app::Pane::Graph)),
+                                                TableFocusMode::Column => match key.code {
+                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
                                                     KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
                                                     KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
                                                     KeyCode::Char('s') => app.update(Action::TableSort),
