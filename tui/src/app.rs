@@ -185,6 +185,12 @@ pub fn update(&mut self, action: Action) {
                     self.jobs_table_state.selected_col = Some(0);
                 }
             }
+            Action::TableFocusCol => {
+                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Column;
+                if self.jobs_table_state.selected_col.is_none() {
+                    self.jobs_table_state.selected_col = Some(0);
+                }
+            }
             Action::TableNextCol => {
                 self.jobs_table_state.next_col(5); // 5 columns in total
             }
