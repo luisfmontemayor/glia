@@ -118,6 +118,9 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                         });
                     }
                     Action::Key(key) => {
+                        if key.modifiers.contains(event::KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+                            app.update(Action::Quit);
+                        }
                         match key.code {
                             KeyCode::Char('q') => app.update(Action::Quit),
                             KeyCode::Tab => app.update(Action::NextMetric),
@@ -160,6 +163,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                                     KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
                                                     KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
                                                     KeyCode::Char('s') => app.update(Action::TableSort),
+                                                    KeyCode::Char('r') => app.update(Action::TableFocusRow),
+                                                    KeyCode::Char('c') => app.update(Action::TableFocusCol),
                                                     KeyCode::Esc => app.update(Action::TableFocusRow),
                                                     _ => {}
                                                 },
