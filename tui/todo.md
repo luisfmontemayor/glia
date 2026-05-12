@@ -1,10 +1,7 @@
 # Glia TUI Refactor TODO
-- [x] update column header highlighting in `src/ui.rs` to use `REVERSED` modifier @flash-executor
 - [ ] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
-- [ ] move blame mode toggle to command palette toggleable at the bottom of of graph pane
 - [ ] make ctrl+c a program quit
 - [ ] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
-- [ ] rename top jobs window to jobs window, referring to the pane where the table is
 - [ ] add equal margin border within the graph pane, currently uneven
 - [ ] add the table units to the space below the header cell. Bring cells and headers closer
 
@@ -13,7 +10,9 @@
 
 # ARCHIVE
 
-### Command Palette Refactor (Phase 4)
+### Command Palette Refactor
+- [x] move blame mode toggle to command palette toggleable at the bottom of of graph pane
+- [x] rename top jobs window to jobs window, referring to the pane where the table is
 - [x] make context of a commands pane: a subpane at the foot of each pane which displays the command keybindings. It can be toggled with p for command palette. These can be toggled. When toggled, they add to the panes, and the panes are to expand dynamically to include them. Currently a single row of info. The global command palette at the bottom stays anchored always. It displays p for toggling on the subpanes command palettes and q for quit. In the graph, it should shrink the graph horizontally to fit in the pane and in the table pane it should remove visible rows to fit.
 - [x] move next metric and previous metrc info to metrics pane name ("Metrics • [Tab]/[Shift+Tab] ")
 - [x] move the time window change command info to time window title ("Time Window • [t]")

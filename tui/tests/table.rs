@@ -5,12 +5,70 @@ use tui::action::Action;
 use tui::app::JobSummary;
 use tui::ui;
 use tui::ui::render_top_scripts_table;
-use tui::theme::SAPPHIRE;
+use tui::theme::{SAPPHIRE, DARK_BLUE};
 use ratatui::{
     backend::TestBackend,
     Terminal,
     style::Modifier,
 };
+
+#[test]
+fn should_select_column_state_transition() {
+    let mut app = App::new();
+    // Ensure we start in Row mode
+    app.jobs_table_state.focus_mode = TableFocusMode::Row;
+    
+    // Dispatch Action::TableFocusCol
+    app.update(Action::TableFocusCol);
+    
+    // Assert that app.focus_mode is now TableFocusMode::Column
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Column);
+}
+
+#[test]
+fn should_highlight_column_header_in_column_mode() {
+    let mut app = App::new();
+    app.summaries = vec![
+        JobSummary {
+            program_name: "test1".to_string(),
+            count: 10,
+            avg_wall_time_ms: 100,
+            total_cpu_time_sec: 1.0,
+            max_rss_kb: 1000,
+        },
+    ];
+    app.jobs_table_state.focus_mode = TableFocusMode::Column;
+    app.jobs_table_state.selected_col = Some(0); // "Name" column
+
+    let backend = TestBackend::new(100, 20);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    terminal
+        .draw(|f| {
+            let area = f.size();
+            render_top_scripts_table(f, &mut app, area);
+        })
+        .unwrap();
+
+    let buffer = terminal.backend().buffer();
+    
+    let mut header_highlighted = false;
+    for y in 0..5 {
+        for x in 0..100 {
+            let cell = buffer.get(x, y);
+            // The header for the first column is "Name"
+            if cell.symbol() == "N" && buffer.get(x+1, y).symbol() == "a" {
+                if cell.style().fg == Some(DARK_BLUE) && 
+                   cell.style().add_modifier.contains(Modifier::REVERSED) &&
+                   cell.style().add_modifier.contains(Modifier::BOLD) {
+                    header_highlighted = true;
+                }
+            }
+        }
+    }
+
+    assert!(header_highlighted, "Column header was not highlighted correctly in column mode");
+}
 
 #[test]
 fn should_select_cell_on_enter() {
