@@ -1,4 +1,26 @@
 # Glia TUI Refactor TODO
+- [ ] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
+- [ ] move blame mode toggle to command palette toggleable at the bottom of of graph pane
+- [ ] make ctrl+c a program quit
+- [ ] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
+- [ ] rename top jobs window to jobs window, referring to the pane where the table is
+- [ ] add equal margin border within the graph pane, currently uneven
+
+### Technical Decisions
+- **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
+
+# ARCHIVE
+
+### Command Palette Refactor (Phase 4)
+- [x] make context of a commands pane: a subpane at the foot of each pane which displays the command keybindings. It can be toggled with p for command palette. These can be toggled. When toggled, they add to the panes, and the panes are to expand dynamically to include them. Currently a single row of info. The global command palette at the bottom stays anchored always. It displays p for toggling on the subpanes command palettes and q for quit. In the graph, it should shrink the graph horizontally to fit in the pane and in the table pane it should remove visible rows to fit.
+- [x] move next metric and previous metrc info to metrics pane name ("Metrics • [Tab]/[Shift+Tab] ")
+- [x] move the time window change command info to time window title ("Time Window • [t]")
+- [x] moved focus graph [g] and focus jobs [j] keybindings to the titles of their respective panes
+
+### UI & Feature Polish (Completed)
+- [x] b still does not trigger blame mode. I currently only have a single user (single task was run 1000 times). Why does it not display
+- [x] selecting column means that column including header get wrapped by slim line outline in the same selection colour as the cell selection
+- [x] change cell selection fill to selection outline in same saphire colour
 - [x] lower 0 value grey tone of barchart to half the whiteness, should be darker but still grey
 - [x] no esc legend to say select up. Enter doesn't actually give details, it selects cell. exit unselects cell
 - [x] no blame mode command below signalled below with b and it doesn't work (legend/footer update needed)
@@ -25,11 +47,6 @@
     - [x] Micro-task 7.2: Skip truncation (`...`) for the active cell in the rendering loop.
     - [x] Micro-task 7.3: Calculate dynamic `Constraint::Length` for the focused column.
     - [x] Micro-task 7.4: Implement horizontal displacement for final column expansion.
-
-### Technical Decisions
-- **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
-
-# ARCHIVE
 
 ### TUI Refactor Part 3 (Completed)
 - [x] prioritise time windows where there is data. If the 1h time window has no data, move to the next up until there's data, respecting the cycling nature of the options. 
