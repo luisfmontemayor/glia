@@ -609,10 +609,11 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[1]);
 
         if let Some(la) = label_area {
+            let max_width = la.width.saturating_sub(2 + side_padding);
             let inner_la = Rect {
                 x: la.x + 2 + side_padding,
                 y: la.y,
-                width: total_content_width,
+                width: total_content_width.min(max_width),
                 height: la.height,
             };
             if is_wmax {
