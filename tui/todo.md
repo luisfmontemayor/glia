@@ -10,6 +10,7 @@
 # ARCHIVE
 
 ### Final UI & Polish (Refactor T1-T7)
+- [x] fix: prevent out-of-bounds panic when rendering high-density charts
 - [x] T1: Implement GLIA_DATA_POINT_THRESHOLD in App struct
 - [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment)
 - [x] T3: Refine Normal Mode BarChart (Centering, markers, padding)
