@@ -53,5 +53,6 @@ mise test:core && \
 mise test:backend && \
 mise test:glia_python && \
 mise test:gliar && \
+mise test:tui && \
 mise test:e2e-all
 """

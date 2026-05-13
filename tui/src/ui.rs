@@ -113,7 +113,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
             format!(" {} ", app.org_name),
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
-        Span::raw(" | Window: "),
+        Span::raw(" | Time Window [t]: "),
         Span::styled(
             window_str,
             Style::default().fg(YELLOW).add_modifier(Modifier::BOLD),
@@ -123,7 +123,7 @@ fn render_header(f: &mut Frame, app: &App, area: Rect) {
     let main_paragraph = Paragraph::new(main_text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Time Window • [t] ")
+            .title(" Glia TUI ")
             .border_style(Style::default().fg(SAPPHIRE))
             .style(Style::default().fg(TEXT)),
     );
