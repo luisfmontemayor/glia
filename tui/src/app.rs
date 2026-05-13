@@ -78,6 +78,7 @@ pub struct App {
     pub focused_pane: Pane,
     pub has_user_changed_window: bool,
     pub show_command_palette: bool,
+    pub data_point_threshold: usize,
 }
 
 impl Default for App {
@@ -105,6 +106,10 @@ impl App {
             focused_pane: Pane::Jobs,
             has_user_changed_window: false,
             show_command_palette: false,
+            data_point_threshold: std::env::var("GLIA_DATA_POINT_THRESHOLD")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(15),
         };
         app.refresh_summaries();
         app
