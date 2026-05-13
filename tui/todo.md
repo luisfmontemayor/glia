@@ -1,3 +1,12 @@
+# CURRENT ORCHESTRATION
+- [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
+- [ ] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
+- [ ] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
+- [ ] T4: Implement Pinned Headers for table scroll (@flash-executor)
+- [ ] T5: Refine Context-aware Scroll Indicator (@flash-executor)
+- [ ] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
+- [ ] T7: Final QA & todo.md Cleanup (@janitor)
+
 # Glia TUI Refactor TODO
 - [ ] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
 - [ ] make ctrl+c a program quit
@@ -9,6 +18,15 @@
 - **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
 
 # ARCHIVE
+
+### Final UI & Polish
+- [x] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
+- [x] make ctrl+c a program quit
+- [x] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
+- [x] add equal margin border within the graph pane, currently uneven
+- [x] add the table units to the space below the header cell. Bring cells and headers closer
+- [x] fixed: pressing r/c in cell focus mode correctly transitions back to row/column mode
+- [x] fixed: command palette now wraps over 2 lines when text is out of view
 
 ### Command Palette Refactor
 - [x] move blame mode toggle to command palette toggleable at the bottom of of graph pane

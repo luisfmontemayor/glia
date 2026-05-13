@@ -242,42 +242,63 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         (hh_mm, mm_dd, date.to_string())
     };
 
-    if app.blame_mode { // app.show_user_lines {
-        let mut user_data: HashMap<String, Vec<(f64, f64)>> = HashMap::new();
-        let mut min_x = f64::MAX;
-        let mut max_x = f64::MIN;
-        let mut max_y = 0.0f64;
+    if app.blame_mode {
+        let n_jobs = app.jobs.len();
+        let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
 
+        let mut job_points = Vec::new();
         for j in &app.jobs {
             if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&j.started_at) {
-                let x = dt.timestamp() as f64;
-                let val = match app.metric {
-                    Metric::WallTime => j.wall_time_ms as f64,
-                    Metric::CpuTime => (j.cpu_time_sec * 1000.0) as f64,
-                    Metric::CpuPercent => j.cpu_percent as f64,
-                    Metric::MaxRss => j.max_rss_kb as f64,
-                    Metric::JobStatus => {
-                        if j.exit_code_int == 0 {
-                            1.0
-                        } else {
-                            0.0
-                        }
-                    }
-                };
-                user_data.entry(j.user_name.clone()).or_default().push((x, val));
+                job_points.push((dt.timestamp() as f64, j));
+            }
+        }
+        job_points.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+        let mut user_data: HashMap<String, Vec<(f64, f64)>> = HashMap::new();
+        let mut max_y = 0.0f64;
+        let mut min_x = f64::MAX;
+        let mut max_x = f64::MIN;
+
+        for (i, (ts, j)) in job_points.iter().enumerate() {
+            let x = if is_low_density {
+                (i + 1) as f64 / (n_jobs + 1) as f64
+            } else {
+                *ts
+            };
+
+            let val = match app.metric {
+                Metric::WallTime => j.wall_time_ms as f64,
+                Metric::CpuTime => (j.cpu_time_sec * 1000.0) as f64,
+                Metric::CpuPercent => j.cpu_percent as f64,
+                Metric::MaxRss => j.max_rss_kb as f64,
+                Metric::JobStatus => if j.exit_code_int == 0 { 1.0 } else { 0.0 },
+            };
+
+            user_data.entry(j.user_name.clone()).or_default().push((x, val));
+            max_y = max_y.max(val);
+            if !is_low_density {
                 min_x = min_x.min(x);
                 max_x = max_x.max(x);
-                max_y = max_y.max(val);
             }
         }
 
-        if min_x == f64::MAX {
+        if is_low_density {
             min_x = 0.0;
             max_x = 1.0;
+        } else {
+            if min_x == f64::MAX {
+                min_x = 0.0;
+                max_x = 1.0;
+            } else if max_x == min_x {
+                min_x -= 1800.0;
+                max_x += 1800.0;
+            } else if n_jobs <= 3 {
+                let padding = (max_x - min_x) * 0.20;
+                min_x -= padding;
+                max_x += padding;
+            }
         }
-        if max_x <= min_x {
-            max_x = min_x + 1.0;
-        }
+
         if max_y <= 0.0 {
             max_y = 1.0;
         }
@@ -292,8 +313,29 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             sorted_data.push(d);
         }
 
-        let colors = [PINK, GREEN, BLUE];
-        let datasets: Vec<_> = sorted_data
+        let mut marker_line = Vec::new();
+        if is_low_density {
+            let marker_height = max_y * 0.05;
+            for i in 0..n_jobs {
+                let x = (i + 1) as f64 / (n_jobs + 1) as f64;
+                marker_line.push((x, marker_height));
+                marker_line.push((x, 0.0));
+                if i + 1 < n_jobs {
+                    let next_x = (i + 2) as f64 / (n_jobs + 1) as f64;
+                    marker_line.push((next_x, 0.0));
+                }
+            }
+        } else if n_jobs <= 3 {
+            for data in &sorted_data {
+                for &(x, _) in data {
+                    marker_line.push((x, max_y * 1.1));
+                    marker_line.push((x, 0.0));
+                }
+            }
+        }
+
+        let colors = [PINK, GREEN, BLUE, YELLOW, SAPPHIRE];
+        let mut datasets: Vec<_> = sorted_data
             .iter()
             .enumerate()
             .map(|(i, data)| {
@@ -306,20 +348,38 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             })
             .collect();
 
-        let x_labels = vec![
-            Span::raw(
+        if !marker_line.is_empty() {
+            datasets.push(
+                Dataset::default()
+                    .marker(ratatui::symbols::Marker::Braille)
+                    .graph_type(GraphType::Line)
+                    .style(Style::default().fg(OVERLAY0))
+                    .data(&marker_line)
+            );
+        }
+
+        let mut x_labels = Vec::new();
+        if is_low_density {
+            x_labels.push(Span::raw(""));
+            for (_, j) in &job_points {
+                let (hhmm, _, _) = parse_time(&j.started_at);
+                x_labels.push(Span::raw(hhmm));
+            }
+            x_labels.push(Span::raw(""));
+        } else {
+            x_labels.push(Span::raw(
                 chrono::DateTime::from_timestamp(min_x as i64, 0)
                     .unwrap_or_default()
                     .format("%H:%M")
                     .to_string(),
-            ),
-            Span::raw(
+            ));
+            x_labels.push(Span::raw(
                 chrono::DateTime::from_timestamp(max_x as i64, 0)
                     .unwrap_or_default()
                     .format("%H:%M")
                     .to_string(),
-            ),
-        ];
+            ));
+        }
 
         let chart = Chart::new(datasets)
             .legend_position(Some(LegendPosition::TopRight))
@@ -328,7 +388,8 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .borders(Borders::ALL)
                     .title(chart_title)
                     .border_style(Style::default().fg(border_color))
-                    .style(Style::default().fg(TEXT)),
+                    .style(Style::default().fg(TEXT))
+                    .padding(ratatui::widgets::Padding::uniform(1)),
             )
             .x_axis(
                 Axis::default()
@@ -364,7 +425,8 @@ fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .borders(Borders::ALL)
                     .title(chart_title)
                     .border_style(Style::default().fg(border_color))
-                    .style(Style::default().fg(TEXT)),
+                    .style(Style::default().fg(TEXT))
+                    .padding(ratatui::widgets::Padding::uniform(1)),
             )
             .bar_set(symbols::bar::NINE_LEVELS)
             .value_style(Style::default().fg(CRUST).bg(TEXT));
@@ -726,7 +788,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
 
     let mut table = Table::new(rows, constraints.clone())
         .header(
-            Row::new(header_cells),
+            Row::new(header_cells).height(2),
         )
         .block(
             Block::default()
@@ -740,7 +802,30 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         table = table.highlight_style(Style::default().bg(SAPPHIRE).fg(BASE));
     }
 
-    f.render_stateful_widget(table, table_area, &mut app.jobs_table_state.row_state);
+    let total_rows = summaries.len();
+    let offset = app.jobs_table_state.row_state.offset();
+    let overhead = 4; // 2 for borders, 2 for multi-line header
+    let visible_rows_no_indicator = table_area.height.saturating_sub(overhead) as usize;
+    let show_indicator = offset + visible_rows_no_indicator < total_rows;
+
+    let (actual_table_area, indicator_area) = if show_indicator {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .split(table_area);
+        (chunks[0], Some(chunks[1]))
+    } else {
+        (table_area, None)
+    };
+
+    f.render_stateful_widget(table, actual_table_area, &mut app.jobs_table_state.row_state);
+
+    if let Some(ia) = indicator_area {
+        let indicator = Paragraph::new("▼")
+            .alignment(Alignment::Center)
+            .style(Style::default().bg(SURFACE1).fg(TEXT));
+        f.render_widget(indicator, ia);
+    }
 
     if app.is_loading {
         let area = centered_rect(30, 10, table_area);
