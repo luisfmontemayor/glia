@@ -1,25 +1,22 @@
 # CURRENT ORCHESTRATION
 - [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
-- [ ] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
-- [ ] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
-- [ ] T4: Implement Pinned Headers for table scroll (@flash-executor)
-- [ ] T5: Refine Context-aware Scroll Indicator (@flash-executor)
-- [ ] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
-- [ ] T7: Final QA & todo.md Cleanup (@janitor)
-
-# Glia TUI Refactor TODO
-- [ ] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
-- [ ] make ctrl+c a program quit
-- [ ] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
-- [ ] add equal margin border within the graph pane, currently uneven
-- [ ] add the table units to the space below the header cell. Bring cells and headers closer
-
-### Technical Decisions
-- **State Management:** Use local boolean flags in `render_top_scripts_table` (derived from `focus_mode`) instead of persistent state fields to avoid redundancy and ensure UI sync.
+- [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
+- [x] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
+- [x] T4: Implement Pinned Headers for table scroll (@flash-executor)
+- [x] T5: Refine Context-aware Scroll Indicator (@flash-executor)
+- [x] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
+- [x] T7: Final QA & todo.md Cleanup (@janitor)
 
 # ARCHIVE
 
-### Final UI & Polish
+### Final UI & Polish (Refactor T1-T7)
+- [x] T1: Implement GLIA_DATA_POINT_THRESHOLD in App struct
+- [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment)
+- [x] T3: Refine Normal Mode BarChart (Centering, markers, padding)
+- [x] T4: Implement Pinned Headers for table scroll
+- [x] T5: Refine Context-aware Scroll Indicator
+- [x] T6: Optimize Table Header aesthetic (Compactness, unit proximity)
+- [x] T7: Final QA & todo.md Cleanup
 - [x] single timepoint blame graph should show line in the middle of the x axis. Ensure this is the case for 2 or 3: dynamically center the rows, adding equal space between one another and the end of the row. Also, add a vertical perpendicular line indicating the position of the time point
 - [x] make ctrl+c a program quit
 - [x] when there are too many rows on table to display, scroll should be implemented, by navigating down it should display. There should be a row space with a small downwards caret in a lng highlighted bar to indicate that there are more records below out of view which are not displayed
