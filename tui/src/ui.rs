@@ -1,5 +1,6 @@
 use crate::app::{App, Metric, Pane, TimeWindow};
 use crate::theme::*;
+use crate::utils::centered_rect;
 use std::collections::HashMap;
 use ratatui::{
     Frame,
@@ -710,10 +711,10 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         .map(|(i, s)| {
             let cells_content = vec![
                 s.program_name.clone(),
-                format_with_commas(s.count as u64),
+                crate::utils::format_with_commas(s.count as u64),
                 format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0),
                 format!("{:.2}", s.total_cpu_time_sec),
-                format_with_commas(s.max_rss_kb),
+                crate::utils::format_with_commas(s.max_rss_kb),
             ];
 
             let row_cells: Vec<Cell> = cells_content.into_iter().enumerate().map(|(j, content)| {
@@ -768,10 +769,10 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                         if let Some(s) = summaries.get(row_idx) {
                              let content_len = match col {
                                  0 => s.program_name.chars().count() as u16,
-                                 1 => format_with_commas(s.count as u64).chars().count() as u16,
+                                 1 => crate::utils::format_with_commas(s.count as u64).chars().count() as u16,
                                  2 => format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0).chars().count() as u16,
                                  3 => format!("{:.2}", s.total_cpu_time_sec).chars().count() as u16,
-                                 4 => format_with_commas(s.max_rss_kb).chars().count() as u16,
+                                 4 => crate::utils::format_with_commas(s.max_rss_kb).chars().count() as u16,
                                  _ => 0,
                              };
                              max_len = max_len.max(content_len);
@@ -781,10 +782,10 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
                     for s in summaries {
                          let content_len = match col {
                                  0 => s.program_name.chars().count() as u16,
-                                 1 => format_with_commas(s.count as u64).chars().count() as u16,
+                                 1 => crate::utils::format_with_commas(s.count as u64).chars().count() as u16,
                                  2 => format!("{:.2}", s.avg_wall_time_ms as f64 / 1000.0).chars().count() as u16,
                                  3 => format!("{:.2}", s.total_cpu_time_sec).chars().count() as u16,
-                                 4 => format_with_commas(s.max_rss_kb).chars().count() as u16,
+                                 4 => crate::utils::format_with_commas(s.max_rss_kb).chars().count() as u16,
                                  _ => 0,
                          };
                          max_len = max_len.max(content_len);
@@ -898,40 +899,8 @@ fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
     f.render_widget(paragraph, area);
 }
 
-fn format_with_commas(n: u64) -> String {
-    let s = n.to_string();
-    let mut result = String::new();
-    for (count, c) in s.chars().rev().enumerate() {
-        if count > 0 && count % 3 == 0 {
-            result.push(',');
-        }
-        result.push(c);
-    }
-    result.chars().rev().collect()
-}
-
-fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
-
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1]
-}
-
 fn render_detail_popup(f: &mut Frame, app: &App) {
-    let area = centered_rect(50, 35, f.size());
+    let area = crate::utils::centered_rect(50, 35, f.size());
     f.render_widget(Clear, area);
     
     let (title, content) = if let Some(selected) = app.jobs_table_state.row_state.selected() {
