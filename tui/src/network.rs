@@ -119,3 +119,36 @@ mod network_error_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod faulty_data_tests {
+    use super::*;
+
+    #[test]
+    fn test_malformed_json() {
+        let data = "{ invalid: json ]";
+        let result = parse_job_metrics(data);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_missing_required_fields() {
+        let data = r#"[{"program_name": "test"}]"#;
+        let result = parse_job_metrics(data);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_type_mismatch() {
+        let data = r#"[{"started_at": "...", "wall_time_ms": "not_a_number"}]"#;
+        let result = parse_job_metrics(data);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_unexpected_structure() {
+        let data = r#"{"started_at": "..."}"#;
+        let result = parse_job_metrics(data);
+        assert!(result.is_err());
+    }
+}
