@@ -3,3 +3,4 @@ pub mod tabs;
 pub mod footer;
 pub mod modal;
 pub mod table;
+pub mod chart;
