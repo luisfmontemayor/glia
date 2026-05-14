@@ -1,5 +1,5 @@
 use ratatui::{Terminal, backend::TestBackend};
-use tui::app::{App, Metric, TimeWindow};
+use tui::app::App;
 use tui::network::JobMetrics;
 use tui::ui;
 
