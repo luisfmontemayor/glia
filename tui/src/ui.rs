@@ -2,6 +2,7 @@ use crate::app::{App, Metric, Pane, TimeWindow};
 use crate::components::header::render_header;
 use crate::components::tabs::render_tabs;
 use crate::components::footer::render_footer;
+use crate::components::modal::render_modal;
 use crate::theme::*;
 use crate::utils::centered_rect;
 use std::collections::HashMap;
@@ -89,7 +90,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     render_footer(f, app, chunks[3]);
 
     if app.show_detail {
-        render_detail_popup(f, app);
+        render_modal(f, app);
     }
 }
 
@@ -786,75 +787,3 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     }
 }
 
-fn render_detail_popup(f: &mut Frame, app: &App) {
-    let area = crate::utils::centered_rect(50, 35, f.size());
-    f.render_widget(Clear, area);
-    
-    let (title, content) = if let Some(selected) = app.jobs_table_state.row_state.selected() {
-        if let Some(summary) = app.summaries.get(selected) {
-            let prog_name = &summary.program_name;
-            let prog_jobs: Vec<_> = app.jobs.iter().filter(|j| &j.program_name == prog_name).collect();
-            
-            let successes = prog_jobs.iter().filter(|j| j.exit_code_int == 0).count();
-            let failures = prog_jobs.len() - successes;
-            let last_exit = prog_jobs.last().map(|j| j.exit_code_int).unwrap_or(0);
-            
-            let mut unique_users: Vec<_> = prog_jobs.iter().map(|j| &j.user_name).collect();
-            unique_users.sort();
-            unique_users.dedup();
-            let users_str = if unique_users.is_empty() {
-                "None".to_string()
-            } else {
-                unique_users.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ")
-            };
-
-            (
-                format!(" Detail: {} ", prog_name),
-                vec![
-                    Line::from(vec![
-                        Span::styled("Status: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::styled(format!("{} Success", successes), Style::default().fg(GREEN)),
-                        Span::raw(" | "),
-                        Span::styled(format!("{} Failure", failures), Style::default().fg(RED)),
-                    ]),
-                    Line::from(vec![
-                        Span::styled("Last Exit Code: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::styled(last_exit.to_string(), if last_exit == 0 { Style::default().fg(GREEN) } else { Style::default().fg(RED) }),
-                    ]),
-                    Line::from(vec![
-                        Span::styled("Users: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::raw(users_str),
-                    ]),
-                    Line::from(""),
-                    Line::from(vec![
-                        Span::styled("Avg WallTime: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::styled(format!("{} ms", summary.avg_wall_time_ms), Style::default().fg(BLUE)),
-                    ]),
-                    Line::from(vec![
-                        Span::styled("Total CPU: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::styled(format!("{:.2} s", summary.total_cpu_time_sec), Style::default().fg(PEACH)),
-                    ]),
-                    Line::from(vec![
-                        Span::styled("Max RSS: ", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::styled(format!("{} KB", summary.max_rss_kb), Style::default().fg(RED)),
-                    ]),
-                ]
-            )
-        } else {
-            (" No Selection ".to_string(), vec![Line::from("No script selected")])
-        }
-    } else {
-        (" No Selection ".to_string(), vec![Line::from("No script selected")])
-    };
-
-    let block = Block::default()
-        .title(title)
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(SAPPHIRE));
-        
-    let paragraph = Paragraph::new(content)
-        .block(block)
-        .alignment(Alignment::Left);
-        
-    f.render_widget(paragraph, area);
-}
