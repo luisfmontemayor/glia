@@ -1,6 +1,6 @@
-use crate::network::JobMetrics;
 use crate::action::Action;
 use crate::components::table::table_state::JobsTableState;
+use crate::network::JobMetrics;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -115,19 +115,19 @@ impl App {
         app
     }
 
-pub fn refresh_summaries(&mut self) {
-    self.summaries = self.summarize_jobs();
-}
+    pub fn refresh_summaries(&mut self) {
+        self.summaries = self.summarize_jobs();
+    }
 
-pub fn update(&mut self, action: Action) {
-    match action {
-        Action::Quit => self.running = false,
-        Action::NextWindow => self.next_window(),
-        Action::NextMetric => self.next_metric(),
-        Action::PreviousMetric => self.previous_metric(),
-        Action::NextRow => self.next_row(),
-        Action::PreviousRow => self.previous_row(),
-        Action::FetchMetrics => self.is_loading = true,
+    pub fn update(&mut self, action: Action) {
+        match action {
+            Action::Quit => self.running = false,
+            Action::NextWindow => self.next_window(),
+            Action::NextMetric => self.next_metric(),
+            Action::PreviousMetric => self.previous_metric(),
+            Action::NextRow => self.next_row(),
+            Action::PreviousRow => self.previous_row(),
+            Action::FetchMetrics => self.is_loading = true,
             Action::ToggleDetail => self.show_detail = !self.show_detail,
             Action::ToggleBlameMode => self.blame_mode = !self.blame_mode,
             Action::SetJobs(jobs) => {
@@ -138,21 +138,37 @@ pub fn update(&mut self, action: Action) {
                         let now = std::time::SystemTime::now();
                         let cutoff = self.window.to_duration().and_then(|d| now.checked_sub(d));
 
-                        let matched_indices: Vec<usize> = all_jobs.iter().enumerate().filter_map(|(i, job)| {
-                            if let Some(cutoff_time) = cutoff {
-                                if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&job.started_at) {
-                                    let job_time: std::time::SystemTime = dt.into();
-                                    if job_time >= cutoff_time { Some(i) } else { None }
+                        let matched_indices: Vec<usize> = all_jobs
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(i, job)| {
+                                if let Some(cutoff_time) = cutoff {
+                                    if let Ok(dt) =
+                                        chrono::DateTime::parse_from_rfc3339(&job.started_at)
+                                    {
+                                        let job_time: std::time::SystemTime = dt.into();
+                                        if job_time >= cutoff_time {
+                                            Some(i)
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        Some(i)
+                                    }
                                 } else {
                                     Some(i)
                                 }
-                            } else {
-                                Some(i)
-                            }
-                        }).collect();
+                            })
+                            .collect();
 
-                        if !matched_indices.is_empty() || self.window == TimeWindow::WMax || self.has_user_changed_window {
-                            self.jobs = matched_indices.into_iter().map(|i| all_jobs[i].clone()).collect();
+                        if !matched_indices.is_empty()
+                            || self.window == TimeWindow::WMax
+                            || self.has_user_changed_window
+                        {
+                            self.jobs = matched_indices
+                                .into_iter()
+                                .map(|i| all_jobs[i].clone())
+                                .collect();
                             break;
                         }
                         self.window = self.window.next();
@@ -182,16 +198,19 @@ pub fn update(&mut self, action: Action) {
                 self.focused_pane = pane;
             }
             Action::TableFocusRow => {
-                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Row;
+                self.jobs_table_state.focus_mode =
+                    crate::components::table::table_state::TableFocusMode::Row;
             }
             Action::TableFocusCell => {
-                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Cell;
+                self.jobs_table_state.focus_mode =
+                    crate::components::table::table_state::TableFocusMode::Cell;
                 if self.jobs_table_state.selected_col.is_none() {
                     self.jobs_table_state.selected_col = Some(0);
                 }
             }
             Action::TableFocusCol => {
-                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Column;
+                self.jobs_table_state.focus_mode =
+                    crate::components::table::table_state::TableFocusMode::Column;
                 if self.jobs_table_state.selected_col.is_none() {
                     self.jobs_table_state.selected_col = Some(0);
                 }
@@ -223,7 +242,9 @@ pub fn update(&mut self, action: Action) {
                 }
             }
             Action::TableSort => {
-                if self.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Cell {
+                if self.jobs_table_state.focus_mode
+                    == crate::components::table::table_state::TableFocusMode::Cell
+                {
                     if let Some(selected) = self.jobs_table_state.selected_col {
                         if self.jobs_table_state.sort_col == Some(selected) {
                             self.jobs_table_state.sort_desc = !self.jobs_table_state.sort_desc;
@@ -273,7 +294,10 @@ pub fn update(&mut self, action: Action) {
                     0 => a.program_name.cmp(&b.program_name),
                     1 => a.count.cmp(&b.count),
                     2 => a.avg_wall_time_ms.cmp(&b.avg_wall_time_ms),
-                    3 => a.total_cpu_time_sec.partial_cmp(&b.total_cpu_time_sec).unwrap_or(std::cmp::Ordering::Equal),
+                    3 => a
+                        .total_cpu_time_sec
+                        .partial_cmp(&b.total_cpu_time_sec)
+                        .unwrap_or(std::cmp::Ordering::Equal),
                     4 => a.max_rss_kb.cmp(&b.max_rss_kb),
                     _ => std::cmp::Ordering::Equal,
                 };
@@ -301,7 +325,11 @@ pub fn update(&mut self, action: Action) {
         }
         let i = match self.jobs_table_state.row_state.selected() {
             Some(i) => {
-                if i >= count - 1 { 0 } else { i + 1 }
+                if i >= count - 1 {
+                    0
+                } else {
+                    i + 1
+                }
             }
             None => 0,
         };
@@ -309,7 +337,9 @@ pub fn update(&mut self, action: Action) {
     }
 
     pub fn previous_row(&mut self) {
-        if self.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Column {
+        if self.jobs_table_state.focus_mode
+            == crate::components::table::table_state::TableFocusMode::Column
+        {
             return;
         }
         let count = self.summarize_jobs().len();
@@ -319,7 +349,11 @@ pub fn update(&mut self, action: Action) {
         }
         let i = match self.jobs_table_state.row_state.selected() {
             Some(i) => {
-                if i == 0 { count - 1 } else { i - 1 }
+                if i == 0 {
+                    count - 1
+                } else {
+                    i - 1
+                }
             }
             None => 0,
         };
@@ -399,7 +433,7 @@ mod tests {
                 exit_code_int: 1,
             },
         ];
-        
+
         let summaries = app.summarize_jobs();
         assert_eq!(summaries.len(), 1);
         let s = &summaries[0];
@@ -548,7 +582,8 @@ mod tests {
         assert_eq!(s[1].program_name, "b");
 
         // Sort by program_name (col 0) DESC
-        app.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Cell;
+        app.jobs_table_state.focus_mode =
+            crate::components::table::table_state::TableFocusMode::Cell;
         app.jobs_table_state.selected_col = Some(0);
         app.update(Action::TableSort);
         assert_eq!(app.jobs_table_state.sort_col, Some(0));
@@ -579,10 +614,10 @@ mod tests {
         use crate::components::table::table_state::TableFocusMode;
         let mut app = App::new();
         assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
-        
+
         app.update(Action::TableFocusCell);
         assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Cell);
-        
+
         app.update(Action::TableFocusRow);
         assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
     }
@@ -612,36 +647,36 @@ mod tests {
                 exit_code_int: 0,
             },
         ];
-        
+
         // Initial state: both should be there
         assert_eq!(app.summarize_jobs().len(), 2);
-        
+
         // Apply filter
         app.update(Action::TableSearch("find".to_string()));
-        
+
         // Case-insensitive check
         app.update(Action::TableSearch("FIND".to_string()));
         assert_eq!(app.summarize_jobs().len(), 1);
         let summaries = app.summarize_jobs();
-        
+
         // Case-insensitive check
         app.update(Action::TableSearch("FIND".to_string()));
         assert_eq!(app.summarize_jobs().len(), 1);
         assert_eq!(summaries.len(), 1);
-        
+
         // Case-insensitive check
         app.update(Action::TableSearch("FIND".to_string()));
         assert_eq!(app.summarize_jobs().len(), 1);
         assert_eq!(summaries[0].program_name, "find_me");
-        
+
         // Case-insensitive check
         app.update(Action::TableSearch("FIND".to_string()));
         assert_eq!(app.summarize_jobs().len(), 1);
-        
+
         // Apply filter that matches nothing
         app.update(Action::TableSearch("nothing".to_string()));
         assert_eq!(app.summarize_jobs().len(), 0);
-        
+
         // Clear filter (empty string)
         app.update(Action::TableSearch("".to_string()));
         assert_eq!(app.summarize_jobs().len(), 2);

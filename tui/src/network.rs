@@ -18,7 +18,8 @@ pub fn parse_job_metrics(json: &str) -> serde_json::Result<Vec<JobMetrics>> {
 }
 
 pub async fn fetch_metrics(window: &str) -> Result<Vec<JobMetrics>, Box<dyn Error>> {
-    let base_url = std::env::var("GLIA_TELEMETRY_URL").unwrap_or_else(|_| "http://localhost:8000/telemetry".to_string());
+    let base_url = std::env::var("GLIA_TELEMETRY_URL")
+        .unwrap_or_else(|_| "http://localhost:8000/telemetry".to_string());
     let url = format!("{}?window={}&limit=1000", base_url, window);
     let resp = reqwest::get(url).await?.json::<Vec<JobMetrics>>().await?;
     Ok(resp)
@@ -67,7 +68,7 @@ mod tests {
 
         let (tx, mut rx) = mpsc::unbounded_channel();
         let tx_res = tx.clone();
-        
+
         tokio::spawn(async move {
             let data = r#"[{"started_at":"2023-10-27T10:00:00Z","program_name":"test","user_name":"user","wall_time_ms":100,"cpu_time_sec":0.1,"cpu_percent":10.0,"max_rss_kb":1024,"exit_code_int":0}]"#;
             let jobs = parse_job_metrics(data).unwrap();
@@ -91,10 +92,18 @@ mod network_error_tests {
     async fn test_fetch_metrics_connection_failure() {
         // We assume nothing is listening on port 1 (standard practice for connection failure)
         let base_url = "http://localhost:1/telemetry"; // Use a port that should definitely fail
-        unsafe { std::env::set_var("GLIA_TELEMETRY_URL", base_url); }
+        unsafe {
+            std::env::set_var("GLIA_TELEMETRY_URL", base_url);
+        }
         let result = fetch_metrics("1h").await;
-        unsafe { std::env::remove_var("GLIA_TELEMETRY_URL"); }
-        assert!(result.is_err(), "Should return Err on connection failure, got {:?}", result);
+        unsafe {
+            std::env::remove_var("GLIA_TELEMETRY_URL");
+        }
+        assert!(
+            result.is_err(),
+            "Should return Err on connection failure, got {:?}",
+            result
+        );
     }
 
     #[tokio::test]
@@ -104,6 +113,9 @@ mod network_error_tests {
         let result = fetch_metrics("1h").await;
         println!("Result from backend: {:?}", result);
         // We just assert that it is Ok to satisfy TDD, and we print it out to verify what's there.
-        assert!(result.is_ok(), "Expected Ok but got an Err. Make sure the backend is running at the configured port.");
+        assert!(
+            result.is_ok(),
+            "Expected Ok but got an Err. Make sure the backend is running at the configured port."
+        );
     }
 }

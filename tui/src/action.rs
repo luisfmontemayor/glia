@@ -1,6 +1,6 @@
-use crossterm::event::KeyEvent;
-use crate::network::JobMetrics;
 use crate::app::Pane;
+use crate::network::JobMetrics;
+use crossterm::event::KeyEvent;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {

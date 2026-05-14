@@ -1,9 +1,9 @@
 use tui::action::Action;
 use tui::app::App;
-use tui::ui;
 use tui::app::Pane;
-use tui::components::table::table_state::TableFocusMode;
 use tui::app::TimeWindow;
+use tui::components::table::table_state::TableFocusMode;
+use tui::ui;
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -74,9 +74,9 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
     let tx_event = tx.clone();
     tokio::task::spawn_blocking(move || {
         loop {
-            if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false) 
-                && let Ok(Event::Key(key)) = event::read() 
-                && tx_event.send(Action::Key(key)).is_err() 
+            if event::poll(std::time::Duration::from_millis(100)).unwrap_or(false)
+                && let Ok(Event::Key(key)) = event::read()
+                && tx_event.send(Action::Key(key)).is_err()
             {
                 break;
             }
@@ -105,7 +105,8 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                             TimeWindow::W12h => "12h",
                             TimeWindow::W24h => "24h",
                             TimeWindow::WMax => "max",
-                        }.to_string();
+                        }
+                        .to_string();
                         tokio::spawn(async move {
                             match tui::network::fetch_metrics(&window).await {
                                 Ok(jobs) => {
@@ -118,7 +119,9 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                         });
                     }
                     Action::Key(key) => {
-                        if key.modifiers.contains(event::KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+                        if key.modifiers.contains(event::KeyModifiers::CONTROL)
+                            && key.code == KeyCode::Char('c')
+                        {
                             app.update(Action::Quit);
                         }
                         match key.code {
@@ -130,59 +133,91 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                                 let _ = tx.send(Action::FetchMetrics);
                             }
                             KeyCode::Char('p') => app.update(Action::ToggleCommandPalette),
-                            _ => {
-                                match app.focused_pane {
-                                    Pane::Graph => match key.code {
-                                        KeyCode::Char('j') => app.update(Action::FocusPane(Pane::Jobs)),
-                                        KeyCode::Char('b') => app.update(Action::ToggleBlameMode),
-                                        _ => {}
-                                    },
-                                    Pane::Jobs => {
-                                        if app.jobs_table_state.is_searching {
-                                            match key.code {
-                                                KeyCode::Backspace => app.update(Action::TableBackspace),
-                                                KeyCode::Esc | KeyCode::Enter => app.update(Action::TableEndSearch),
-                                                KeyCode::Char(c) => app.update(Action::TableChar(c)),
-                                                _ => {}
+                            _ => match app.focused_pane {
+                                Pane::Graph => match key.code {
+                                    KeyCode::Char('j') => app.update(Action::FocusPane(Pane::Jobs)),
+                                    KeyCode::Char('b') => app.update(Action::ToggleBlameMode),
+                                    _ => {}
+                                },
+                                Pane::Jobs => {
+                                    if app.jobs_table_state.is_searching {
+                                        match key.code {
+                                            KeyCode::Backspace => {
+                                                app.update(Action::TableBackspace)
                                             }
-                                        } else {
-                                            match app.jobs_table_state.focus_mode {
-                                                TableFocusMode::Row => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
-                                                    KeyCode::Char('/') => app.update(Action::TableSearch("".to_string())),
-                                                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
-                                                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
-                                                    KeyCode::Char('s') => app.update(Action::TableSort),
-                                                    KeyCode::Enter => app.update(Action::TableFocusCell),
-                                                    _ => {}
-                                                },
-                                                TableFocusMode::Cell => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
-                                                    KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
-                                                    KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
-                                                    KeyCode::Char('j') | KeyCode::Down => app.update(Action::NextRow),
-                                                    KeyCode::Char('k') | KeyCode::Up => app.update(Action::PreviousRow),
-                                                    KeyCode::Char('s') => app.update(Action::TableSort),
-                                                    KeyCode::Char('r') => app.update(Action::TableFocusRow),
-                                                    KeyCode::Char('c') => app.update(Action::TableFocusCol),
-                                                    KeyCode::Esc => app.update(Action::TableFocusRow),
-                                                    _ => {}
-                                                },
-                                                TableFocusMode::Column => match key.code {
-                                                    KeyCode::Char('g') => app.update(Action::FocusPane(Pane::Graph)),
-                                                    KeyCode::Char('h') | KeyCode::Left => app.update(Action::TablePrevCol),
-                                                    KeyCode::Char('l') | KeyCode::Right => app.update(Action::TableNextCol),
-                                                    KeyCode::Char('s') => app.update(Action::TableSort),
-                                                    KeyCode::Esc => app.update(Action::TableFocusRow),
-                                                    _ => {}
+                                            KeyCode::Esc | KeyCode::Enter => {
+                                                app.update(Action::TableEndSearch)
+                                            }
+                                            KeyCode::Char(c) => app.update(Action::TableChar(c)),
+                                            _ => {}
+                                        }
+                                    } else {
+                                        match app.jobs_table_state.focus_mode {
+                                            TableFocusMode::Row => match key.code {
+                                                KeyCode::Char('g') => {
+                                                    app.update(Action::FocusPane(Pane::Graph))
                                                 }
-                                            }
+                                                KeyCode::Char('/') => {
+                                                    app.update(Action::TableSearch("".to_string()))
+                                                }
+                                                KeyCode::Char('j') | KeyCode::Down => {
+                                                    app.update(Action::NextRow)
+                                                }
+                                                KeyCode::Char('k') | KeyCode::Up => {
+                                                    app.update(Action::PreviousRow)
+                                                }
+                                                KeyCode::Char('s') => app.update(Action::TableSort),
+                                                KeyCode::Enter => {
+                                                    app.update(Action::TableFocusCell)
+                                                }
+                                                _ => {}
+                                            },
+                                            TableFocusMode::Cell => match key.code {
+                                                KeyCode::Char('g') => {
+                                                    app.update(Action::FocusPane(Pane::Graph))
+                                                }
+                                                KeyCode::Char('h') | KeyCode::Left => {
+                                                    app.update(Action::TablePrevCol)
+                                                }
+                                                KeyCode::Char('l') | KeyCode::Right => {
+                                                    app.update(Action::TableNextCol)
+                                                }
+                                                KeyCode::Char('j') | KeyCode::Down => {
+                                                    app.update(Action::NextRow)
+                                                }
+                                                KeyCode::Char('k') | KeyCode::Up => {
+                                                    app.update(Action::PreviousRow)
+                                                }
+                                                KeyCode::Char('s') => app.update(Action::TableSort),
+                                                KeyCode::Char('r') => {
+                                                    app.update(Action::TableFocusRow)
+                                                }
+                                                KeyCode::Char('c') => {
+                                                    app.update(Action::TableFocusCol)
+                                                }
+                                                KeyCode::Esc => app.update(Action::TableFocusRow),
+                                                _ => {}
+                                            },
+                                            TableFocusMode::Column => match key.code {
+                                                KeyCode::Char('g') => {
+                                                    app.update(Action::FocusPane(Pane::Graph))
+                                                }
+                                                KeyCode::Char('h') | KeyCode::Left => {
+                                                    app.update(Action::TablePrevCol)
+                                                }
+                                                KeyCode::Char('l') | KeyCode::Right => {
+                                                    app.update(Action::TableNextCol)
+                                                }
+                                                KeyCode::Char('s') => app.update(Action::TableSort),
+                                                KeyCode::Esc => app.update(Action::TableFocusRow),
+                                                _ => {}
+                                            },
                                         }
                                     }
                                 }
-                            }
+                            },
                         }
-                    },
+                    }
                     _ => app.update(action),
                 }
 
