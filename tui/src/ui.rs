@@ -1,10 +1,10 @@
 use crate::app::App;
-use crate::components::header::render_header;
-use crate::components::tabs::render_tabs;
+use crate::components::chart::render_metric_chart;
 use crate::components::footer::render_footer;
+use crate::components::header::render_header;
 use crate::components::modal::render_modal;
 use crate::components::table::render_top_scripts_table;
-use crate::components::chart::render_metric_chart;
+use crate::components::tabs::render_tabs;
 use crate::theme::*;
 use ratatui::{
     Frame,
@@ -20,7 +20,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .constraints([
             Constraint::Length(3), // Header
             Constraint::Length(3), // Tabs
-            Constraint::Min(0), // Main Body
+            Constraint::Min(0),    // Main Body
             Constraint::Length(3), // Footer
         ])
         .split(f.size());
@@ -61,7 +61,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         ]);
 
         let palette_style = Style::default().fg(OVERLAY2);
-        
+
         f.render_widget(
             Paragraph::new(left_text)
                 .style(palette_style)

@@ -1,7 +1,6 @@
 use crate::app::{App, Metric, Pane, TimeWindow};
 use crate::theme::*;
 use crate::utils::centered_rect;
-use std::collections::HashMap;
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -13,9 +12,14 @@ use ratatui::{
         LegendPosition, Paragraph,
     },
 };
+use std::collections::HashMap;
 
 pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
-    let border_color = if app.focused_pane == Pane::Graph { PINK } else { BLUE };
+    let border_color = if app.focused_pane == Pane::Graph {
+        PINK
+    } else {
+        BLUE
+    };
 
     let chart_title = match app.metric {
         Metric::WallTime => " Wall Time (ms) • [g] ",
@@ -48,7 +52,11 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
     let parse_time = |started_at: &str| -> (String, String, String) {
         let parts: Vec<&str> = started_at.split('T').collect();
         if parts.len() < 2 {
-            return ("??:??".to_string(), "????".to_string(), started_at.to_string());
+            return (
+                "??:??".to_string(),
+                "????".to_string(),
+                started_at.to_string(),
+            );
         }
         let date = parts[0];
         let time = parts[1];
@@ -96,10 +104,19 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Metric::CpuTime => (j.cpu_time_sec * 1000.0) as f64,
                 Metric::CpuPercent => j.cpu_percent as f64,
                 Metric::MaxRss => j.max_rss_kb as f64,
-                Metric::JobStatus => if j.exit_code_int == 0 { 1.0 } else { 0.0 },
+                Metric::JobStatus => {
+                    if j.exit_code_int == 0 {
+                        1.0
+                    } else {
+                        0.0
+                    }
+                }
             };
 
-            user_data.entry(j.user_name.clone()).or_default().push((x, val));
+            user_data
+                .entry(j.user_name.clone())
+                .or_default()
+                .push((x, val));
             max_y = max_y.max(val);
             if !is_low_density {
                 min_x = min_x.min(x);
@@ -179,7 +196,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .marker(ratatui::symbols::Marker::Braille)
                     .graph_type(GraphType::Line)
                     .style(Style::default().fg(OVERLAY0))
-                    .data(&marker_line)
+                    .data(&marker_line),
             );
         }
 
@@ -236,7 +253,11 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let is_wmax = app.window == TimeWindow::WMax;
         let n_jobs = app.jobs.len();
         let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
-        let group_size = if app.metric == Metric::JobStatus { 2 } else { 1 };
+        let group_size = if app.metric == Metric::JobStatus {
+            2
+        } else {
+            1
+        };
 
         let (main_area, label_area) = if is_wmax && !app.jobs.is_empty() {
             let chunks = Layout::default()
@@ -258,8 +279,12 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let (b_width, b_gap, g_gap) = if is_low_density {
             let bg = 1;
             let gg = if group_size > 1 { 2 } else { 1 };
-            let overhead = n_jobs as u16 * (group_size as u16 - 1) * bg + n_jobs.saturating_sub(1) as u16 * gg;
-            let bw = (available_width.saturating_sub(overhead) / (n_jobs as u16 * group_size as u16)).max(1).min(20);
+            let overhead =
+                n_jobs as u16 * (group_size as u16 - 1) * bg + n_jobs.saturating_sub(1) as u16 * gg;
+            let bw = (available_width.saturating_sub(overhead)
+                / (n_jobs as u16 * group_size as u16))
+                .max(1)
+                .min(20);
             (bw, bg, gg)
         } else if app.metric == Metric::JobStatus {
             (2, 1, 2)
@@ -268,7 +293,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         };
 
         let group_width = group_size as u16 * b_width + (group_size as u16 - 1) * b_gap;
-        let total_content_width = (n_jobs as u16 * group_width) + (n_jobs.saturating_sub(1) as u16 * g_gap);
+        let total_content_width =
+            (n_jobs as u16 * group_width) + (n_jobs.saturating_sub(1) as u16 * g_gap);
         let side_padding = available_width.saturating_sub(total_content_width) / 2;
 
         let chart_block = Block::default()
@@ -288,7 +314,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(0), Constraint::Length(1)])
             .split(inner_area);
-        
+
         f.render_widget(chart_block, main_area);
 
         let mut barchart = BarChart::default()
@@ -308,23 +334,51 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             barchart = barchart.max(8);
             for (i, j) in app.jobs.iter().enumerate() {
                 let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
-                let s_text = if j.exit_code_int == 0 { "1".to_string() } else { "0".to_string() };
-                let s_style = if j.exit_code_int == 0 { Style::default().fg(GREEN) } else { Style::default().fg(SURFACE1) };
+                let s_text = if j.exit_code_int == 0 {
+                    "1".to_string()
+                } else {
+                    "0".to_string()
+                };
+                let s_style = if j.exit_code_int == 0 {
+                    Style::default().fg(GREEN)
+                } else {
+                    Style::default().fg(SURFACE1)
+                };
 
                 let f_render_val = if j.exit_code_int != 0 { 8 } else { 1 };
-                let f_text = if j.exit_code_int != 0 { "1".to_string() } else { "0".to_string() };
-                let f_style = if j.exit_code_int != 0 { Style::default().fg(RED) } else { Style::default().fg(SURFACE1) };
+                let f_text = if j.exit_code_int != 0 {
+                    "1".to_string()
+                } else {
+                    "0".to_string()
+                };
+                let f_style = if j.exit_code_int != 0 {
+                    Style::default().fg(RED)
+                } else {
+                    Style::default().fg(SURFACE1)
+                };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
-                
+
                 if is_wmax {
                     let is_new_day = !last_date.is_empty() && date != last_date;
-                    let hhmm_style = if is_new_day { Style::default().fg(PINK) } else { Style::default().fg(TEXT) };
+                    let hhmm_style = if is_new_day {
+                        Style::default().fg(PINK)
+                    } else {
+                        Style::default().fg(TEXT)
+                    };
                     let mut text = hhmm;
-                    if is_new_day { text = format!("|{}", text); }
-                    labels_hhmm.push(Span::styled(format!("{:^width$}", text, width = group_width as usize), hhmm_style));
+                    if is_new_day {
+                        text = format!("|{}", text);
+                    }
+                    labels_hhmm.push(Span::styled(
+                        format!("{:^width$}", text, width = group_width as usize),
+                        hhmm_style,
+                    ));
                     if is_new_day || labels_mmdd.is_empty() {
-                        labels_mmdd.push(Span::styled(format!("{:^width$}", mmdd, width = group_width as usize), Style::default().fg(YELLOW)));
+                        labels_mmdd.push(Span::styled(
+                            format!("{:^width$}", mmdd, width = group_width as usize),
+                            Style::default().fg(YELLOW),
+                        ));
                     } else {
                         labels_mmdd.push(Span::raw(" ".repeat(group_width as usize)));
                     }
@@ -334,8 +388,16 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     }
                     last_date = date;
                 } else {
-                    let label = if app.window == TimeWindow::WMax { format!("{} {}", mmdd, hhmm) } else { hhmm };
-                    labels_normal.push(Span::raw(format!("{:^width$}", label, width = group_width as usize)));
+                    let label = if app.window == TimeWindow::WMax {
+                        format!("{} {}", mmdd, hhmm)
+                    } else {
+                        hhmm
+                    };
+                    labels_normal.push(Span::raw(format!(
+                        "{:^width$}",
+                        label,
+                        width = group_width as usize
+                    )));
                     if i < n_jobs - 1 {
                         labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
                     }
@@ -351,8 +413,14 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 }
 
                 let group = BarGroup::default().bars(&[
-                    Bar::default().value(s_render_val).text_value(s_text).style(s_style),
-                    Bar::default().value(f_render_val).text_value(f_text).style(f_style),
+                    Bar::default()
+                        .value(s_render_val)
+                        .text_value(s_text)
+                        .style(s_style),
+                    Bar::default()
+                        .value(f_render_val)
+                        .text_value(f_text)
+                        .style(f_style),
                 ]);
                 barchart = barchart.data(group);
             }
@@ -374,10 +442,14 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     Metric::MaxRss => j.max_rss_kb as u64,
                     _ => 0,
                 };
-                if v > max_val { max_val = v; }
+                if v > max_val {
+                    max_val = v;
+                }
             }
 
-            barchart = barchart.bar_style(Style::default().fg(bar_color)).max(max_val.max(8));
+            barchart = barchart
+                .bar_style(Style::default().fg(bar_color))
+                .max(max_val.max(8));
 
             for (i, j) in app.jobs.iter().enumerate() {
                 let orig_val = match app.metric {
@@ -389,18 +461,34 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 };
                 let render_val = if orig_val == 0 { 1 } else { orig_val };
                 let text_val = format!("{}", orig_val);
-                let style = if orig_val == 0 { Style::default().fg(SURFACE1) } else { Style::default().fg(bar_color) };
+                let style = if orig_val == 0 {
+                    Style::default().fg(SURFACE1)
+                } else {
+                    Style::default().fg(bar_color)
+                };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
-                
+
                 if is_wmax {
                     let is_new_day = !last_date.is_empty() && date != last_date;
-                    let hhmm_style = if is_new_day { Style::default().fg(PINK) } else { Style::default().fg(TEXT) };
+                    let hhmm_style = if is_new_day {
+                        Style::default().fg(PINK)
+                    } else {
+                        Style::default().fg(TEXT)
+                    };
                     let mut text = hhmm;
-                    if is_new_day { text = format!("|{}", text); }
-                    labels_hhmm.push(Span::styled(format!("{:^width$}", text, width = group_width as usize), hhmm_style));
+                    if is_new_day {
+                        text = format!("|{}", text);
+                    }
+                    labels_hhmm.push(Span::styled(
+                        format!("{:^width$}", text, width = group_width as usize),
+                        hhmm_style,
+                    ));
                     if is_new_day || labels_mmdd.is_empty() {
-                        labels_mmdd.push(Span::styled(format!("{:^width$}", mmdd, width = group_width as usize), Style::default().fg(YELLOW)));
+                        labels_mmdd.push(Span::styled(
+                            format!("{:^width$}", mmdd, width = group_width as usize),
+                            Style::default().fg(YELLOW),
+                        ));
                     } else {
                         labels_mmdd.push(Span::raw(" ".repeat(group_width as usize)));
                     }
@@ -410,8 +498,16 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     }
                     last_date = date;
                 } else {
-                    let label = if app.window == TimeWindow::WMax { format!("{} {}", mmdd, hhmm) } else { hhmm };
-                    labels_normal.push(Span::raw(format!("{:^width$}", label, width = group_width as usize)));
+                    let label = if app.window == TimeWindow::WMax {
+                        format!("{} {}", mmdd, hhmm)
+                    } else {
+                        hhmm
+                    };
+                    labels_normal.push(Span::raw(format!(
+                        "{:^width$}",
+                        label,
+                        width = group_width as usize
+                    )));
                     if i < n_jobs - 1 {
                         labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
                     }
@@ -426,7 +522,10 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     markers.push(Span::raw(" ".repeat(g_gap as usize)));
                 }
 
-                let group = BarGroup::default().bars(&[Bar::default().value(render_val).text_value(text_val).style(style)]);
+                let group = BarGroup::default().bars(&[Bar::default()
+                    .value(render_val)
+                    .text_value(text_val)
+                    .style(style)]);
                 barchart = barchart.data(group);
             }
         }
@@ -442,7 +541,10 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 height: la.height,
             };
             if is_wmax {
-                f.render_widget(Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]), inner_la);
+                f.render_widget(
+                    Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]),
+                    inner_la,
+                );
             } else {
                 f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_la);
             }

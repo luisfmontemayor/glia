@@ -8,7 +8,13 @@ use ratatui::{
 };
 
 pub fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
-    let titles = vec!["Wall Time", "CPU Time", "CPU Percent", "Max RSS", "Job Status"];
+    let titles = vec![
+        "Wall Time",
+        "CPU Time",
+        "CPU Percent",
+        "Max RSS",
+        "Job Status",
+    ];
 
     let active_index = match app.metric {
         Metric::WallTime => 0,

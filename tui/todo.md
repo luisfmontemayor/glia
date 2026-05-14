@@ -1,3 +1,5 @@
+- [ ] Display modal centred on the screen overlaid on top of other panes. It will have the only "No data available for time window. Waiting for updates..." sign, not in job or graph panes. Centred on the table with a border of a different colour
+
 # CURRENT ORCHESTRATION
 - [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
 - [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
