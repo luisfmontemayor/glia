@@ -604,9 +604,9 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
         return;
     }
 
-    let focus_cell = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Cell;
-    let focus_col = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Column;
-    let focus_row = app.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Row;
+    let focus_cell = app.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Cell;
+    let focus_col = app.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Column;
+    let focus_row = app.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Row;
     let selected_col = app.jobs_table_state.selected_col;
 
     let rows: Vec<Row> = summaries

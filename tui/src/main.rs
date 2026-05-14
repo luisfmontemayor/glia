@@ -2,7 +2,7 @@ use tui::action::Action;
 use tui::app::App;
 use tui::ui;
 use tui::app::Pane;
-use tui::table_state::TableFocusMode;
+use tui::components::table::table_state::TableFocusMode;
 use tui::app::TimeWindow;
 
 use crossterm::{
