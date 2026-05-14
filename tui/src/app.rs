@@ -1,6 +1,6 @@
 use crate::network::JobMetrics;
 use crate::action::Action;
-use crate::table_state::JobsTableState;
+use crate::components::table::table_state::JobsTableState;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -182,16 +182,16 @@ pub fn update(&mut self, action: Action) {
                 self.focused_pane = pane;
             }
             Action::TableFocusRow => {
-                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Row;
+                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Row;
             }
             Action::TableFocusCell => {
-                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Cell;
+                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Cell;
                 if self.jobs_table_state.selected_col.is_none() {
                     self.jobs_table_state.selected_col = Some(0);
                 }
             }
             Action::TableFocusCol => {
-                self.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Column;
+                self.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Column;
                 if self.jobs_table_state.selected_col.is_none() {
                     self.jobs_table_state.selected_col = Some(0);
                 }
@@ -223,7 +223,7 @@ pub fn update(&mut self, action: Action) {
                 }
             }
             Action::TableSort => {
-                if self.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Cell {
+                if self.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Cell {
                     if let Some(selected) = self.jobs_table_state.selected_col {
                         if self.jobs_table_state.sort_col == Some(selected) {
                             self.jobs_table_state.sort_desc = !self.jobs_table_state.sort_desc;
@@ -309,7 +309,7 @@ pub fn update(&mut self, action: Action) {
     }
 
     pub fn previous_row(&mut self) {
-        if self.jobs_table_state.focus_mode == crate::table_state::TableFocusMode::Column {
+        if self.jobs_table_state.focus_mode == crate::components::table::table_state::TableFocusMode::Column {
             return;
         }
         let count = self.summarize_jobs().len();
@@ -548,7 +548,7 @@ mod tests {
         assert_eq!(s[1].program_name, "b");
 
         // Sort by program_name (col 0) DESC
-        app.jobs_table_state.focus_mode = crate::table_state::TableFocusMode::Cell;
+        app.jobs_table_state.focus_mode = crate::components::table::table_state::TableFocusMode::Cell;
         app.jobs_table_state.selected_col = Some(0);
         app.update(Action::TableSort);
         assert_eq!(app.jobs_table_state.sort_col, Some(0));
@@ -576,7 +576,7 @@ mod tests {
 
     #[test]
     fn test_row_to_cell_focus_transition() {
-        use crate::table_state::TableFocusMode;
+        use crate::components::table::table_state::TableFocusMode;
         let mut app = App::new();
         assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
         
