@@ -3,10 +3,10 @@ use tui::action::Action;
 use tui::app::JobSummary;
 use tui::app::{App, Pane};
 use tui::network::JobMetrics;
-use tui::table_state::TableFocusMode;
+use tui::components::table::table_state::TableFocusMode;
 use tui::theme::{DARK_BLUE, SAPPHIRE};
 use tui::ui;
-use tui::ui::render_top_scripts_table;
+use tui::components::table::render_top_scripts_table;
 
 #[test]
 fn should_select_column_state_transition() {
