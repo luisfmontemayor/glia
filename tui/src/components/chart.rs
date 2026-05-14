@@ -259,23 +259,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             1
         };
 
-        let (main_area, label_area) = if is_wmax && !app.jobs.is_empty() {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Min(0), Constraint::Length(2)])
-                .split(area);
-            (chunks[0], Some(chunks[1]))
-        } else if !is_wmax && !app.jobs.is_empty() {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Min(0), Constraint::Length(1)])
-                .split(area);
-            (chunks[0], Some(chunks[1]))
-        } else {
-            (area, None)
-        };
-
-        let available_width = main_area.width.saturating_sub(4);
+        let label_height = if is_wmax { 2 } else { 1 };
+        let available_width = area.width.saturating_sub(4);
         let (b_width, b_gap, g_gap) = if is_low_density {
             let bg = 1;
             let gg = if group_size > 1 { 2 } else { 1 };
@@ -309,13 +294,17 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 bottom: 0,
             });
 
-        let inner_area = chart_block.inner(main_area);
+        let inner_area = chart_block.inner(area);
         let inner_chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(1)])
+            .constraints([
+                Constraint::Min(0),
+                Constraint::Length(1),
+                Constraint::Length(label_height),
+            ])
             .split(inner_area);
 
-        f.render_widget(chart_block, main_area);
+        f.render_widget(chart_block, area);
 
         let mut barchart = BarChart::default()
             .bar_set(symbols::bar::NINE_LEVELS)
@@ -404,10 +393,11 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 }
 
                 // Marker
-                let center = group_width / 2;
-                markers.push(Span::raw(" ".repeat(center as usize)));
-                markers.push(Span::styled("│", Style::default().fg(SURFACE2)));
-                markers.push(Span::raw(" ".repeat((group_width - center - 1) as usize)));
+                let left_pad = (group_width - 1) / 2;
+                let right_pad = group_width - 1 - left_pad;
+                markers.push(Span::raw(" ".repeat(left_pad as usize)));
+                markers.push(Span::styled("╷", Style::default().fg(SURFACE2)));
+                markers.push(Span::raw(" ".repeat(right_pad as usize)));
                 if i < n_jobs - 1 {
                     markers.push(Span::raw(" ".repeat(g_gap as usize)));
                 }
@@ -514,10 +504,11 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 }
 
                 // Marker
-                let center = group_width / 2;
-                markers.push(Span::raw(" ".repeat(center as usize)));
-                markers.push(Span::styled("│", Style::default().fg(SURFACE2)));
-                markers.push(Span::raw(" ".repeat((group_width - center - 1) as usize)));
+                let left_pad = (group_width - 1) / 2;
+                let right_pad = group_width - 1 - left_pad;
+                markers.push(Span::raw(" ".repeat(left_pad as usize)));
+                markers.push(Span::styled("╷", Style::default().fg(SURFACE2)));
+                markers.push(Span::raw(" ".repeat(right_pad as usize)));
                 if i < n_jobs - 1 {
                     markers.push(Span::raw(" ".repeat(g_gap as usize)));
                 }
@@ -530,24 +521,21 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             }
         }
         f.render_widget(barchart, inner_chunks[0]);
+        f.render_widget(
+            Block::default()
+                .borders(Borders::BOTTOM)
+                .border_style(Style::default().fg(SURFACE1)),
+            inner_chunks[0],
+        );
         f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[1]);
 
-        if let Some(la) = label_area {
-            let max_width = la.width.saturating_sub(2 + side_padding);
-            let inner_la = Rect {
-                x: la.x + 2 + side_padding,
-                y: la.y,
-                width: total_content_width.min(max_width),
-                height: la.height,
-            };
-            if is_wmax {
-                f.render_widget(
-                    Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]),
-                    inner_la,
-                );
-            } else {
-                f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_la);
-            }
+        if is_wmax {
+            f.render_widget(
+                Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]),
+                inner_chunks[2],
+            );
+        } else {
+            f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_chunks[2]);
         }
     }
 
