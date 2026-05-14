@@ -119,103 +119,14 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                         });
                     }
                     Action::Key(key) => {
-                        if key.modifiers.contains(event::KeyModifiers::CONTROL)
-                            && key.code == KeyCode::Char('c')
-                        {
-                            app.update(Action::Quit);
-                        }
-                        match key.code {
-                            KeyCode::Char('q') => app.update(Action::Quit),
-                            KeyCode::Tab => app.update(Action::NextMetric),
-                            KeyCode::BackTab => app.update(Action::PreviousMetric),
-                            KeyCode::Char('t') => {
-                                app.update(Action::NextWindow);
-                                let _ = tx.send(Action::FetchMetrics);
-                            }
-                            KeyCode::Char('p') => app.update(Action::ToggleCommandPalette),
-                            _ => match app.focused_pane {
-                                Pane::Graph => match key.code {
-                                    KeyCode::Char('j') => app.update(Action::FocusPane(Pane::Jobs)),
-                                    KeyCode::Char('b') => app.update(Action::ToggleBlameMode),
-                                    _ => {}
-                                },
-                                Pane::Jobs => {
-                                    if app.jobs_table_state.is_searching {
-                                        match key.code {
-                                            KeyCode::Backspace => {
-                                                app.update(Action::TableBackspace)
-                                            }
-                                            KeyCode::Esc | KeyCode::Enter => {
-                                                app.update(Action::TableEndSearch)
-                                            }
-                                            KeyCode::Char(c) => app.update(Action::TableChar(c)),
-                                            _ => {}
-                                        }
-                                    } else {
-                                        match app.jobs_table_state.focus_mode {
-                                            TableFocusMode::Row => match key.code {
-                                                KeyCode::Char('g') => {
-                                                    app.update(Action::FocusPane(Pane::Graph))
-                                                }
-                                                KeyCode::Char('/') => {
-                                                    app.update(Action::TableSearch("".to_string()))
-                                                }
-                                                KeyCode::Char('j') | KeyCode::Down => {
-                                                    app.update(Action::NextRow)
-                                                }
-                                                KeyCode::Char('k') | KeyCode::Up => {
-                                                    app.update(Action::PreviousRow)
-                                                }
-                                                KeyCode::Char('s') => app.update(Action::TableSort),
-                                                KeyCode::Enter => {
-                                                    app.update(Action::TableFocusCell)
-                                                }
-                                                _ => {}
-                                            },
-                                            TableFocusMode::Cell => match key.code {
-                                                KeyCode::Char('g') => {
-                                                    app.update(Action::FocusPane(Pane::Graph))
-                                                }
-                                                KeyCode::Char('h') | KeyCode::Left => {
-                                                    app.update(Action::TablePrevCol)
-                                                }
-                                                KeyCode::Char('l') | KeyCode::Right => {
-                                                    app.update(Action::TableNextCol)
-                                                }
-                                                KeyCode::Char('j') | KeyCode::Down => {
-                                                    app.update(Action::NextRow)
-                                                }
-                                                KeyCode::Char('k') | KeyCode::Up => {
-                                                    app.update(Action::PreviousRow)
-                                                }
-                                                KeyCode::Char('s') => app.update(Action::TableSort),
-                                                KeyCode::Char('r') => {
-                                                    app.update(Action::TableFocusRow)
-                                                }
-                                                KeyCode::Char('c') => {
-                                                    app.update(Action::TableFocusCol)
-                                                }
-                                                KeyCode::Esc => app.update(Action::TableFocusRow),
-                                                _ => {}
-                                            },
-                                            TableFocusMode::Column => match key.code {
-                                                KeyCode::Char('g') => {
-                                                    app.update(Action::FocusPane(Pane::Graph))
-                                                }
-                                                KeyCode::Char('h') | KeyCode::Left => {
-                                                    app.update(Action::TablePrevCol)
-                                                }
-                                                KeyCode::Char('l') | KeyCode::Right => {
-                                                    app.update(Action::TableNextCol)
-                                                }
-                                                KeyCode::Char('s') => app.update(Action::TableSort),
-                                                KeyCode::Esc => app.update(Action::TableFocusRow),
-                                                _ => {}
-                                            },
-                                        }
-                                    }
+                        if let Some(key_action) = handle_key_event(key, &app) {
+                            match key_action {
+                                Action::NextWindow => {
+                                    app.update(Action::NextWindow);
+                                    let _ = tx.send(Action::FetchMetrics);
                                 }
-                            },
+                                _ => app.update(key_action),
+                            }
                         }
                     }
                     _ => app.update(action),
@@ -234,4 +145,112 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
         terminal.draw(|f| ui::draw(f, &mut app))?;
     }
     Ok(())
+}
+
+fn handle_key_event(key: event::KeyEvent, app: &App) -> Option<Action> {
+    if key.modifiers.contains(event::KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+        return Some(Action::Quit);
+    }
+    match key.code {
+        KeyCode::Char('q') => Some(Action::Quit),
+        KeyCode::Tab => Some(Action::NextMetric),
+        KeyCode::BackTab => Some(Action::PreviousMetric),
+        KeyCode::Char('t') => Some(Action::NextWindow),
+        KeyCode::Char('p') => Some(Action::ToggleCommandPalette),
+        _ => match app.focused_pane {
+            Pane::Graph => match key.code {
+                KeyCode::Char('j') => Some(Action::FocusPane(Pane::Jobs)),
+                KeyCode::Char('b') => Some(Action::ToggleBlameMode),
+                _ => None,
+            },
+            Pane::Jobs => {
+                if app.jobs_table_state.is_searching {
+                    match key.code {
+                        KeyCode::Backspace => Some(Action::TableBackspace),
+                        KeyCode::Esc | KeyCode::Enter => Some(Action::TableEndSearch),
+                        KeyCode::Char(c) => Some(Action::TableChar(c)),
+                        _ => None,
+                    }
+                } else {
+                    match app.jobs_table_state.focus_mode {
+                        TableFocusMode::Row => match key.code {
+                            KeyCode::Char('g') => Some(Action::FocusPane(Pane::Graph)),
+                            KeyCode::Char('/') => Some(Action::TableSearch("".to_string())),
+                            KeyCode::Char('j') | KeyCode::Down => Some(Action::NextRow),
+                            KeyCode::Char('k') | KeyCode::Up => Some(Action::PreviousRow),
+                            KeyCode::Char('s') => Some(Action::TableSort),
+                            KeyCode::Enter => Some(Action::TableFocusCell),
+                            _ => None,
+                        },
+                        TableFocusMode::Cell => match key.code {
+                            KeyCode::Char('g') => Some(Action::FocusPane(Pane::Graph)),
+                            KeyCode::Char('h') | KeyCode::Left => Some(Action::TablePrevCol),
+                            KeyCode::Char('l') | KeyCode::Right => Some(Action::TableNextCol),
+                            KeyCode::Char('j') | KeyCode::Down => Some(Action::NextRow),
+                            KeyCode::Char('k') | KeyCode::Up => Some(Action::PreviousRow),
+                            KeyCode::Char('s') => Some(Action::TableSort),
+                            KeyCode::Char('r') => Some(Action::TableFocusRow),
+                            KeyCode::Char('c') => Some(Action::TableFocusCol),
+                            KeyCode::Esc => Some(Action::TableFocusRow),
+                            _ => None,
+                        },
+                        TableFocusMode::Column => match key.code {
+                            KeyCode::Char('g') => Some(Action::FocusPane(Pane::Graph)),
+                            KeyCode::Char('h') | KeyCode::Left => Some(Action::TablePrevCol),
+                            KeyCode::Char('l') | KeyCode::Right => Some(Action::TableNextCol),
+                            KeyCode::Char('s') => Some(Action::TableSort),
+                            KeyCode::Esc => Some(Action::TableFocusRow),
+                            _ => None,
+                        },
+                    }
+                }
+            }
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crossterm::event::{KeyEvent, KeyModifiers};
+
+    #[test]
+    fn test_handle_key_event_quit() {
+        let app = App::new();
+        let key = KeyEvent::new(KeyCode::Char('q'), KeyModifiers::empty());
+        assert_eq!(handle_key_event(key, &app), Some(Action::Quit));
+    }
+
+    #[test]
+    fn test_handle_key_event_ctrl_c() {
+        let app = App::new();
+        let key = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL);
+        assert_eq!(handle_key_event(key, &app), Some(Action::Quit));
+    }
+
+    #[test]
+    fn test_handle_key_event_tab() {
+        let app = App::new();
+        let key = KeyEvent::new(KeyCode::Tab, KeyModifiers::empty());
+        assert_eq!(handle_key_event(key, &app), Some(Action::NextMetric));
+    }
+
+    #[test]
+    fn test_handle_key_event_esc_unselect() {
+        let mut app = App::new();
+        app.jobs_table_state.focus_mode = TableFocusMode::Cell;
+        let key = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+        assert_eq!(handle_key_event(key, &app), Some(Action::TableFocusRow));
+    }
+
+    #[test]
+    fn test_handle_key_event_search() {
+        let mut app = App::new();
+        app.jobs_table_state.is_searching = true;
+        let key = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::empty());
+        assert_eq!(handle_key_event(key, &app), Some(Action::TableChar('a')));
+        
+        let key_esc = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
+        assert_eq!(handle_key_event(key_esc, &app), Some(Action::TableEndSearch));
+    }
 }
