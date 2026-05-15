@@ -5,7 +5,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
@@ -39,13 +39,15 @@ pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
         ),
     ])];
 
-    let main_paragraph = Paragraph::new(main_text).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Glia TUI ")
-            .border_style(Style::default().fg(SAPPHIRE))
-            .style(Style::default().fg(TEXT)),
-    );
+    let main_paragraph = Paragraph::new(main_text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Glia TUI ")
+                .border_style(Style::default().fg(SAPPHIRE))
+                .style(Style::default().fg(TEXT)),
+        )
+        .wrap(Wrap { trim: true });
     f.render_widget(main_paragraph, header_chunks[0]);
 
     let (db_text, db_color) = if app.db_status {
@@ -62,7 +64,8 @@ pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
                 .title(" DB ")
                 .border_style(Style::default().fg(SAPPHIRE))
                 .style(Style::default().fg(TEXT)),
-        );
+        )
+        .wrap(Wrap { trim: true });
     f.render_widget(db_paragraph, header_chunks[1]);
 
     let (api_text, api_color) = if app.api_status {
@@ -79,6 +82,7 @@ pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
                 .title(" API ")
                 .border_style(Style::default().fg(SAPPHIRE))
                 .style(Style::default().fg(TEXT)),
-        );
+        )
+        .wrap(Wrap { trim: true });
     f.render_widget(api_paragraph, header_chunks[2]);
 }
