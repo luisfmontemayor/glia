@@ -25,6 +25,17 @@ impl TimeWindow {
         }
     }
 
+    pub fn prev(&self) -> Self {
+        match self {
+            TimeWindow::W1h => TimeWindow::WMax,
+            TimeWindow::W3h => TimeWindow::W1h,
+            TimeWindow::W6h => TimeWindow::W3h,
+            TimeWindow::W12h => TimeWindow::W6h,
+            TimeWindow::W24h => TimeWindow::W12h,
+            TimeWindow::WMax => TimeWindow::W24h,
+        }
+    }
+
     pub fn to_duration(&self) -> Option<std::time::Duration> {
         match self {
             TimeWindow::W1h => Some(std::time::Duration::from_secs(3600)),
@@ -79,6 +90,7 @@ pub struct App {
     pub has_user_changed_window: bool,
     pub show_command_palette: bool,
     pub data_point_threshold: usize,
+    pub fetch_requested: bool,
 }
 
 impl Default for App {
@@ -106,6 +118,7 @@ impl App {
             focused_pane: Pane::Jobs,
             has_user_changed_window: false,
             show_command_palette: false,
+            fetch_requested: false,
             data_point_threshold: std::env::var("GLIA_DATA_POINT_THRESHOLD")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -122,7 +135,14 @@ impl App {
     pub fn update(&mut self, action: Action) {
         match action {
             Action::Quit => self.running = false,
-            Action::NextWindow => self.next_window(),
+            Action::NextTimeWindow => {
+                self.next_window();
+                self.fetch_requested = true;
+            }
+            Action::PrevTimeWindow => {
+                self.previous_window();
+                self.fetch_requested = true;
+            }
             Action::NextMetric => self.next_metric(),
             Action::PreviousMetric => self.previous_metric(),
             Action::NextRow => self.next_row(),
@@ -362,6 +382,11 @@ impl App {
 
     pub fn next_window(&mut self) {
         self.window = self.window.next();
+        self.has_user_changed_window = true;
+    }
+
+    pub fn previous_window(&mut self) {
+        self.window = self.window.prev();
         self.has_user_changed_window = true;
     }
 
