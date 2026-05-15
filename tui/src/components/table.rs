@@ -55,22 +55,6 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     };
 
     if summaries.is_empty() {
-        let msg = if app.is_loading {
-            "Loading..."
-        } else {
-            "No data available. Waiting for updates..."
-        };
-        let p = Paragraph::new(msg)
-            .style(Style::default().fg(YELLOW))
-            .alignment(Alignment::Center)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(table_title)
-                    .border_style(Style::default().fg(border_color))
-                    .style(Style::default().fg(TEXT)),
-            );
-        f.render_widget(p, table_area);
         return;
     }
 

@@ -116,6 +116,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
     render_footer(f, app, chunks[3]);
 
+    if app.jobs.is_empty() {
+        crate::components::modal::render_no_data_modal(f, app, f.size());
+    }
+
     if app.show_detail {
         render_modal(f, app);
     }
