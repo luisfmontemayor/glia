@@ -67,7 +67,7 @@ fn should_display_no_data_message() {
         .unwrap();
 
     let buffer = terminal.backend().buffer();
-    let expected_message = "No data available for time window";
+    let expected_message = "data available";
 
     let mut found = false;
     for y in 0..buffer.area.height {

@@ -112,7 +112,8 @@ pub fn render_modal(f: &mut Frame, app: &App) {
 
     let paragraph = Paragraph::new(content)
         .block(block)
-        .alignment(Alignment::Left);
+        .alignment(Alignment::Left)
+        .wrap(ratatui::widgets::Wrap { trim: true });
 
     f.render_widget(paragraph, area);
 }
@@ -121,14 +122,20 @@ pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Re
     let modal_area = crate::utils::centered_rect(60, 20, area);
     f.render_widget(Clear, modal_area);
 
-    let msg = "No data available for time window. Waiting for updates...";
-    let p = Paragraph::new(msg)
+    let content = vec![
+        Line::from("No data available for time window."),
+        Line::from("Waiting for updates..."),
+    ];
+
+    let p = Paragraph::new(content)
         .style(Style::default().fg(YELLOW))
         .alignment(Alignment::Center)
+        .wrap(ratatui::widgets::Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(YELLOW)),
+                .border_style(Style::default().fg(YELLOW))
+                .padding(ratatui::widgets::Padding::vertical(1)),
         );
     f.render_widget(p, modal_area);
 }
