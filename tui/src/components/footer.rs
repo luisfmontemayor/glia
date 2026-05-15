@@ -5,7 +5,7 @@ use ratatui::{
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 pub fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
@@ -16,10 +16,12 @@ pub fn render_footer(f: &mut Frame, _app: &App, area: Rect) {
         Span::raw(" Quit"),
     ])];
 
-    let paragraph = Paragraph::new(text).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(OVERLAY2)),
-    );
+    let paragraph = Paragraph::new(text)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(OVERLAY2)),
+        )
+        .wrap(Wrap { trim: true });
     f.render_widget(paragraph, area);
 }
