@@ -1,3 +1,6 @@
+- [x] too much horizonal padding on text and modal, must be twice as vertical padding. Text is still not synamically centered vertically, but it is horizontally
+- [x] there are more x axis vertical ticks than there are bars. That cannot be the case. Also, the values of the barplot dissapeared! 
+- [x] there are two rows of x axis values. Why is that and how was this allowed 
 - [x] text in modal is not centred and does not wrap when the display is shrunk. Add centring, padding and wrapping. The waiting for data should be on a different line.
 - [x] when the no data modal is displayed, the graph should not display the message too. The table pane dissapeared altogether. It should be displayed in blank
 - [x] add a shift + t for reversing time windows
