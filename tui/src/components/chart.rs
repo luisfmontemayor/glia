@@ -38,6 +38,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let p = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
             .alignment(Alignment::Center)
+            .wrap(ratatui::widgets::Wrap { trim: true })
             .block(
                 Block::default()
                     .borders(Borders::ALL)
@@ -527,15 +528,22 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .border_style(Style::default().fg(SURFACE1)),
             inner_chunks[0],
         );
-        f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[1]);
+        f.render_widget(
+            Paragraph::new(Line::from(markers)).wrap(ratatui::widgets::Wrap { trim: true }),
+            inner_chunks[1],
+        );
 
         if is_wmax {
             f.render_widget(
-                Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)]),
+                Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)])
+                    .wrap(ratatui::widgets::Wrap { trim: true }),
                 inner_chunks[2],
             );
         } else {
-            f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_chunks[2]);
+            f.render_widget(
+                Paragraph::new(Line::from(labels_normal)).wrap(ratatui::widgets::Wrap { trim: true }),
+                inner_chunks[2],
+            );
         }
     }
 
@@ -546,6 +554,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             Paragraph::new("Loading...")
                 .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
                 .alignment(Alignment::Center)
+                .wrap(ratatui::widgets::Wrap { trim: true })
                 .block(
                     Block::default()
                         .borders(Borders::ALL)

@@ -55,6 +55,30 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     };
 
     if summaries.is_empty() {
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .title(table_title)
+            .border_style(Style::default().fg(border_color))
+            .style(Style::default().fg(TEXT));
+        f.render_widget(block, table_area);
+
+        if app.is_loading {
+            let area = centered_rect(30, 10, table_area);
+            f.render_widget(Clear, area);
+            f.render_widget(
+                Paragraph::new("Loading...")
+                    .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
+                    .alignment(Alignment::Center)
+                    .wrap(ratatui::widgets::Wrap { trim: true })
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .border_style(Style::default().fg(border_color))
+                            .style(Style::default().fg(TEXT)),
+                    ),
+                area,
+            );
+        }
         return;
     }
 
@@ -248,6 +272,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
     if let Some(ia) = indicator_area {
         let indicator = Paragraph::new("▼")
             .alignment(Alignment::Center)
+            .wrap(ratatui::widgets::Wrap { trim: true })
             .style(Style::default().bg(SURFACE1).fg(TEXT));
         f.render_widget(indicator, ia);
     }
@@ -259,6 +284,7 @@ pub fn render_top_scripts_table(f: &mut Frame, app: &mut App, area: Rect) {
             Paragraph::new("Loading...")
                 .style(Style::default().fg(YELLOW).add_modifier(Modifier::BOLD))
                 .alignment(Alignment::Center)
+                .wrap(ratatui::widgets::Wrap { trim: true })
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
