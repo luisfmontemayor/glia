@@ -1,3 +1,7 @@
+- [x] text in modal is not centred and does not wrap when the display is shrunk. Add centring, padding and wrapping. The waiting for data should be on a different line.
+- [x] when the no data modal is displayed, the graph should not display the message too. The table pane dissapeared altogether. It should be displayed in blank
+- [x] add a shift + t for reversing time windows
+- [x] I understand that 1h is the default time window. What happens is: 1h doesn't have data, the modal gets displayed, by default it circles to All Time and then the modal disapears. The modal should only be displayed once the time window consolidates on it's final form
 - [x] Display modal centred on the screen overlaid on top of other panes. It will have the only "No data available for time window. Waiting for updates..." sign, not in job or graph panes. Centred on the table with a border of a different colour
 - [x] the data point vertical lines (need a better name) are not centred with the bars on the barplot. They are layed out evenly with a greater margin on the right than on the left so they don't line up with the bars. They are too tall too. 
 - [x] The bar plot doesn't have a x axis line. Add. Perpendicular to the vertical bar chart graph
