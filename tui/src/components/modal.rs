@@ -119,7 +119,7 @@ pub fn render_modal(f: &mut Frame, app: &App) {
 }
 
 pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Rect) {
-    let modal_height = 20;
+    let modal_height = 10;
     let modal_area = crate::utils::centered_rect(60, modal_height, area);
     f.render_widget(Clear, modal_area);
 
