@@ -120,16 +120,20 @@ async fn run_app(terminal: &mut Terminal<Backend>, mut app: App) -> io::Result<(
                     }
                     Action::Key(key) => {
                         if let Some(key_action) = handle_key_event(key, &app) {
-                            match key_action {
-                                Action::NextWindow => {
-                                    app.update(Action::NextWindow);
-                                    let _ = tx.send(Action::FetchMetrics);
-                                }
-                                _ => app.update(key_action),
+                            app.update(key_action);
+                            if app.fetch_requested {
+                                app.fetch_requested = false;
+                                let _ = tx.send(Action::FetchMetrics);
                             }
                         }
                     }
-                    _ => app.update(action),
+                    _ => {
+                        app.update(action);
+                        if app.fetch_requested {
+                            app.fetch_requested = false;
+                            let _ = tx.send(Action::FetchMetrics);
+                        }
+                    }
                 }
 
                 if !app.running {
@@ -155,7 +159,8 @@ fn handle_key_event(key: event::KeyEvent, app: &App) -> Option<Action> {
         KeyCode::Char('q') => Some(Action::Quit),
         KeyCode::Tab => Some(Action::NextMetric),
         KeyCode::BackTab => Some(Action::PreviousMetric),
-        KeyCode::Char('t') => Some(Action::NextWindow),
+        KeyCode::Char('t') => Some(Action::NextTimeWindow),
+        KeyCode::Char('T') => Some(Action::PrevTimeWindow),
         KeyCode::Char('p') => Some(Action::ToggleCommandPalette),
         _ => match app.focused_pane {
             Pane::Graph => match key.code {
