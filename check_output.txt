@@ -1,3 +1,72 @@
-error: could not find `Cargo.toml` in `/home/luisfe/gitrepos/glia-tui` or any parent directory
-═══════════════════════════════════════
-cargo build: 1 errors, 0 warnings (0 crates)
+
+running 1 test
+┌ Glia TUI ──────────────────┐┌ DB ────┐┌ API ───┐
+│Glia Base Team  | Time      ││ ACTIVE ││ ACTIVE │
+└────────────────────────────┘└────────┘└────────┘
+┌ Metrics • [Tab]/[Shift+Tab] ───────────────────┐
+│ Wall Time │ CPU Time │ CPU Percent │ Max RSS │ │
+└────────────────────────────────────────────────┘
+┌ Wall Time (ms) • [g] ─┐┌ Jobs • [j] ───────────┐
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│                ███    ││                       │
+│           ▆▆▆  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│           ███  ███    ││                       │
+│      ▄▄▄  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│      ███  ███  ███    ││                       │
+│ ▂▂▂  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│ ███  ███  ███  ███    ││                       │
+│      ─┬───┬───┬───┬── ││                       │
+│      10:05 10:10 10:1 ││                       │
+└───────────────────────┘└───────────────────────┘
+┌────────────────────────────────────────────────┐
+│[p] Command Palette | [q] Quit                  │
+└────────────────────────────────────────────────┘
+
+Ticks: 4
+Has 3000: false
+Has 4000: false
+test test_bar_ticks_mismatch ... FAILED
+
+failures:
+
+failures:
+    test_bar_ticks_mismatch
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/test_ticks.rs (target/debug/deps/test_ticks-0d555baab6f80fad)
+
+thread 'test_bar_ticks_mismatch' (3882) panicked at tests/test_ticks.rs:70:5:
+Expected 4th bar to be rendered
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `--test test_ticks`
