@@ -1,4 +1,11 @@
-- [ ] Display modal centred on the screen overlaid on top of other panes. It will have the only "No data available for time window. Waiting for updates..." sign, not in job or graph panes. Centred on the table with a border of a different colour
+- [x] Display modal centred on the screen overlaid on top of other panes. It will have the only "No data available for time window. Waiting for updates..." sign, not in job or graph panes. Centred on the table with a border of a different colour
+- [x] the data point vertical lines (need a better name) are not centred with the bars on the barplot. They are layed out evenly with a greater margin on the right than on the left so they don't line up with the bars. They are too tall too. 
+- [x] The bar plot doesn't have a x axis line. Add. Perpendicular to the vertical bar chart graph
+- [x] The x axis values are outside of the bar plot pane, they are not within the blue line
+- [x] The togglable command palette footers are not bordered. Add a grey border same colour of the app footer
+- [x] The text wrapping of the command palette words has an issue: it wraps on a per word basis, not on a per item basis. It currently cuts at arrow navigation, and only navigation got wrapped around. It should wrap around the key bound and the name. A line should not end in |
+- [x] The command palette footer box should be proportionally as tall as it's text lines. A box with 1 line worth of leyend shouldn't have as much height as one with 2 lines worth of leyends
+
 
 # CURRENT ORCHESTRATION
 - [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
