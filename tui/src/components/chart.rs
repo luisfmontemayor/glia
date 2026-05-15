@@ -260,7 +260,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             1
         };
 
-        let label_height = if is_wmax { 2 } else { 1 };
+        let label_height = 1;
         let available_width = area.width.saturating_sub(4);
         let (b_width, b_gap, g_gap) = if is_low_density {
             let bg = 1;
@@ -314,8 +314,6 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .bar_gap(b_gap)
             .group_gap(g_gap);
 
-        let mut labels_hhmm = Vec::new();
-        let mut labels_mmdd = Vec::new();
         let mut labels_normal = Vec::new();
         let mut markers = Vec::new();
         let mut last_date = String::new();
@@ -349,49 +347,28 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
 
-                if is_wmax {
-                    let is_new_day = !last_date.is_empty() && date != last_date;
-                    let hhmm_style = if is_new_day {
-                        Style::default().fg(PINK)
-                    } else {
-                        Style::default().fg(TEXT)
-                    };
-                    let mut text = hhmm;
-                    if is_new_day {
-                        text = format!("|{}", text);
-                    }
-                    labels_hhmm.push(Span::styled(
-                        format!("{:^width$}", text, width = group_width as usize),
-                        hhmm_style,
-                    ));
-                    if is_new_day || labels_mmdd.is_empty() {
-                        labels_mmdd.push(Span::styled(
-                            format!("{:^width$}", mmdd, width = group_width as usize),
-                            Style::default().fg(YELLOW),
-                        ));
-                    } else {
-                        labels_mmdd.push(Span::raw(" ".repeat(group_width as usize)));
-                    }
-                    if i < n_jobs - 1 {
-                        labels_hhmm.push(Span::raw(" ".repeat(g_gap as usize)));
-                        labels_mmdd.push(Span::raw(" ".repeat(g_gap as usize)));
-                    }
-                    last_date = date;
+                let is_new_day = !last_date.is_empty() && date != last_date;
+                let label_style = if is_new_day {
+                    Style::default().fg(PINK)
                 } else {
-                    let label = if app.window == TimeWindow::WMax {
-                        format!("{} {}", mmdd, hhmm)
-                    } else {
-                        hhmm
-                    };
-                    labels_normal.push(Span::raw(format!(
-                        "{:^width$}",
-                        label,
-                        width = group_width as usize
-                    )));
-                    if i < n_jobs - 1 {
-                        labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
-                    }
+                    Style::default().fg(TEXT)
+                };
+
+                let label = if is_new_day || (i == 0 && is_wmax) {
+                    format!("{} {}", mmdd, hhmm)
+                } else {
+                    hhmm
+                };
+
+                labels_normal.push(Span::styled(
+                    format!("{:^width$}", label, width = group_width as usize),
+                    label_style,
+                ));
+
+                if i < n_jobs - 1 {
+                    labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
                 }
+                last_date = date;
 
                 // Marker
                 let left_pad = (group_width - 1) / 2;
@@ -459,50 +436,28 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
-
-                if is_wmax {
-                    let is_new_day = !last_date.is_empty() && date != last_date;
-                    let hhmm_style = if is_new_day {
-                        Style::default().fg(PINK)
-                    } else {
-                        Style::default().fg(TEXT)
-                    };
-                    let mut text = hhmm;
-                    if is_new_day {
-                        text = format!("|{}", text);
-                    }
-                    labels_hhmm.push(Span::styled(
-                        format!("{:^width$}", text, width = group_width as usize),
-                        hhmm_style,
-                    ));
-                    if is_new_day || labels_mmdd.is_empty() {
-                        labels_mmdd.push(Span::styled(
-                            format!("{:^width$}", mmdd, width = group_width as usize),
-                            Style::default().fg(YELLOW),
-                        ));
-                    } else {
-                        labels_mmdd.push(Span::raw(" ".repeat(group_width as usize)));
-                    }
-                    if i < n_jobs - 1 {
-                        labels_hhmm.push(Span::raw(" ".repeat(g_gap as usize)));
-                        labels_mmdd.push(Span::raw(" ".repeat(g_gap as usize)));
-                    }
-                    last_date = date;
+                let is_new_day = !last_date.is_empty() && date != last_date;
+                let label_style = if is_new_day {
+                    Style::default().fg(PINK)
                 } else {
-                    let label = if app.window == TimeWindow::WMax {
-                        format!("{} {}", mmdd, hhmm)
-                    } else {
-                        hhmm
-                    };
-                    labels_normal.push(Span::raw(format!(
-                        "{:^width$}",
-                        label,
-                        width = group_width as usize
-                    )));
-                    if i < n_jobs - 1 {
-                        labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
-                    }
+                    Style::default().fg(TEXT)
+                };
+
+                let label = if is_new_day || (i == 0 && is_wmax) {
+                    format!("{} {}", mmdd, hhmm)
+                } else {
+                    hhmm
+                };
+
+                labels_normal.push(Span::styled(
+                    format!("{:^width$}", label, width = group_width as usize),
+                    label_style,
+                ));
+
+                if i < n_jobs - 1 {
+                    labels_normal.push(Span::raw(" ".repeat(g_gap as usize)));
                 }
+                last_date = date;
 
                 // Marker
                 let left_pad = (group_width - 1) / 2;
@@ -528,23 +483,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .border_style(Style::default().fg(SURFACE1)),
             inner_chunks[0],
         );
-        f.render_widget(
-            Paragraph::new(Line::from(markers)).wrap(ratatui::widgets::Wrap { trim: true }),
-            inner_chunks[1],
-        );
-
-        if is_wmax {
-            f.render_widget(
-                Paragraph::new(vec![Line::from(labels_hhmm), Line::from(labels_mmdd)])
-                    .wrap(ratatui::widgets::Wrap { trim: true }),
-                inner_chunks[2],
-            );
-        } else {
-            f.render_widget(
-                Paragraph::new(Line::from(labels_normal)).wrap(ratatui::widgets::Wrap { trim: true }),
-                inner_chunks[2],
-            );
-        }
+        f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[1]);
+        f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_chunks[2]);
     }
 
     if app.is_loading {
