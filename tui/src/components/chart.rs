@@ -300,8 +300,9 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
-                Constraint::Length(1),
-                Constraint::Length(label_height),
+                Constraint::Length(1), // x-axis line
+                Constraint::Length(1), // markers
+                Constraint::Length(label_height), // labels
             ])
             .split(inner_area);
 
@@ -317,6 +318,28 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let mut labels_normal = Vec::new();
         let mut markers = Vec::new();
         let mut last_date = String::new();
+
+        let mut max_val = 0;
+        if app.metric == Metric::JobStatus {
+            max_val = 8;
+        } else {
+            for j in &app.jobs {
+                let v = match app.metric {
+                    Metric::WallTime => j.wall_time_ms as u64,
+                    Metric::CpuTime => (j.cpu_time_sec * 1000.0) as u64,
+                    Metric::CpuPercent => j.cpu_percent as u64,
+                    Metric::MaxRss => j.max_rss_kb as u64,
+                    _ => 0,
+                };
+                if v > max_val {
+                    max_val = v;
+                }
+            }
+        }
+        let y_axis_width = max_val.max(8).to_string().len() as u16 + 1;
+
+        labels_normal.push(Span::raw(" ".repeat(y_axis_width as usize)));
+        markers.push(Span::raw(" ".repeat(y_axis_width as usize)));
 
         if app.metric == Metric::JobStatus {
             barchart = barchart.max(8);
@@ -477,14 +500,13 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             }
         }
         f.render_widget(barchart, inner_chunks[0]);
-        f.render_widget(
-            Block::default()
-                .borders(Borders::BOTTOM)
-                .border_style(Style::default().fg(SURFACE1)),
-            inner_chunks[0],
-        );
-        f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[1]);
-        f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_chunks[2]);
+        let x_axis_line = vec![
+            Span::raw(" ".repeat(y_axis_width as usize)),
+            Span::styled("─".repeat(inner_chunks[1].width.saturating_sub(y_axis_width) as usize), Style::default().fg(SURFACE1)),
+        ];
+        f.render_widget(Paragraph::new(Line::from(x_axis_line)), inner_chunks[1]);
+        f.render_widget(Paragraph::new(Line::from(markers)), inner_chunks[2]);
+        f.render_widget(Paragraph::new(Line::from(labels_normal)), inner_chunks[3]);
     }
 
     if app.is_loading {
