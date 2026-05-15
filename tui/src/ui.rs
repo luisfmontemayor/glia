@@ -116,7 +116,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
     render_footer(f, app, chunks[3]);
 
-    if app.jobs.is_empty() {
+    if app.jobs.is_empty() && !app.is_loading {
         crate::components::modal::render_no_data_modal(f, app, f.size());
     }
 
