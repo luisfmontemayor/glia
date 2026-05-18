@@ -68,15 +68,13 @@ fn test_x_axis_ticks_unification() {
 
     let buffer = terminal.backend().buffer();
     
-    let mut found = false;
+    let mut content = String::new();
     for y in 0..buffer.area.height {
         for x in 0..buffer.area.width {
-            if buffer.get(x, y).symbol() == "┬" {
-                found = true;
-                break;
-            }
+            content.push_str(buffer.get(x, y).symbol());
         }
+        content.push('\n');
     }
 
-    assert!(found, "Exactly character '┬' (U+252C) not found in the output");
+    assert!(content.contains("12:00"), "Native BarGroup label '12:00' not found in the output");
 }
