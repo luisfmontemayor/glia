@@ -12,7 +12,14 @@ pub fn render_modal(f: &mut Frame, app: &App) {
     let area = crate::utils::centered_rect(50, 35, f.size());
     f.render_widget(Clear, area);
 
-    let (title, content) = if let Some(selected) = app.jobs_table_state.row_state.selected() {
+    let (title, content) = if app.jobs.is_empty() {
+        let msg = if app.is_loading {
+            "Loading..."
+        } else {
+            "No data available for this time window"
+        };
+        (None, vec![Line::from(msg)])
+    } else if let Some(selected) = app.jobs_table_state.row_state.selected() {
         if let Some(summary) = app.summaries.get(selected) {
             let prog_name = &summary.program_name;
             let prog_jobs: Vec<_> = app
@@ -39,7 +46,7 @@ pub fn render_modal(f: &mut Frame, app: &App) {
             };
 
             (
-                format!(" Detail: {} ", prog_name),
+                Some(format!(" Detail: {} ", prog_name)),
                 vec![
                     Line::from(vec![
                         Span::styled("Status: ", Style::default().add_modifier(Modifier::BOLD)),
@@ -94,21 +101,24 @@ pub fn render_modal(f: &mut Frame, app: &App) {
             )
         } else {
             (
-                " No Selection ".to_string(),
+                Some(" No Selection ".to_string()),
                 vec![Line::from("No script selected")],
             )
         }
     } else {
         (
-            " No Selection ".to_string(),
+            Some(" No Selection ".to_string()),
             vec![Line::from("No script selected")],
         )
     };
 
-    let block = Block::default()
-        .title(title)
+    let mut block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(SAPPHIRE));
+
+    if let Some(t) = title {
+        block = block.title(t);
+    }
 
     let paragraph = Paragraph::new(content)
         .block(block)
