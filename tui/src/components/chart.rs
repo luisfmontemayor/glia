@@ -80,16 +80,6 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let n_jobs = app.jobs.len();
         let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
 
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Min(0),
-                Constraint::Length(1), // Second line of dual-line labels
-            ])
-            .split(area);
-        let chart_area = chunks[0];
-        let labels_area = chunks[1];
-
         let mut job_points = Vec::new();
         for j in &app.jobs {
             if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&j.started_at) {
@@ -103,12 +93,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let mut min_x = f64::MAX;
         let mut max_x = f64::MIN;
 
-        for (i, (ts, j)) in job_points.iter().enumerate() {
-            let x = if is_low_density {
-                (i + 1) as f64 / (n_jobs + 1) as f64
-            } else {
-                *ts
-            };
+        for (ts, j) in &job_points {
+            let x = *ts;
 
             let val = match app.metric {
                 Metric::WallTime => j.wall_time_ms as f64,
@@ -129,27 +115,22 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .or_default()
                 .push((x, val));
             max_y = max_y.max(val);
-            if !is_low_density {
-                min_x = min_x.min(x);
-                max_x = max_x.max(x);
-            }
+            min_x = min_x.min(x);
+            max_x = max_x.max(x);
         }
 
-        if is_low_density {
+        if min_x == f64::MAX {
             min_x = 0.0;
             max_x = 1.0;
         } else {
-            if min_x == f64::MAX {
-                min_x = 0.0;
-                max_x = 1.0;
-            } else if max_x == min_x {
-                min_x -= 1800.0;
-                max_x += 1800.0;
-            } else if n_jobs <= 3 {
-                let padding = (max_x - min_x) * 0.20;
-                min_x -= padding;
-                max_x += padding;
-            }
+            let mid_x = (min_x + max_x) / 2.0;
+            let half_window = app
+                .window
+                .to_duration()
+                .map(|d| d.as_secs_f64() / 2.0)
+                .unwrap_or(1800.0); // 3600s fallback for WMax
+            min_x = mid_x - half_window;
+            max_x = mid_x + half_window;
         }
 
         if max_y <= 0.0 {
@@ -169,13 +150,12 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let mut marker_line = Vec::new();
         if is_low_density {
             let marker_height = max_y * 0.05;
-            for i in 0..n_jobs {
-                let x = (i + 1) as f64 / (n_jobs + 1) as f64;
-                marker_line.push((x, marker_height));
-                marker_line.push((x, 0.0));
+            for (i, (ts, _)) in job_points.iter().enumerate() {
+                marker_line.push((*ts, marker_height));
+                marker_line.push((*ts, 0.0));
                 if i + 1 < n_jobs {
-                    let next_x = (i + 2) as f64 / (n_jobs + 1) as f64;
-                    marker_line.push((next_x, 0.0));
+                    let next_ts = job_points[i + 1].0;
+                    marker_line.push((next_ts, 0.0));
                 }
             }
         } else if n_jobs <= 3 {
@@ -211,30 +191,17 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             );
         }
 
-        let mut x_labels = Vec::new();
-        if is_low_density {
-            x_labels.push(Span::styled("", Style::default().fg(YELLOW)));
-            for (_, j) in &job_points {
-                let (hhmm, _, _) = parse_time(&j.started_at);
-                x_labels.push(Span::styled(hhmm, Style::default().fg(YELLOW)));
-            }
-            x_labels.push(Span::styled("", Style::default().fg(YELLOW)));
-        } else {
-            x_labels.push(Span::styled(
-                chrono::DateTime::from_timestamp(min_x as i64, 0)
+        let mid_x = (min_x + max_x) / 2.0;
+        let format_time = |val: f64| {
+            Span::styled(
+                chrono::DateTime::from_timestamp(val as i64, 0)
                     .unwrap_or_default()
                     .format("%H:%M")
                     .to_string(),
                 Style::default().fg(YELLOW),
-            ));
-            x_labels.push(Span::styled(
-                chrono::DateTime::from_timestamp(max_x as i64, 0)
-                    .unwrap_or_default()
-                    .format("%H:%M")
-                    .to_string(),
-                Style::default().fg(YELLOW),
-            ));
-        }
+            )
+        };
+        let x_labels = vec![format_time(min_x), format_time(mid_x), format_time(max_x)];
 
         let chart = Chart::new(datasets)
             .legend_position(Some(LegendPosition::TopRight))
@@ -261,33 +228,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .labels(vec![Span::raw("0"), Span::raw(format!("{:.0}", max_y))]),
             );
 
-        f.render_widget(chart, chart_area);
-
-        let mut last_date = String::new();
-        if is_low_density {
-            let y_axis_width = format!("{:.0}", max_y).len() as u16 + 4;
-            let data_area_width = chart_area.width.saturating_sub(y_axis_width + 4);
-            for (i, (_, j)) in job_points.iter().enumerate() {
-                let (_, mmdd, date) = parse_time(&j.started_at);
-                let x_offset = ((i + 1) as f32 / (n_jobs + 1) as f32 * data_area_width as f32) as u16;
-                let label_x = chart_area.x + y_axis_width + x_offset.saturating_sub(2);
-                if label_x < labels_area.right() && date != last_date {
-                    f.render_widget(
-                        Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                        Rect::new(label_x, labels_area.y, 5, 1)
-                    );
-                }
-                last_date = date;
-            }
-        } else if !job_points.is_empty() {
-            let y_axis_width = format!("{:.0}", max_y).len() as u16 + 4;
-            let (_, min_mmdd, _) = parse_time(&job_points.first().unwrap().1.started_at);
-            
-            f.render_widget(
-                Paragraph::new(min_mmdd).style(Style::default().fg(YELLOW)),
-                Rect::new(chart_area.x + y_axis_width, labels_area.y, 5, 1)
-            );
-        }
+        f.render_widget(chart, area);
     } else {
         let n_jobs = app.jobs.len();
         let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
@@ -379,6 +320,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         if app.metric == Metric::JobStatus {
             barchart = barchart.max(8);
             let mut last_date = String::new();
+            let mut last_label_end_x: u16 = 0;
             for (i, j) in app.jobs.iter().enumerate() {
                 let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
                 let s_text = if j.exit_code_int == 0 {
@@ -405,25 +347,25 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
-                let is_new_day = date != last_date;
                 
                 let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let label_x = group_x + (group_width.saturating_sub(5) / 2);
 
-                if label_x < chart_area.right() {
+                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
                         Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
-                        Rect::new(label_x, labels_area.y, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                        Rect::new(label_x, labels_area.y, 5, 1)
                     );
-                    if is_new_day {
+                    if date != last_date {
                         f.render_widget(
                             Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                            Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                            Rect::new(label_x, labels_area.y + 1, 5, 1)
                         );
+                        last_date = date;
                     }
+                    last_label_end_x = label_x + 6;
                 }
-                last_date = date;
 
                 let group = BarGroup::default()
                     .bars(&[
@@ -452,6 +394,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .max(max_val.max(8));
 
             let mut last_date = String::new();
+            let mut last_label_end_x: u16 = 0;
             for (i, j) in app.jobs.iter().enumerate() {
                 let orig_val = match app.metric {
                     Metric::WallTime => j.wall_time_ms as u64,
@@ -469,25 +412,25 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 };
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
-                let is_new_day = date != last_date;
                 
                 let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let label_x = group_x + (group_width.saturating_sub(5) / 2);
 
-                if label_x < chart_area.right() {
+                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
                         Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
-                        Rect::new(label_x, labels_area.y, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                        Rect::new(label_x, labels_area.y, 5, 1)
                     );
-                    if is_new_day {
+                    if date != last_date {
                         f.render_widget(
                             Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                            Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                            Rect::new(label_x, labels_area.y + 1, 5, 1)
                         );
+                        last_date = date;
                     }
+                    last_label_end_x = label_x + 6;
                 }
-                last_date = date;
 
                 let group = BarGroup::default()
                     .bars(&[Bar::default()

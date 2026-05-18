@@ -105,30 +105,35 @@ fn test_low_density_blame_mode_alignment() {
 
     let buffer = terminal.backend().buffer();
 
-    let mut found_10_00 = false;
-    let mut found_10_05 = false;
+    let mut found_09_32 = false;
+    let mut found_10_02 = false;
+    let mut found_10_32 = false;
 
     for x in 0..100 {
         for y in 0..50 {
             let cell = buffer.get(x, y);
             let s = cell.symbol();
-            if s == "1" {
+            if s == "0" || s == "1" {
                 let mut label = String::new();
                 for dx in 0..5 {
                     if x + dx < 100 {
                         label.push_str(buffer.get(x + dx, y).symbol());
                     }
                 }
-                if label == "10:00" {
-                    found_10_00 = true;
+                if label == "09:32" {
+                    found_09_32 = true;
                 }
-                if label == "10:05" {
-                    found_10_05 = true;
+                if label == "10:02" {
+                    found_10_02 = true;
+                }
+                if label == "10:32" {
+                    found_10_32 = true;
                 }
             }
         }
     }
 
-    assert!(found_10_00, "Should find 10:00 label");
-    assert!(found_10_05, "Should find 10:05 label");
+    assert!(found_09_32, "Should find 09:32 label (min)");
+    assert!(found_10_02, "Should find 10:02 label (mid)");
+    assert!(found_10_32, "Should find 10:32 label (max)");
 }
