@@ -263,35 +263,30 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
         f.render_widget(chart, chart_area);
 
+        let mut last_date = String::new();
         if is_low_density {
             let y_axis_width = format!("{:.0}", max_y).len() as u16 + 4;
             let data_area_width = chart_area.width.saturating_sub(y_axis_width + 4);
             for (i, (_, j)) in job_points.iter().enumerate() {
-                let (_, mmdd, _) = parse_time(&j.started_at);
+                let (_, mmdd, date) = parse_time(&j.started_at);
                 let x_offset = ((i + 1) as f32 / (n_jobs + 1) as f32 * data_area_width as f32) as u16;
                 let label_x = chart_area.x + y_axis_width + x_offset.saturating_sub(2);
-                if label_x < labels_area.right() {
+                if label_x < labels_area.right() && date != last_date {
                     f.render_widget(
                         Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
                         Rect::new(label_x, labels_area.y, 5, 1)
                     );
                 }
+                last_date = date;
             }
         } else if !job_points.is_empty() {
             let y_axis_width = format!("{:.0}", max_y).len() as u16 + 4;
             let (_, min_mmdd, _) = parse_time(&job_points.first().unwrap().1.started_at);
-            let (_, max_mmdd, _) = parse_time(&job_points.last().unwrap().1.started_at);
             
             f.render_widget(
                 Paragraph::new(min_mmdd).style(Style::default().fg(YELLOW)),
                 Rect::new(chart_area.x + y_axis_width, labels_area.y, 5, 1)
             );
-            if chart_area.right() > 7 {
-                f.render_widget(
-                    Paragraph::new(max_mmdd).style(Style::default().fg(YELLOW)).alignment(Alignment::Right),
-                    Rect::new(chart_area.right().saturating_sub(7), labels_area.y, 5, 1)
-                );
-            }
         }
     } else {
         let n_jobs = app.jobs.len();
@@ -383,6 +378,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
         if app.metric == Metric::JobStatus {
             barchart = barchart.max(8);
+            let mut last_date = String::new();
             for (i, j) in app.jobs.iter().enumerate() {
                 let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
                 let s_text = if j.exit_code_int == 0 {
@@ -408,7 +404,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     Style::default().fg(SURFACE1)
                 };
 
-                let (hhmm, mmdd, _) = parse_time(&j.started_at);
+                let (hhmm, mmdd, date) = parse_time(&j.started_at);
+                let is_new_day = date != last_date;
                 
                 let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
@@ -419,11 +416,14 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                         Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
                         Rect::new(label_x, labels_area.y, 5.min(chart_area.right().saturating_sub(label_x)), 1)
                     );
-                    f.render_widget(
-                        Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                        Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
-                    );
+                    if is_new_day {
+                        f.render_widget(
+                            Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
+                            Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                        );
+                    }
                 }
+                last_date = date;
 
                 let group = BarGroup::default()
                     .bars(&[
@@ -451,6 +451,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 .bar_style(Style::default().fg(bar_color))
                 .max(max_val.max(8));
 
+            let mut last_date = String::new();
             for (i, j) in app.jobs.iter().enumerate() {
                 let orig_val = match app.metric {
                     Metric::WallTime => j.wall_time_ms as u64,
@@ -467,7 +468,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     Style::default().fg(bar_color)
                 };
 
-                let (hhmm, mmdd, _) = parse_time(&j.started_at);
+                let (hhmm, mmdd, date) = parse_time(&j.started_at);
+                let is_new_day = date != last_date;
                 
                 let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
@@ -478,11 +480,14 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                         Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
                         Rect::new(label_x, labels_area.y, 5.min(chart_area.right().saturating_sub(label_x)), 1)
                     );
-                    f.render_widget(
-                        Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                        Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
-                    );
+                    if is_new_day {
+                        f.render_widget(
+                            Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
+                            Rect::new(label_x, labels_area.y + 1, 5.min(chart_area.right().saturating_sub(label_x)), 1)
+                        );
+                    }
                 }
+                last_date = date;
 
                 let group = BarGroup::default()
                     .bars(&[Bar::default()
