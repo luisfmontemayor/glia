@@ -1,3 +1,19 @@
+- [ ] Revise the work done previously on x axis of the bar plot. The single horizontal line should be implemented 
+- [ ] on both graphs: the data point values should be on one height and the date on the following one below, in yellow colour form our colour palette
+
+# CURRENT ORCHESTRATION
+- [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
+- [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
+- [x] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
+- [x] T4: Implement Pinned Headers for table scroll (@flash-executor)
+- [x] T5: Refine Context-aware Scroll Indicator (@flash-executor)
+- [x] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
+- [x] T7: Final QA & todo.md Cleanup (@janitor)
+
+
+# ARCHIVE
+
+### Miscellaneous Polish
 - [x] too much horizonal padding on text and modal, must be twice as vertical padding. Text is still not synamically centered vertically, but it is horizontally
 - [x] there are more x axis vertical ticks than there are bars. That cannot be the case. Also, the values of the barplot dissapeared! 
 - [x] there are two rows of x axis values. Why is that and how was this allowed 
@@ -12,18 +28,6 @@
 - [x] The togglable command palette footers are not bordered. Add a grey border same colour of the app footer
 - [x] The text wrapping of the command palette words has an issue: it wraps on a per word basis, not on a per item basis. It currently cuts at arrow navigation, and only navigation got wrapped around. It should wrap around the key bound and the name. A line should not end in |
 - [x] The command palette footer box should be proportionally as tall as it's text lines. A box with 1 line worth of leyend shouldn't have as much height as one with 2 lines worth of leyends
-
-
-# CURRENT ORCHESTRATION
-- [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
-- [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
-- [x] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
-- [x] T4: Implement Pinned Headers for table scroll (@flash-executor)
-- [x] T5: Refine Context-aware Scroll Indicator (@flash-executor)
-- [x] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
-- [x] T7: Final QA & todo.md Cleanup (@janitor)
-
-# ARCHIVE
 
 ### Final UI & Polish (Refactor T1-T7)
 - [x] fix: prevent out-of-bounds panic when rendering high-density charts
