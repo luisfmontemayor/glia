@@ -33,7 +33,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let msg = if app.is_loading {
             "Loading..."
         } else {
-            "No data available for this time window"
+            ""
         };
         let p = Paragraph::new(msg)
             .style(Style::default().fg(YELLOW))
