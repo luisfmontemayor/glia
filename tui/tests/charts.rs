@@ -133,7 +133,40 @@ fn test_low_density_blame_mode_alignment() {
         }
     }
 
-    assert!(found_09_32, "Should find 09:32 label (min)");
+    assert!(!found_09_32, "Should NOT find 09:32 label (min) anymore");
     assert!(found_10_02, "Should find 10:02 label (mid)");
-    assert!(found_10_32, "Should find 10:32 label (max)");
+    assert!(!found_10_32, "Should NOT find 10:32 label (max) anymore");
+
+    // Check for the manual "0" label
+    let mut found_zero = false;
+    for x in 0..100 {
+        for y in 0..50 {
+            if buffer.get(x, y).symbol() == "0" {
+                // The manual "0" should be isolated
+                let left_is_empty = if x > 0 { buffer.get(x-1, y).symbol() == " " } else { true };
+                let right_is_empty = if x < 99 { buffer.get(x+1, y).symbol() == " " } else { true };
+                if left_is_empty && right_is_empty {
+                    found_zero = true;
+                }
+            }
+        }
+    }
+    assert!(found_zero, "Should find the manual '0' label");
+
+    // Check for the max Y label (200)
+    let mut found_max_y = false;
+    for x in 0..100 {
+        for y in 0..50 {
+            let mut label = String::new();
+            for dx in 0..3 {
+                if x + dx < 100 {
+                    label.push_str(buffer.get(x + dx, y).symbol());
+                }
+            }
+            if label == "200" {
+                found_max_y = true;
+            }
+        }
+    }
+    assert!(found_max_y, "Should find the max Y label '200'");
 }
