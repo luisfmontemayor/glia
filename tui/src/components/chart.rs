@@ -306,18 +306,15 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let axis_area = chunks[2];
         let labels_area = chunks[3];
 
-        f.render_widget(
-            Paragraph::new(symbols::line::HORIZONTAL.repeat(axis_area.width as usize))
-                .style(Style::default().fg(TEXT)),
-            axis_area,
-        );
-
         let mut barchart = BarChart::default()
             .bar_set(symbols::bar::NINE_LEVELS)
             .value_style(Style::default().fg(CRUST).bg(TEXT))
             .bar_width(b_width)
             .bar_gap(b_gap)
             .group_gap(g_gap);
+
+        let mut tick_positions = Vec::new();
+        let mut label_infos = Vec::new();
 
         if app.metric == Metric::JobStatus {
             barchart = barchart.max(8);
@@ -354,27 +351,19 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                if tick_x < ticks_area.right() {
-                    f.render_widget(
-                        Paragraph::new("│").style(Style::default().fg(TEXT)),
-                        Rect::new(tick_x, ticks_area.y, 1, 1),
-                    );
+                if group_x + bars_width <= chart_area.right() {
+                    tick_positions.push(tick_x);
                 }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
-                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
-                    f.render_widget(
-                        Paragraph::new(hhmm).style(Style::default().fg(TEXT)),
-                        Rect::new(label_x, labels_area.y, 5, 1)
-                    );
+                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() && group_x + bars_width <= chart_area.right() {
+                    let mut mmdd_opt = None;
                     if date != last_date {
-                        f.render_widget(
-                            Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                            Rect::new(label_x, labels_area.y + 1, 5, 1)
-                        );
+                        mmdd_opt = Some(mmdd);
                         last_date = date;
                     }
+                    label_infos.push((label_x, hhmm, mmdd_opt));
                     last_label_end_x = label_x + 6;
                 }
 
@@ -428,27 +417,19 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                if tick_x < ticks_area.right() {
-                    f.render_widget(
-                        Paragraph::new("│").style(Style::default().fg(TEXT)),
-                        Rect::new(tick_x, ticks_area.y, 1, 1),
-                    );
+                if group_x + bars_width <= chart_area.right() {
+                    tick_positions.push(tick_x);
                 }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
-                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
-                    f.render_widget(
-                        Paragraph::new(hhmm).style(Style::default().fg(TEXT)),
-                        Rect::new(label_x, labels_area.y, 5, 1)
-                    );
+                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() && group_x + bars_width <= chart_area.right() {
+                    let mut mmdd_opt = None;
                     if date != last_date {
-                        f.render_widget(
-                            Paragraph::new(mmdd).style(Style::default().fg(YELLOW)),
-                            Rect::new(label_x, labels_area.y + 1, 5, 1)
-                        );
+                        mmdd_opt = Some(mmdd);
                         last_date = date;
                     }
+                    label_infos.push((label_x, hhmm, mmdd_opt));
                     last_label_end_x = label_x + 6;
                 }
 
@@ -460,7 +441,42 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 barchart = barchart.data(group);
             }
         }
+
+        // 1. BarChart widget (the bars)
         f.render_widget(barchart, chart_area);
+
+        // 2. Axis line
+        f.render_widget(
+            Paragraph::new(symbols::line::HORIZONTAL.repeat(axis_area.width as usize))
+                .style(Style::default().fg(TEXT)),
+            axis_area,
+        );
+
+        // 3. Data point ticks
+        for tx in tick_positions {
+            f.render_widget(
+                Paragraph::new("│").style(Style::default().fg(TEXT)),
+                Rect::new(tx, ticks_area.y, 1, 1),
+            );
+        }
+
+        // 4. Time labels (HH:MM)
+        for (lx, hhmm, _) in &label_infos {
+            f.render_widget(
+                Paragraph::new(hhmm.clone()).style(Style::default().fg(TEXT)),
+                Rect::new(*lx, labels_area.y, 5, 1),
+            );
+        }
+
+        // 5. Date labels (MM-DD)
+        for (lx, _, mmdd) in &label_infos {
+            if let Some(date_str) = mmdd {
+                f.render_widget(
+                    Paragraph::new(date_str.clone()).style(Style::default().fg(YELLOW)),
+                    Rect::new(*lx, labels_area.y + 1, 5, 1),
+                );
+            }
+        }
     }
 
     if app.is_loading {

@@ -1,8 +1,12 @@
-- [ ] Revise the work done previously on x axis of the bar plot. The single horizontal line should be implemented 
-- [ ] on both graphs: the data point values should be on one height and the date on the following one below, in yellow colour form our colour palette
+# TODO
+- [ ] add test for ensuring date is below data points always on charts
+- [ ] make bars with val of 0 on bar chart as low as they are wide
+
+# CHART TICKS IMPLEMENTATION
+- [x] TDD: Update tests/test_ticks.rs to verify tick rendering alignment (@flash-executor) [commit: test(chart): add tests for data point ticks alignment]
+- [x] Implementation: Update src/components/chart.rs with ticks layout and rendering (@flash-executor) [commit: feat(chart): insert data point ticks layer above x-axis]
 
 # CURRENT ORCHESTRATION
-- [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
 - [x] T2: Refine Blame Mode Graph (Centering, markers, markers alignment) (@flash-executor)
 - [x] T3: Refine Normal Mode BarChart (Centering, markers, padding) (@flash-executor)
 - [x] T4: Implement Pinned Headers for table scroll (@flash-executor)
@@ -10,8 +14,13 @@
 - [x] T6: Optimize Table Header aesthetic (Compactness, unit proximity) (@flash-executor)
 - [x] T7: Final QA & todo.md Cleanup (@janitor)
 
-
 # ARCHIVE
+- [x] Refactor `render_modal` to support optional titles [flash-executor]
+- [x] Add empty data state branch to `render_modal` [flash-executor]
+- [x] Implement conditional title rendering in `Block` [flash-executor]
+- [x] Verify fix with new/updated tests [monitor]
+- [x] Cleanup temporary test artifacts [janitor]
+- [x] T1: Implement `GLIA_DATA_POINT_THRESHOLD` in `App` struct (@flash-executor)
 
 ### Miscellaneous Polish
 - [x] too much horizonal padding on text and modal, must be twice as vertical padding. Text is still not synamically centered vertically, but it is horizontally
@@ -156,7 +165,3 @@
 - [x] **Real-time Updates** [BACKEND] (@flash-executor): Replace dummy data with periodic polling/fetching from the API.
 - [x] **Asynchronous Event Loop** [BACKEND] (@pro-executor): Decouple UI rendering from data processing using `tokio` tasks and `mpsc` channels.
 - [x] **Action System** [BACKEND] (@pro-executor): Implement a centralized `Action` enum to handle state transitions.
-
-## QA Audit
-- All tests passed successfully (17 passed, 0 failed, 1 ignored).
-- Refactor is complete and verified.

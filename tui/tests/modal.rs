@@ -42,7 +42,7 @@ fn test_modal_data_population() {
 
     terminal
         .draw(|f| {
-            render_modal(f, &app);
+            tui::ui::draw(f, &mut app);
         })
         .unwrap();
 
@@ -70,4 +70,39 @@ fn test_modal_data_population() {
     // Verify average math formatting 
     // Avg wall time: (1234 + 1000) / 2 = 1117
     assert!(content.contains("1117 ms"), "Should contain average wall time");
+}
+
+#[test]
+fn test_modal_no_data_no_title() {
+    let mut app = App::new();
+    app.jobs = vec![];
+    app.show_detail = true;
+    app.is_loading = false;
+
+    let backend = TestBackend::new(100, 40);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    terminal
+        .draw(|f| {
+            tui::ui::draw(f, &mut app);
+        })
+        .unwrap();
+
+    let buffer = terminal.backend().buffer();
+    let mut content = String::new();
+    for y in 0..buffer.area.height {
+        let mut line = String::new();
+        for x in 0..buffer.area.width {
+            line.push_str(buffer.get(x, y).symbol());
+        }
+        content.push_str(&line.trim());
+        content.push('\n');
+    }
+
+    // Check for the message
+    assert!(content.contains("No data available for this time window"), "Should contain the no data message");
+
+    // Ensure NO title border text
+    assert!(!content.contains("Detail"), "Should NOT contain 'Detail' title");
+    assert!(!content.contains("No Selection"), "Should NOT contain 'No Selection' title");
 }
