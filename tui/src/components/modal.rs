@@ -8,9 +8,9 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph},
 };
 
-pub fn render_modal(f: &mut Frame, app: &App) {
-    let area = crate::utils::centered_rect(50, 35, f.size());
-    f.render_widget(Clear, area);
+pub fn render_modal(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+    let modal_area = crate::utils::centered_rect(50, 40, area);
+    f.render_widget(Clear, modal_area);
 
     let (title, content) = if app.jobs.is_empty() {
         let msg = if app.is_loading {
@@ -114,7 +114,8 @@ pub fn render_modal(f: &mut Frame, app: &App) {
 
     let mut block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(SAPPHIRE));
+        .border_style(Style::default().fg(SAPPHIRE))
+        .style(Style::default().bg(CRUST));
 
     if let Some(t) = title {
         block = block.title(t);
@@ -125,12 +126,14 @@ pub fn render_modal(f: &mut Frame, app: &App) {
         .alignment(Alignment::Left)
         .wrap(ratatui::widgets::Wrap { trim: true });
 
-    f.render_widget(paragraph, area);
+    f.render_widget(paragraph, modal_area);
 }
 
 pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Rect) {
-    let modal_height_pct = 30;
-    let modal_area = crate::utils::centered_rect(60, modal_height_pct, area);
+    let modal_height_pct = 20;
+    let modal_area = crate::utils::centered_rect(50, modal_height_pct, area);
+
+    f.render_widget(Clear, modal_area);
 
     let content = vec![
         Line::from("No data available for time window."),
@@ -144,13 +147,14 @@ pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Re
     let h_pad = 2; // Fixed small horizontal padding
 
     let p = Paragraph::new(content)
-        .style(Style::default().fg(YELLOW))
+        .style(Style::default().fg(YELLOW).bg(CRUST))
         .alignment(Alignment::Center)
         .wrap(ratatui::widgets::Wrap { trim: true })
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(YELLOW))
+                .style(Style::default().bg(CRUST))
                 .padding(ratatui::widgets::Padding::new(h_pad, h_pad, v_pad, v_pad)),
         );
     f.render_widget(p, modal_area);
