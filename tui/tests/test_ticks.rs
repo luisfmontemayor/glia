@@ -41,6 +41,8 @@ fn test_native_labels_rendered() {
         content.push('\n');
     }
     
+    std::fs::write("buffer_output.txt", &content).unwrap();
+
     // Check that native labels are actually printed
     assert!(content.contains("10:05"), "Native label 10:05 missing");
 }
@@ -94,11 +96,12 @@ fn test_data_point_ticks_rendered() {
     
     let axis_y = axis_y.expect("Could not find axis line");
     
-    // The ticks should be at x=7, 23, 39 relative to the chart area start (which is inner_area.x = 2).
+    // The ticks should be at x=6, 20, 34 relative to the padded chart area start (which is inner_area.x + 2 = 4).
     let chart_start_x = 2;
-    let tick_1 = buffer.get(chart_start_x + 7, axis_y).symbol();
-    let tick_2 = buffer.get(chart_start_x + 23, axis_y).symbol();
-    let tick_3 = buffer.get(chart_start_x + 39, axis_y).symbol();
+    let graph_margin = 2;
+    let tick_1 = buffer.get(chart_start_x + graph_margin + 6, axis_y).symbol();
+    let tick_2 = buffer.get(chart_start_x + graph_margin + 20, axis_y).symbol();
+    let tick_3 = buffer.get(chart_start_x + graph_margin + 34, axis_y).symbol();
     
     assert_eq!(tick_1, "┬", "Tick 1 at x=7 missing");
     assert_eq!(tick_2, "┬", "Tick 2 at x=23 missing");
