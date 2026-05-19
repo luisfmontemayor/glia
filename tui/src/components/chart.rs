@@ -296,13 +296,15 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
+                Constraint::Length(1), // Ticks area
                 Constraint::Length(1), // Axis line
                 Constraint::Length(2), // Dual line labels
             ])
             .split(inner_area);
         let chart_area = chunks[0];
-        let axis_area = chunks[1];
-        let labels_area = chunks[2];
+        let ticks_area = chunks[1];
+        let axis_area = chunks[2];
+        let labels_area = chunks[3];
 
         f.render_widget(
             Paragraph::new(symbols::line::HORIZONTAL.repeat(axis_area.width as usize))
@@ -348,9 +350,16 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
+                let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
-                let label_x = group_x + (group_width.saturating_sub(5) / 2);
+                let tick_x = group_x + bars_width / 2;
+                f.render_widget(
+                    Paragraph::new("│").style(Style::default().fg(TEXT)),
+                    Rect::new(tick_x, ticks_area.y, 1, 1),
+                );
+
+                let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
                 if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
@@ -413,9 +422,16 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
+                let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
-                let label_x = group_x + (group_width.saturating_sub(5) / 2);
+                let tick_x = group_x + bars_width / 2;
+                f.render_widget(
+                    Paragraph::new("│").style(Style::default().fg(TEXT)),
+                    Rect::new(tick_x, ticks_area.y, 1, 1),
+                );
+
+                let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
                 if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
