@@ -335,7 +335,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             let mut last_label_end_x: u16 = 0;
             for (i, j) in app.jobs.iter().enumerate() {
                 let s_render_val = if j.exit_code_int == 0 { 8 * resolution } else { zero_val };
-                let s_text = if j.exit_code_int == 0 { "1".to_string() } else { String::new() };
+                let s_text = if j.exit_code_int == 0 { "1".to_string() } else { "0".to_string() };
                 let s_style = if j.exit_code_int == 0 {
                     Style::default().fg(GREEN)
                 } else {
@@ -343,7 +343,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 };
 
                 let f_render_val = if j.exit_code_int != 0 { 8 * resolution } else { zero_val };
-                let f_text = if j.exit_code_int != 0 { "1".to_string() } else { String::new() };
+                let f_text = if j.exit_code_int != 0 { "1".to_string() } else { "0".to_string() };
                 let f_style = if j.exit_code_int != 0 {
                     Style::default().fg(RED)
                 } else {
@@ -408,7 +408,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     _ => 0,
                 };
                 let render_val = if orig_val == 0 { zero_val } else { orig_val * resolution };
-                let text_val = if orig_val == 0 { String::new() } else { format!("{}", orig_val) };
+                let text_val = format!("{}", orig_val);
                 let style = if orig_val == 0 {
                     Style::default().fg(SURFACE1)
                 } else {
