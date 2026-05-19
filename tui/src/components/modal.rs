@@ -129,9 +129,8 @@ pub fn render_modal(f: &mut Frame, app: &App) {
 }
 
 pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Rect) {
-    let modal_height = 10;
-    let modal_area = crate::utils::centered_rect(60, modal_height, area);
-    f.render_widget(Clear, modal_area);
+    let modal_height_pct = 30;
+    let modal_area = crate::utils::centered_rect(60, modal_height_pct, area);
 
     let content = vec![
         Line::from("No data available for time window."),
@@ -139,10 +138,10 @@ pub fn render_no_data_modal(f: &mut Frame, _app: &App, area: ratatui::layout::Re
     ];
 
     // Center 2 lines of text vertically:
-    // Available height = modal_height - 2 (borders)
-    // Padding top/bottom = (Available height - 2 lines) / 2
-    let v_pad = (modal_height.saturating_sub(2).saturating_sub(2)) / 2;
-    let h_pad = v_pad * 2;
+    // Available height = modal_area.height - 2 (borders)
+    let inner_height = modal_area.height.saturating_sub(2);
+    let v_pad = inner_height.saturating_sub(2) / 2;
+    let h_pad = 2; // Fixed small horizontal padding
 
     let p = Paragraph::new(content)
         .style(Style::default().fg(YELLOW))
