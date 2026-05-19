@@ -101,9 +101,9 @@ fn test_data_point_ticks_rendered() {
     let tick_2 = buffer.get(chart_start_x + 23, ticks_y).symbol();
     let tick_3 = buffer.get(chart_start_x + 39, ticks_y).symbol();
     
-    assert_eq!(tick_1, "│", "Tick 1 at x=7 missing");
-    assert_eq!(tick_2, "│", "Tick 2 at x=23 missing");
-    assert_eq!(tick_3, "│", "Tick 3 at x=39 missing");
+    assert_eq!(tick_1, "ˈ", "Tick 1 at x=7 missing");
+    assert_eq!(tick_2, "ˈ", "Tick 2 at x=23 missing");
+    assert_eq!(tick_3, "ˈ", "Tick 3 at x=39 missing");
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn test_tick_count_matches_jobs() {
     // For width 150, graph area is x=0..75.
     // Inner area (excluding borders) is x=1..74.
     for x in 1..74 {
-        if buffer.get(x, ticks_y).symbol() == "│" {
+        if buffer.get(x, ticks_y).symbol() == "ˈ" {
             tick_count += 1;
         }
     }
@@ -221,7 +221,7 @@ fn test_tick_clipping_with_barchart() {
         let tick = buffer.get(x, ticks_y).symbol();
         let bar = buffer.get(x, bars_y).symbol();
         
-        if tick == "│" {
+        if tick == "ˈ" {
             // There should be a bar character here. 
             // BarChart uses NINE_LEVELS, so it's one of " ", "▂", ..., "█".
             // Since our value is 100 (which is > 0), it should not be empty.
