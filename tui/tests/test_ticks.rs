@@ -93,17 +93,16 @@ fn test_data_point_ticks_rendered() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y + 1;
     
     // The ticks should be at x=7, 23, 39 relative to the chart area start (which is inner_area.x = 2).
     let chart_start_x = 2;
-    let tick_1 = buffer.get(chart_start_x + 7, ticks_y).symbol();
-    let tick_2 = buffer.get(chart_start_x + 23, ticks_y).symbol();
-    let tick_3 = buffer.get(chart_start_x + 39, ticks_y).symbol();
+    let tick_1 = buffer.get(chart_start_x + 7, axis_y).symbol();
+    let tick_2 = buffer.get(chart_start_x + 23, axis_y).symbol();
+    let tick_3 = buffer.get(chart_start_x + 39, axis_y).symbol();
     
-    assert_eq!(tick_1, "ˈ", "Tick 1 at x=7 missing");
-    assert_eq!(tick_2, "ˈ", "Tick 2 at x=23 missing");
-    assert_eq!(tick_3, "ˈ", "Tick 3 at x=39 missing");
+    assert_eq!(tick_1, "┬", "Tick 1 at x=7 missing");
+    assert_eq!(tick_2, "┬", "Tick 2 at x=23 missing");
+    assert_eq!(tick_3, "┬", "Tick 3 at x=39 missing");
 }
 
 #[test]
@@ -149,14 +148,13 @@ fn test_tick_count_matches_jobs() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y + 1;
     
     let mut tick_count = 0;
     // Look only inside the graph area (left 50%)
     // For width 150, graph area is x=0..75.
     // Inner area (excluding borders) is x=1..74.
     for x in 1..74 {
-        if buffer.get(x, ticks_y).symbol() == "ˈ" {
+        if buffer.get(x, axis_y).symbol() == "┬" {
             tick_count += 1;
         }
     }
@@ -211,17 +209,16 @@ fn test_tick_clipping_with_barchart() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y + 1;
     let bars_y = axis_y - 2; // Bottom-most row of bars
     
     // Check every x position in the graph area.
     // If there's a tick at x, there MUST be a bar at x (symbol not empty/space).
     // If there's no bar at x, there MUST NOT be a tick at x.
     for x in 1..20 {
-        let tick = buffer.get(x, ticks_y).symbol();
+        let tick = buffer.get(x, axis_y).symbol();
         let bar = buffer.get(x, bars_y).symbol();
         
-        if tick == "ˈ" {
+        if tick == "┬" {
             // There should be a bar character here. 
             // BarChart uses NINE_LEVELS, so it's one of " ", "▂", ..., "█".
             // Since our value is 100 (which is > 0), it should not be empty.
