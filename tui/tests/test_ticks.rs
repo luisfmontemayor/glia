@@ -93,7 +93,7 @@ fn test_data_point_ticks_rendered() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y - 1;
+    let ticks_y = axis_y + 1;
     
     // The ticks should be at x=7, 23, 39 relative to the chart area start (which is inner_area.x = 2).
     let chart_start_x = 2;
@@ -149,7 +149,7 @@ fn test_tick_count_matches_jobs() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y - 1;
+    let ticks_y = axis_y + 1;
     
     let mut tick_count = 0;
     // Look only inside the graph area (left 50%)
@@ -211,7 +211,7 @@ fn test_tick_clipping_with_barchart() {
     }
     
     let axis_y = axis_y.expect("Could not find axis line");
-    let ticks_y = axis_y - 1;
+    let ticks_y = axis_y + 1;
     let bars_y = axis_y - 2; // Bottom-most row of bars
     
     // Check every x position in the graph area.

@@ -296,14 +296,14 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
-                Constraint::Length(1), // Ticks area
                 Constraint::Length(1), // Axis line
+                Constraint::Length(1), // Ticks area
                 Constraint::Length(2), // Dual line labels
             ])
             .split(inner_area);
         let chart_area = chunks[0];
-        let ticks_area = chunks[1];
-        let axis_area = chunks[2];
+        let axis_area = chunks[1];
+        let ticks_area = chunks[2];
         let labels_area = chunks[3];
 
         let mut barchart = BarChart::default()
