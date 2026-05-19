@@ -262,7 +262,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             let gg = if group_size > 1 { 2 } else { 1 };
             let overhead_per_group = group_size as u16 * bg + gg;
             let total_overhead = if n_jobs > 0 {
-                n_jobs as u16 * (group_size as u16 * bg + gg) - bg - gg
+                n_jobs as u16 * overhead_per_group - bg - gg
             } else {
                 0
             };
@@ -292,29 +292,19 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let inner_area = chart_block.inner(area);
         f.render_widget(chart_block, area);
 
-        // Centering logic
-        let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
-        let total_content_width = (n_jobs as u16 * bars_width)
-            .saturating_add((n_jobs as u16).saturating_sub(1) * g_gap);
-        let horizontal_offset = (inner_area.width.saturating_sub(total_content_width)) / 2;
-
-        let centered_inner_area = Rect {
-            x: inner_area.x + horizontal_offset,
-            width: total_content_width.min(inner_area.width),
-            ..inner_area
-        };
-
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
-                Constraint::Length(1), // Axis + Ticks
+                Constraint::Length(1), // Axis line
+                Constraint::Length(1), // Ticks area
                 Constraint::Length(2), // Dual line labels
             ])
-            .split(centered_inner_area);
+            .split(inner_area);
         let chart_area = chunks[0];
         let axis_area = chunks[1];
-        let labels_area = chunks[2];
+        let ticks_area = chunks[2];
+        let labels_area = chunks[3];
 
         let mut barchart = BarChart::default()
             .bar_set(symbols::bar::NINE_LEVELS)
@@ -357,7 +347,9 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
-                let group_x = chart_area.x + i as u16 * (bars_width + g_gap);
+                let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
+                let group_width = group_size as u16 * (b_width + b_gap);
+                let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
                 if group_x + bars_width <= chart_area.right() {
                     tick_positions.push(tick_x);
@@ -421,7 +413,9 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
-                let group_x = chart_area.x + i as u16 * (bars_width + g_gap);
+                let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
+                let group_width = group_size as u16 * (b_width + b_gap);
+                let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
                 if group_x + bars_width <= chart_area.right() {
                     tick_positions.push(tick_x);
@@ -451,22 +445,22 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         // 1. BarChart widget (the bars)
         f.render_widget(barchart, chart_area);
 
-        // 2. Axis line with ticks
-        let mut axis_line = vec![symbols::line::HORIZONTAL; axis_area.width as usize];
-        for tx in tick_positions {
-            let relative_x = tx.saturating_sub(axis_area.x);
-            if (relative_x as usize) < axis_line.len() {
-                axis_line[relative_x as usize] = "┬";
-            }
-        }
-        let axis_string: String = axis_line.into_iter().collect();
-
+        // 2. Axis line
         f.render_widget(
-            Paragraph::new(axis_string).style(Style::default().fg(TEXT)),
+            Paragraph::new(symbols::line::HORIZONTAL.repeat(axis_area.width as usize))
+                .style(Style::default().fg(TEXT)),
             axis_area,
         );
 
-        // 3. Time labels (HH:MM)
+        // 3. Data point ticks
+        for tx in tick_positions {
+            f.render_widget(
+                Paragraph::new("ˈ").style(Style::default().fg(TEXT)),
+                Rect::new(tx, ticks_area.y, 1, 1),
+            );
+        }
+
+        // 4. Time labels (HH:MM)
         for (lx, hhmm, _) in &label_infos {
             f.render_widget(
                 Paragraph::new(hhmm.clone()).style(Style::default().fg(TEXT)),
