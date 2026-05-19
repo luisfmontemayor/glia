@@ -106,4 +106,18 @@ fn test_zero_value_bar_height() {
     
     println!("Bar rows: {}", bar_rows);
     assert!(bar_rows <= 2, "Zero value bar should occupy at most 2 rows, but found {}", bar_rows);
+
+    // Check if the value "0" is rendered somewhere in the chart area
+    let mut found_zero = false;
+    for y in 0..axis_y {
+        let mut row_str = String::new();
+        for x in 0..width {
+            row_str.push_str(buffer.get(x, y).symbol());
+        }
+        if row_str.contains('0') {
+            found_zero = true;
+            break;
+        }
+    }
+    assert!(found_zero, "Value '0' should be rendered on the 0-value bar");
 }
