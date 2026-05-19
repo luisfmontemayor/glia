@@ -121,6 +121,6 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     }
 
     if app.show_detail {
-        render_modal(f, app);
+        render_modal(f, app, f.size());
     }
 }

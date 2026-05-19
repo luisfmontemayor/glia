@@ -30,6 +30,7 @@ fn test_no_data_modal_visibility() {
     }
 
     let buffer_text = buffer_text; // just to keep it
+    std::fs::write("modal_layout.txt", &buffer_text).unwrap();
 
     assert!(
         buffer_text.contains("No data available for time window."),
