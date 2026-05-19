@@ -256,7 +256,22 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             }
         }
 
-        let available_width = area.width.saturating_sub(4);
+        let graph_margin = 2;
+        let chart_block = Block::default()
+            .borders(Borders::ALL)
+            .title(chart_title)
+            .border_style(Style::default().fg(border_color))
+            .style(Style::default().fg(TEXT))
+            .padding(ratatui::widgets::Padding {
+                left: 1,
+                right: 1,
+                top: 0,
+                bottom: 0,
+            });
+
+        let inner_area = chart_block.inner(area);
+        let available_width = inner_area.width.saturating_sub(graph_margin * 2);
+
         let (b_width, b_gap, g_gap) = if is_low_density {
             let bg = 1;
             let gg = if group_size > 1 { 2 } else { 1 };
@@ -277,19 +292,6 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             (5, 1, 1)
         };
 
-        let chart_block = Block::default()
-            .borders(Borders::ALL)
-            .title(chart_title)
-            .border_style(Style::default().fg(border_color))
-            .style(Style::default().fg(TEXT))
-            .padding(ratatui::widgets::Padding {
-                left: 1,
-                right: 1,
-                top: 0,
-                bottom: 0,
-            });
-
-        let inner_area = chart_block.inner(area);
         f.render_widget(chart_block, area);
 
         let chunks = Layout::default()
@@ -304,39 +306,44 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let axis_area = chunks[1];
         let labels_area = chunks[2];
 
+        let resolution = 100u64;
+        let available_height = chart_area.height as u64;
+        let chart_max = max_val.max(8) * resolution;
+        // We want height_in_rows = b_width / 4 (since 1 row ~ 2 columns wide)
+        let zero_val = ((b_width as u64 * chart_max) / (4 * available_height.max(1))).max(1);
+
+        let barchart_area = Rect::new(
+            chart_area.x + graph_margin,
+            chart_area.y,
+            chart_area.width.saturating_sub(graph_margin * 2),
+            chart_area.height,
+        );
+
         let mut barchart = BarChart::default()
             .bar_set(symbols::bar::NINE_LEVELS)
             .value_style(Style::default().fg(CRUST).bg(TEXT))
             .bar_width(b_width)
             .bar_gap(b_gap)
-            .group_gap(g_gap);
+            .group_gap(g_gap)
+            .max(chart_max);
 
         let mut tick_positions = Vec::new();
         let mut label_infos = Vec::new();
 
         if app.metric == Metric::JobStatus {
-            barchart = barchart.max(8);
             let mut last_date = String::new();
             let mut last_label_end_x: u16 = 0;
             for (i, j) in app.jobs.iter().enumerate() {
-                let s_render_val = if j.exit_code_int == 0 { 8 } else { 1 };
-                let s_text = if j.exit_code_int == 0 {
-                    "1".to_string()
-                } else {
-                    "0".to_string()
-                };
+                let s_render_val = if j.exit_code_int == 0 { 8 * resolution } else { zero_val };
+                let s_text = if j.exit_code_int == 0 { "1".to_string() } else { String::new() };
                 let s_style = if j.exit_code_int == 0 {
                     Style::default().fg(GREEN)
                 } else {
                     Style::default().fg(SURFACE1)
                 };
 
-                let f_render_val = if j.exit_code_int != 0 { 8 } else { 1 };
-                let f_text = if j.exit_code_int != 0 {
-                    "1".to_string()
-                } else {
-                    "0".to_string()
-                };
+                let f_render_val = if j.exit_code_int != 0 { 8 * resolution } else { zero_val };
+                let f_text = if j.exit_code_int != 0 { "1".to_string() } else { String::new() };
                 let f_style = if j.exit_code_int != 0 {
                     Style::default().fg(RED)
                 } else {
@@ -347,15 +354,15 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 
                 let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_width = group_size as u16 * (b_width + b_gap);
-                let group_x = chart_area.x + i as u16 * (group_width + g_gap);
+                let group_x = chart_area.x + graph_margin + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                if group_x + bars_width <= chart_area.right() {
+                if group_x + bars_width <= barchart_area.right() {
                     tick_positions.push(tick_x);
                 }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
-                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() && group_x + bars_width <= chart_area.right() {
+                if label_x >= last_label_end_x && label_x + 5 <= barchart_area.right() && group_x + bars_width <= barchart_area.right() {
                     let mut mmdd_opt = None;
                     if date != last_date {
                         mmdd_opt = Some(mmdd);
@@ -388,8 +395,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             };
 
             barchart = barchart
-                .bar_style(Style::default().fg(bar_color))
-                .max(max_val.max(8));
+                .bar_style(Style::default().fg(bar_color));
 
             let mut last_date = String::new();
             let mut last_label_end_x: u16 = 0;
@@ -401,8 +407,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     Metric::MaxRss => j.max_rss_kb as u64,
                     _ => 0,
                 };
-                let render_val = if orig_val == 0 { 1 } else { orig_val };
-                let text_val = format!("{}", orig_val);
+                let render_val = if orig_val == 0 { zero_val } else { orig_val * resolution };
+                let text_val = if orig_val == 0 { String::new() } else { format!("{}", orig_val) };
                 let style = if orig_val == 0 {
                     Style::default().fg(SURFACE1)
                 } else {
@@ -413,15 +419,15 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 
                 let bars_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
                 let group_width = group_size as u16 * (b_width + b_gap);
-                let group_x = chart_area.x + i as u16 * (group_width + g_gap);
+                let group_x = chart_area.x + graph_margin + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                if group_x + bars_width <= chart_area.right() {
+                if group_x + bars_width <= barchart_area.right() {
                     tick_positions.push(tick_x);
                 }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
-                if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() && group_x + bars_width <= chart_area.right() {
+                if label_x >= last_label_end_x && label_x + 5 <= barchart_area.right() && group_x + bars_width <= barchart_area.right() {
                     let mut mmdd_opt = None;
                     if date != last_date {
                         mmdd_opt = Some(mmdd);
@@ -441,7 +447,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         }
 
         // 1. BarChart widget (the bars)
-        f.render_widget(barchart, chart_area);
+        f.render_widget(barchart, barchart_area);
 
         // 2. Axis line with integrated ticks
         let mut axis_line = symbols::line::HORIZONTAL.repeat(axis_area.width as usize);
