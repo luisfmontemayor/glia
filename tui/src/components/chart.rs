@@ -348,13 +348,13 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
-                let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
+                let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let label_x = group_x + (group_width.saturating_sub(5) / 2);
 
                 if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
-                        Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
+                        Paragraph::new(hhmm).style(Style::default().fg(TEXT)),
                         Rect::new(label_x, labels_area.y, 5, 1)
                     );
                     if date != last_date {
@@ -413,13 +413,13 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
 
                 let (hhmm, mmdd, date) = parse_time(&j.started_at);
                 
-                let group_width = group_size as u16 * b_width + (group_size as u16).saturating_sub(1) * b_gap;
+                let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let label_x = group_x + (group_width.saturating_sub(5) / 2);
 
                 if label_x >= last_label_end_x && label_x + 5 <= chart_area.right() {
                     f.render_widget(
-                        Paragraph::new(hhmm).style(Style::default().fg(YELLOW)),
+                        Paragraph::new(hhmm).style(Style::default().fg(TEXT)),
                         Rect::new(label_x, labels_area.y, 5, 1)
                     );
                     if date != last_date {
