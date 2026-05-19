@@ -201,18 +201,21 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(YELLOW),
             )
         };
-        let x_labels = vec![format_time(min_x), format_time(mid_x), format_time(max_x)];
+        let mid_span = format_time(mid_x);
+        let x_labels = vec![Span::raw(""), mid_span, Span::raw("")];
+
+        let chart_block = Block::default()
+            .borders(Borders::ALL)
+            .title(chart_title)
+            .border_style(Style::default().fg(border_color))
+            .style(Style::default().fg(TEXT))
+            .padding(ratatui::widgets::Padding::uniform(1));
+
+        let inner = chart_block.inner(area);
 
         let chart = Chart::new(datasets)
             .legend_position(Some(LegendPosition::TopRight))
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(chart_title)
-                    .border_style(Style::default().fg(border_color))
-                    .style(Style::default().fg(TEXT))
-                    .padding(ratatui::widgets::Padding::uniform(1)),
-            )
+            .block(chart_block)
             .x_axis(
                 Axis::default()
                     .title("Time")
@@ -225,10 +228,17 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                     .title("Value")
                     .style(Style::default().fg(TEXT))
                     .bounds([0.0, max_y * 1.1])
-                    .labels(vec![Span::raw("0"), Span::raw(format!("{:.0}", max_y))]),
+                    .labels(vec![Span::raw(""), Span::raw(format!("{:.0}", max_y))]),
             );
 
         f.render_widget(chart, area);
+
+        let zero_x = inner.x;
+        let zero_y = inner.bottom().saturating_sub(1);
+        f.render_widget(
+            Paragraph::new("0").style(Style::default().fg(TEXT)),
+            Rect::new(zero_x, zero_y, 1, 1),
+        );
     } else {
         let n_jobs = app.jobs.len();
         let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
