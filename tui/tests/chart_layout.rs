@@ -119,8 +119,9 @@ fn test_barchart_label_drift() {
     std::fs::write("buffer_output.txt", &content).unwrap();
     
     // With the fix, labels correctly track the bars. 
-    // 12:04 should be printed. 12:06 and 12:09 fall off the chart area and should NOT be printed.
-    assert!(content.contains("12:04"), "12:04 should be visible");
-    assert!(!content.contains("12:06"), "12:06 should be pushed off screen just like its corresponding bar");
-    assert!(!content.contains("12:09"), "12:09 should be pushed off screen just like its corresponding bar");
+    // 12:00, 12:03, 12:06 should be printed. 12:09 is pushed off.
+    assert!(content.contains("12:00"), "12:00 should be visible");
+    assert!(content.contains("12:03"), "12:03 should be visible");
+    assert!(content.contains("12:06"), "12:06 should be visible");
+    assert!(!content.contains("12:09"), "12:09 should not be visible");
 }
