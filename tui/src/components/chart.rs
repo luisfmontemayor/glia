@@ -354,10 +354,12 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                f.render_widget(
-                    Paragraph::new("│").style(Style::default().fg(TEXT)),
-                    Rect::new(tick_x, ticks_area.y, 1, 1),
-                );
+                if tick_x < ticks_area.right() {
+                    f.render_widget(
+                        Paragraph::new("│").style(Style::default().fg(TEXT)),
+                        Rect::new(tick_x, ticks_area.y, 1, 1),
+                    );
+                }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
@@ -426,10 +428,12 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
                 let group_width = group_size as u16 * (b_width + b_gap);
                 let group_x = chart_area.x + i as u16 * (group_width + g_gap);
                 let tick_x = group_x + bars_width / 2;
-                f.render_widget(
-                    Paragraph::new("│").style(Style::default().fg(TEXT)),
-                    Rect::new(tick_x, ticks_area.y, 1, 1),
-                );
+                if tick_x < ticks_area.right() {
+                    f.render_widget(
+                        Paragraph::new("│").style(Style::default().fg(TEXT)),
+                        Rect::new(tick_x, ticks_area.y, 1, 1),
+                    );
+                }
 
                 let label_x = group_x + (bars_width.saturating_sub(5) / 2);
 
