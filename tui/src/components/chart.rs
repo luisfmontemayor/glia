@@ -233,8 +233,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let n_jobs = app.jobs.len();
         let is_low_density = n_jobs > 0 && n_jobs < app.data_point_threshold;
         let group_size = if app.metric == Metric::JobStatus {
-            2
-        } else {
+					    2
+					} else {
             1
         };
 
@@ -455,7 +455,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         // 3. Data point ticks
         for tx in tick_positions {
             f.render_widget(
-                Paragraph::new("│").style(Style::default().fg(TEXT)),
+                Paragraph::new("ˈ").style(Style::default().fg(TEXT)),
                 Rect::new(tx, ticks_area.y, 1, 1),
             );
         }
