@@ -78,3 +78,49 @@ fn test_x_axis_ticks_unification() {
 
     assert!(content.contains("12:00"), "Native BarGroup label '12:00' not found in the output");
 }
+
+#[test]
+fn test_barchart_label_drift() {
+    let mut app = App::new();
+    app.is_loading = false;
+    app.blame_mode = false;
+    app.metric = tui::app::Metric::WallTime;
+    
+    // Create 10 jobs
+    app.jobs = (0..10).map(|i| JobMetrics {
+        started_at: format!("2023-10-27T12:0{i}:00Z"),
+        program_name: "test".to_string(),
+        user_name: "user".to_string(),
+        wall_time_ms: (i + 1) * 10,
+        cpu_time_sec: 0.1,
+        cpu_percent: 10.0,
+        max_rss_kb: 1000,
+        exit_code_int: 0,
+    }).collect();
+
+    // The available width for the chart will be slightly less than the backend width due to borders.
+    // If b_width = 5, b_gap = 1, then each bar takes 6 columns. 10 bars require 60 columns.
+    // Let's set backend width to 50, which should definitely cut off the last few bars.
+    let backend = TestBackend::new(50, 20);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    terminal.draw(|f| ui::draw(f, &mut app)).unwrap();
+
+    let buffer = terminal.backend().buffer();
+    let mut content = String::new();
+    for y in 0..buffer.area.height {
+        for x in 0..buffer.area.width {
+            content.push_str(buffer.get(x, y).symbol());
+        }
+        content.push('\n');
+    }
+
+    println!("RENDERED BUFFER:\n{}", content);
+    std::fs::write("buffer_output.txt", &content).unwrap();
+    
+    // With the fix, labels correctly track the bars. 
+    // 12:04 should be printed. 12:06 and 12:09 fall off the chart area and should NOT be printed.
+    assert!(content.contains("12:04"), "12:04 should be visible");
+    assert!(!content.contains("12:06"), "12:06 should be pushed off screen just like its corresponding bar");
+    assert!(!content.contains("12:09"), "12:09 should be pushed off screen just like its corresponding bar");
+}

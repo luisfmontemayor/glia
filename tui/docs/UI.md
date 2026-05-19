@@ -14,8 +14,14 @@ The Glia TUI Dashboard is a terminal-based interface designed to provide real-ti
 - **Time Windows**: Filter data by 1h, 3h, 6h, 12h, 24h, or All Time.
 - **Job Summaries**: A table showing aggregated metrics by program name.
 - **Dual Visualization Modes**:
-    - **Bar Chart**: Ideal for comparing individual job metrics chronologically.
+    - **Bar Chart**: Ideal for comparing individual job metrics chronologically. Now features **data point ticks** for precise axis alignment.
     - **Line Graph (Blame Mode)**: Best for tracking metrics per user over time.
+- **Interactive Data Exploration**:
+    - **Focus Management**: Toggle focus between Graph `[g]` and Jobs Table `[j]`.
+    - **Table Focus Modes**: Select by Row, Column, or individual Cell for deep-dive analysis.
+    - **Search & Sort**: Real-time filtering and column-based sorting.
+    - **Aggregated Detail View**: Deep-dive into specific programs via a centered detail modal.
+- **Smart Time Windows**: Filters by 1h to All Time, with **auto-scaling** to fit incoming data.
 
 ## Dashboard Components
 
@@ -26,13 +32,35 @@ The top section displays the team name, current time window, and the health stat
 Allows quick switching between different performance metrics using `[Tab]` and `[Shift+Tab]`.
 
 ### 3. Main Body (Split View)
-- **Left Pane (Visualization)**: Renders either a BarChart or a Line Graph depending on the mode.
-- **Right Pane (Jobs Table)**: Lists aggregated statistics for each program, including usage count, average wall time, total CPU time, and peak memory usage.
+- **Left Pane (Visualization) • [g]**: Renders either a BarChart or a Line Graph depending on the mode.
+- **Right Pane (Jobs Table) • [j]**: Lists aggregated statistics for each program. Supports three focus modes:
+    - **Row Mode**: Select entire programs.
+    - **Column Mode**: Highlight specific metrics across all programs.
+    - **Cell Mode**: Focus on a single data point for expansion and detailed viewing.
 
-### 4. Footnote / Command Palette
+### 4. Detail Modal
+Triggered by `[Enter]` when a job is selected. This centered overlay provides a comprehensive breakdown of a program's performance, including unique user lists and resource peaks.
+
+### 5. Footnote / Command Palette
 The bottom bar provides quick access to common actions and shows the keybindings for navigation and mode toggling.
 
-## Visual Inspection
+## User Interaction & Navigation
+
+### Keyboard Shortcuts
+- `[g]`: Focus Graph Pane.
+- `[j]`: Focus Jobs Table.
+- `[Tab] / [Shift+Tab]`: Cycle Metrics.
+- `[t]`: Cycle Time Window.
+- `[b]`: Toggle Blame Mode (Line Graph).
+- `[r]`: Switch Table to Row Focus.
+- `[c]`: Switch Table to Column Focus.
+- `[/]`: Open Search.
+- `[s]`: Sort by selected column.
+- `[Enter]`: Open Detail Modal / Focus Cell.
+- `[Esc]`: Close Modal / Return to Row Focus.
+
+## Quality & Precision
+The UI behavior and constraints (alignment, centering, and data accuracy) are enforced by an extensive TDD suite. See [Test Specifications](./TEST_SPECIFICATIONS.md) for a detailed mapping of tests to UI behaviors.
 
 ### Bar Chart View
 This view provides a clear chronological breakdown of job metrics. In this mode, individual job results are displayed as bars, making it easy to identify outliers and chronological trends.
