@@ -296,15 +296,13 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
-                Constraint::Length(1), // Axis line
-                Constraint::Length(1), // Ticks area
+                Constraint::Length(1), // Axis line + Ticks
                 Constraint::Length(2), // Dual line labels
             ])
             .split(inner_area);
         let chart_area = chunks[0];
         let axis_area = chunks[1];
-        let ticks_area = chunks[2];
-        let labels_area = chunks[3];
+        let labels_area = chunks[2];
 
         let mut barchart = BarChart::default()
             .bar_set(symbols::bar::NINE_LEVELS)
@@ -445,22 +443,27 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         // 1. BarChart widget (the bars)
         f.render_widget(barchart, chart_area);
 
-        // 2. Axis line
+        // 2. Axis line with integrated ticks
+        let mut axis_line = symbols::line::HORIZONTAL.repeat(axis_area.width as usize);
+        for &tx in &tick_positions {
+            let x_rel = tx.saturating_sub(axis_area.x) as usize;
+            if x_rel < axis_line.len() {
+                axis_line.replace_range(
+                    axis_line
+                        .char_indices()
+                        .nth(x_rel)
+                        .map(|(i, _)| i..i + symbols::line::HORIZONTAL.len())
+                        .unwrap(),
+                    "┬",
+                );
+            }
+        }
         f.render_widget(
-            Paragraph::new(symbols::line::HORIZONTAL.repeat(axis_area.width as usize))
-                .style(Style::default().fg(TEXT)),
+            Paragraph::new(axis_line).style(Style::default().fg(TEXT)),
             axis_area,
         );
 
-        // 3. Data point ticks
-        for tx in tick_positions {
-            f.render_widget(
-                Paragraph::new("ˈ").style(Style::default().fg(TEXT)),
-                Rect::new(tx, ticks_area.y, 1, 1),
-            );
-        }
-
-        // 4. Time labels (HH:MM)
+        // 3. Time labels (HH:MM)
         for (lx, hhmm, _) in &label_infos {
             f.render_widget(
                 Paragraph::new(hhmm.clone()).style(Style::default().fg(TEXT)),
@@ -468,7 +471,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             );
         }
 
-        // 5. Date labels (MM-DD)
+        // 4. Date labels (MM-DD)
         for (lx, _, mmdd) in &label_infos {
             if let Some(date_str) = mmdd {
                 f.render_widget(
