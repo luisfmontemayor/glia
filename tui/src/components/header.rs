@@ -29,7 +29,7 @@ pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
 
     let main_text = vec![Line::from(vec![
         Span::styled(
-            format!(" {} ", app.org_name),
+            format!("\u{00a0}{}", app.org_name),
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
         Span::raw(" | Time Window [t / T]: "),
