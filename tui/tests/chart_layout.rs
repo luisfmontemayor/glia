@@ -126,3 +126,33 @@ fn test_barchart_label_drift() {
     assert!(!content.contains("12:09"), "12:09 should be pushed off screen just like its corresponding bar");
 }
 
+#[test]
+fn test_command_palette_wrapping_no_leading_pipe() {
+    let mut app = App::new();
+    app.is_loading = false;
+    app.show_command_palette = true;
+
+    // Set a small terminal size to force wrapping
+    let backend = TestBackend::new(60, 30);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    terminal.draw(|f| ui::draw(f, &mut app)).unwrap();
+
+    let buffer = terminal.backend().buffer();
+    let mut content = String::new();
+    for y in 0..buffer.area.height {
+        for x in 0..buffer.area.width {
+            content.push_str(buffer.get(x, y).symbol());
+        }
+        content.push('\n');
+    }
+
+    // Print content for visual verification in logs
+    println!("PALETTE WRAPPING BUFFER:\n{}", content);
+
+    // Check that no line in the command palette block starts with a pipe separator character.
+    // The box drawing vertical line is U+2502 (│), whereas the pipe separator is U+007C (|).
+    // We assert that the separator | is not rendered immediately after a left border (│) followed by optional spaces.
+    assert!(!content.contains("│ |"), "Command palette line started with a leading pipe separator");
+    assert!(!content.contains("│  |"), "Command palette line started with a leading pipe separator after spaces");
+}
