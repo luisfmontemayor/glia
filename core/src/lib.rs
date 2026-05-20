@@ -12,9 +12,10 @@ use pyo3::prelude::*;
 #[cfg(feature = "python")]
 use crate::python_module::*;
 
-#[cfg(feature = "python")]
+#[cfg(all(feature = "python", not(doctest)))]
 #[pymodule]
 #[pyo3(name = "core")]
+#[doc(hidden)]
 fn core_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFlushSummary>()?;
     m.add_function(wrap_pyfunction!(enqueue_to_background, m)?)?;

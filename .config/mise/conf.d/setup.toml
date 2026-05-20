@@ -44,10 +44,15 @@ message(paste("[Glia] Configured R_LIBS_USER ->", lib_path))
 '
 """
 
+[tasks."setup:tui-deps"]
+description = "TUI dependencies"
+dir         = "tui"
+run         = "cargo fetch"
+
 [tasks."setup:deps"]
 alias       = "sd"
 description = "Run all deps installation tasks"
-run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-deps && mise sync:lazygit"
+run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-deps && mise setup:tui-deps && mise sync:lazygit"
 
 [tasks."setup:db"]
 description = "Full database lifecycle"
