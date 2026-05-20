@@ -460,9 +460,9 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         f.render_widget(barchart, barchart_area);
 
         // 2. Axis line with integrated ticks
-        let mut axis_line = symbols::line::HORIZONTAL.repeat(barchart_area.width as usize);
+        let mut axis_line = symbols::line::HORIZONTAL.repeat(axis_area.width as usize);
         for &tx in &tick_positions {
-            let x_rel = tx.saturating_sub(barchart_area.x) as usize;
+            let x_rel = tx.saturating_sub(axis_area.x) as usize;
             if x_rel < axis_line.len() {
                 axis_line.replace_range(
                     axis_line
@@ -476,7 +476,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         }
         f.render_widget(
             Paragraph::new(axis_line).style(Style::default().fg(TEXT)),
-            Rect::new(barchart_area.x, axis_area.y, barchart_area.width, 1),
+            axis_area,
         );
 
         // 3. Time labels (HH:MM)
