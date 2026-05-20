@@ -3,6 +3,7 @@ use tui::action::Action;
 use tui::app::{App, TimeWindow};
 use tui::network::JobMetrics;
 use tui::ui;
+use tui::components::table::table_state::TableFocusMode;
 
 #[test]
 fn test_app_set_jobs_action() {
@@ -133,8 +134,6 @@ fn should_not_autocycle_after_manual_change() {
     assert!(app.jobs.is_empty());
 }
 
-use tui::components::table::table_state::TableFocusMode;
-
 #[test]
 fn test_r_in_column_mode_selects_row() {
     let mut app = App::new();
@@ -180,3 +179,30 @@ fn test_c_in_cell_mode_preserves_selected_column() {
     assert_eq!(app.jobs_table_state.selected_col, Some(2)); // should preserve
 }
 
+#[test]
+fn test_reverse_time_window_cycling() {
+    let mut app = App::new();
+    // Initial window should be W1h
+    assert_eq!(app.window, TimeWindow::W1h);
+    
+    // Cycle backwards: W1h -> WMax -> W24h -> W12h -> W6h -> W3h -> W1h
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::WMax);
+    assert!(app.fetch_requested);
+    app.fetch_requested = false;
+
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::W24h);
+    
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::W12h);
+
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::W6h);
+
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::W3h);
+
+    app.update(Action::PrevTimeWindow);
+    assert_eq!(app.window, TimeWindow::W1h);
+}
