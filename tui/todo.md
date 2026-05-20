@@ -1,6 +1,5 @@
 # TODO
-- [ ] add test for ensuring date is below data points always on charts
-- [ ] make bars with val of 0 on bar chart as low as they are wide
+
 
 # CHART TICKS IMPLEMENTATION
 - [x] TDD: Update tests/test_ticks.rs to verify tick rendering alignment (@flash-executor) [commit: test(chart): add tests for data point ticks alignment]
@@ -15,6 +14,10 @@
 - [x] T7: Final QA & todo.md Cleanup (@janitor)
 
 # ARCHIVE
+- [x] T1: Update test_zero_value_bar_height to assert (b_width / 2) height (@flash-executor)
+- [x] T2: Fix zero_val calculation in chart.rs for 1:1 aspect ratio (@flash-executor)
+- [x] T3: Add test_date_alignment_under_data_points in test_ticks.rs (@flash-executor)
+- [x] T4: QA and todo.md Cleanup (@monitor)
 - [x] Refactor `render_modal` to support optional titles [flash-executor]
 - [x] Add empty data state branch to `render_modal` [flash-executor]
 - [x] Implement conditional title rendering in `Block` [flash-executor]
