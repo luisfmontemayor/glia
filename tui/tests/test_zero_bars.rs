@@ -105,7 +105,8 @@ fn test_zero_value_bar_height() {
     }
     
     println!("Bar rows: {}", bar_rows);
-    assert!(bar_rows <= 2, "Zero value bar should occupy at most 2 rows, but found {}", bar_rows);
+    let expected_rows = (2 / 2).max(1);
+    assert_eq!(bar_rows, expected_rows, "Zero value bar should occupy exactly {} rows based on 1:2 aspect ratio, but found {}", expected_rows, bar_rows);
 
     // Check if the value "0" is rendered somewhere in the chart area
     let mut found_zero = false;
