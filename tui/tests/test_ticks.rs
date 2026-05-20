@@ -229,3 +229,101 @@ fn test_tick_clipping_with_barchart() {
         }
     }
 }
+
+#[test]
+fn test_date_alignment_under_data_points() {
+    let mut app = App::new();
+    app.blame_mode = false;
+    
+    // We create jobs that cross a date boundary so that a date label (MM-DD) is rendered.
+    // The chart logic only prints the date if it differs from the last_date.
+    app.jobs.push(JobMetrics {
+        started_at: "2023-10-26T23:50:00Z".to_string(),
+        program_name: "job1".to_string(),
+        user_name: "user".to_string(),
+        wall_time_ms: 100,
+        cpu_time_sec: 0.1,
+        cpu_percent: 10.0,
+        max_rss_kb: 1000,
+        exit_code_int: 0,
+    });
+    app.jobs.push(JobMetrics {
+        started_at: "2023-10-27T00:10:00Z".to_string(),
+        program_name: "job2".to_string(),
+        user_name: "user".to_string(),
+        wall_time_ms: 100,
+        cpu_time_sec: 0.1,
+        cpu_percent: 10.0,
+        max_rss_kb: 1000,
+        exit_code_int: 0,
+    });
+
+    let width = 100;
+    let height = 50;
+    let backend = TestBackend::new(width, height);
+    let mut terminal = Terminal::new(backend).unwrap();
+
+    terminal.draw(|f| {
+        ui::draw(f, &mut app);
+    }).unwrap();
+
+    let buffer = terminal.backend().buffer();
+    
+    // Find the axis line
+    let mut axis_y = None;
+    for y in (0..height).rev() {
+        let mut row_str = String::new();
+        for x in 0..width {
+            row_str.push_str(buffer.get(x, y).symbol());
+        }
+        if y < 45 && row_str.contains("────────") {
+            axis_y = Some(y);
+            break;
+        }
+    }
+    let axis_y = axis_y.expect("Could not find axis line");
+    let labels_y = axis_y + 1; // HH:MM row
+    let dates_y = axis_y + 2;  // MM-DD row
+
+    // Find the tick for the second job (which should have a date label because date changed to 10-27)
+    let mut ticks = Vec::new();
+    for x in 0..width {
+        if buffer.get(x, axis_y).symbol() == "┬" {
+            ticks.push(x);
+        }
+    }
+    assert!(ticks.len() >= 2, "Expected at least 2 ticks");
+    let second_tick_x = ticks[1];
+
+    // The date label "10-27" is 5 chars long.
+    // The chart logic calculates:
+    // tick_x = group_x + bars_width / 2
+    // label_x = group_x + (bars_width.saturating_sub(5) / 2)
+    // For b_width=5 (2 jobs out of 50 threshold -> bw is max 20, but capped probably by available width, let's just find the text).
+    
+    // Let's find "10-27" in the dates_y row
+    let mut date_start_x = None;
+    for x in 0..(width - 4) {
+        let s = format!("{}{}{}{}{}",
+            buffer.get(x, dates_y).symbol(),
+            buffer.get(x+1, dates_y).symbol(),
+            buffer.get(x+2, dates_y).symbol(),
+            buffer.get(x+3, dates_y).symbol(),
+            buffer.get(x+4, dates_y).symbol()
+        );
+        if s == "10-27" {
+            date_start_x = Some(x);
+            break;
+        }
+    }
+    
+    let date_start_x = date_start_x.expect("Date label 10-27 not found");
+    
+    // The center of the 5-char date label should ideally align with the tick.
+    let date_center_x = date_start_x + 2;
+    
+    // Let's verify that the center of the date label is close to the tick (within 1 character due to integer division).
+    let diff = (date_center_x as i32 - second_tick_x as i32).abs();
+    assert!(diff <= 1, "Date label center ({}) should align with tick ({}), but difference is {}", date_center_x, second_tick_x, diff);
+}
+
