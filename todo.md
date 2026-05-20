@@ -1,3 +1,17 @@
+- [x] verify metrics tab legend uses exactly `[Tab / Shift+Tab]` (subagent: Command Legend Formatter)
+- [x] update time window legend in the header to exactly `[t / T]` (subagent: Command Legend Formatter)
+- [x] update test assertion in `tui/tests/header.rs` to check for `[t / T]` or `t / T` (subagent: Command Legend Formatter)
+- [x] update controls table row in `tui/README.md` to `t / T` (subagent: Command Legend Formatter)
+- [x] update documentation in `tui/docs/UI.md` to `[t / T]` (subagent: Command Legend Formatter)
+- [x] run cargo test to verify all tests pass (subagent: Command Legend Formatter)
+- [x] commit changes (subagent: Command Legend Formatter)
+- [x] revert axis line alignment changes in chart.rs (subagent: Layout Reverter)
+- [x] remove test_axis_line_symmetric_overhang from chart_layout.rs (subagent: Layout Reverter)
+- [x] run cargo test --package tui to verify (subagent: Layout Reverter)
+- [x] commit changes with 'style(tui/chart): revert axis line alignment with barchart area' (subagent: Layout Reverter)
+- [x] fix(tui/app): reset selected column to first when transitioning from Row mode (subagent: Table Transition Fixer)
+  - [x] add tests for transition to app.rs tests (subagent: Table Transition Fixer)
+  - [x] update app.rs to check previous focus mode and force selection of first column when transitioning from Row (subagent: Table Transition Fixer)
 - [ ] consider changing job status in blame mode for something more informative
 - [ ] support row selection for chart subsetting by specific job
 - [ ] Support clicking for pane selection
