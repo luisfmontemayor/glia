@@ -32,7 +32,7 @@ pub fn render_header(f: &mut Frame, app: &App, area: Rect) {
             format!(" {} ", app.org_name),
             Style::default().add_modifier(Modifier::BOLD).fg(SAPPHIRE),
         ),
-        Span::raw(" | Time Window [t]: "),
+        Span::raw(" | Time Window [t/T]: "),
         Span::styled(
             window_str,
             Style::default().fg(YELLOW).add_modifier(Modifier::BOLD),
