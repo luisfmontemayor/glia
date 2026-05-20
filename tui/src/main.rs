@@ -184,6 +184,7 @@ fn handle_key_event(key: event::KeyEvent, app: &App) -> Option<Action> {
                             KeyCode::Char('j') | KeyCode::Down => Some(Action::NextRow),
                             KeyCode::Char('k') | KeyCode::Up => Some(Action::PreviousRow),
                             KeyCode::Char('s') => Some(Action::TableSort),
+                            KeyCode::Char('c') => Some(Action::TableFocusCol),
                             KeyCode::Enter => Some(Action::TableFocusCell),
                             _ => None,
                         },
@@ -204,6 +205,8 @@ fn handle_key_event(key: event::KeyEvent, app: &App) -> Option<Action> {
                             KeyCode::Char('h') | KeyCode::Left => Some(Action::TablePrevCol),
                             KeyCode::Char('l') | KeyCode::Right => Some(Action::TableNextCol),
                             KeyCode::Char('s') => Some(Action::TableSort),
+                            KeyCode::Char('r') => Some(Action::TableFocusRow),
+                            KeyCode::Enter => Some(Action::TableFocusCell),
                             KeyCode::Esc => Some(Action::TableFocusRow),
                             _ => None,
                         },
@@ -257,5 +260,24 @@ mod tests {
         
         let key_esc = KeyEvent::new(KeyCode::Esc, KeyModifiers::empty());
         assert_eq!(handle_key_event(key_esc, &app), Some(Action::TableEndSearch));
+    }
+
+    #[test]
+    fn test_handle_key_event_transitions() {
+        let mut app = App::new();
+        
+        // Row mode -> press 'c' -> TableFocusCol
+        app.jobs_table_state.focus_mode = TableFocusMode::Row;
+        let key_c = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::empty());
+        assert_eq!(handle_key_event(key_c, &app), Some(Action::TableFocusCol));
+
+        // Column mode -> press 'r' -> TableFocusRow
+        app.jobs_table_state.focus_mode = TableFocusMode::Column;
+        let key_r = KeyEvent::new(KeyCode::Char('r'), KeyModifiers::empty());
+        assert_eq!(handle_key_event(key_r, &app), Some(Action::TableFocusRow));
+
+        // Column mode -> press Enter -> TableFocusCell
+        let key_enter = KeyEvent::new(KeyCode::Enter, KeyModifiers::empty());
+        assert_eq!(handle_key_event(key_enter, &app), Some(Action::TableFocusCell));
     }
 }

@@ -132,3 +132,30 @@ fn should_not_autocycle_after_manual_change() {
     assert_eq!(app.window, TimeWindow::W1h);
     assert!(app.jobs.is_empty());
 }
+
+use tui::components::table::table_state::TableFocusMode;
+
+#[test]
+fn test_r_in_column_mode_selects_row() {
+    let mut app = App::new();
+    app.jobs_table_state.focus_mode = TableFocusMode::Column;
+    app.update(Action::TableFocusRow);
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Row);
+}
+
+#[test]
+fn test_c_in_row_mode_selects_column() {
+    let mut app = App::new();
+    app.jobs_table_state.focus_mode = TableFocusMode::Row;
+    app.update(Action::TableFocusCol);
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Column);
+    assert_eq!(app.jobs_table_state.selected_col, Some(0));
+}
+
+#[test]
+fn test_enter_in_column_mode_selects_cell() {
+    let mut app = App::new();
+    app.jobs_table_state.focus_mode = TableFocusMode::Column;
+    app.update(Action::TableFocusCell);
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Cell);
+}
