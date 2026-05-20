@@ -319,8 +319,8 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         let resolution = 100u64;
         let available_height = chart_area.height as u64;
         let chart_max = max_val.max(8) * resolution;
-        // We want height_in_rows = b_width / 4 (since 1 row ~ 2 columns wide)
-        let zero_val = ((b_width as u64 * chart_max) / (4 * available_height.max(1))).max(1);
+        // We want height_in_rows = b_width / 2 (since 1 row ~ 2 columns wide, aspect ratio 1:2)
+        let zero_val = ((b_width as u64 * chart_max) / (2 * available_height.max(1))).max(1);
 
         let barchart_area = Rect::new(
             chart_area.x + graph_margin,
