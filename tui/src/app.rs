@@ -229,9 +229,12 @@ impl App {
                 }
             }
             Action::TableFocusCol => {
+                let prev_mode = self.jobs_table_state.focus_mode;
                 self.jobs_table_state.focus_mode =
                     crate::components::table::table_state::TableFocusMode::Column;
-                if self.jobs_table_state.selected_col.is_none() {
+                if prev_mode == crate::components::table::table_state::TableFocusMode::Row {
+                    self.jobs_table_state.selected_col = Some(0);
+                } else if self.jobs_table_state.selected_col.is_none() {
                     self.jobs_table_state.selected_col = Some(0);
                 }
             }

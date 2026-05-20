@@ -159,3 +159,24 @@ fn test_enter_in_column_mode_selects_cell() {
     app.update(Action::TableFocusCell);
     assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Cell);
 }
+
+#[test]
+fn test_c_in_row_mode_resets_selected_column_to_first() {
+    let mut app = App::new();
+    app.jobs_table_state.focus_mode = TableFocusMode::Row;
+    app.jobs_table_state.selected_col = Some(2); // simulated previous column selection
+    app.update(Action::TableFocusCol);
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Column);
+    assert_eq!(app.jobs_table_state.selected_col, Some(0)); // should reset to first column
+}
+
+#[test]
+fn test_c_in_cell_mode_preserves_selected_column() {
+    let mut app = App::new();
+    app.jobs_table_state.focus_mode = TableFocusMode::Cell;
+    app.jobs_table_state.selected_col = Some(2); 
+    app.update(Action::TableFocusCol);
+    assert_eq!(app.jobs_table_state.focus_mode, TableFocusMode::Column);
+    assert_eq!(app.jobs_table_state.selected_col, Some(2)); // should preserve
+}
+
