@@ -30,7 +30,7 @@ cargo run
 |-----|--------|
 | `q` | Quit |
 | `Tab` / `Shift+Tab` | Cycle Metrics |
-| `t` | Cycle Time Windows (1h, 3h, 6h, 12h, 24h) |
+| `t / T` | Cycle Time Windows (1h, 3h, 6h, 12h, 24h) |
 | `b` | Toggle Blame Mode (User-based aggregation) |
 | `r` | Row Focus Mode (Navigate through jobs/users) |
 | `c` | Column Focus Mode (Navigate through metrics) |

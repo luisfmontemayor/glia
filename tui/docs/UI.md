@@ -50,7 +50,7 @@ The bottom bar provides quick access to common actions and shows the keybindings
 - `[g]`: Focus Graph Pane.
 - `[j]`: Focus Jobs Table.
 - `[Tab] / [Shift+Tab]`: Cycle Metrics.
-- `[t]`: Cycle Time Window.
+- `[t / T]`: Cycle Time Window.
 - `[b]`: Toggle Blame Mode (Line Graph).
 - `[r]`: Switch Table to Row Focus.
 - `[c]`: Switch Table to Column Focus.
@@ -67,7 +67,7 @@ This view provides a clear chronological breakdown of job metrics. In this mode,
 
 ```text
 ┌ Glia TUI ────────────────────────────────────────────────────────────────────────────────────────┐┌ DB ────┐┌ API ───┐
-│Glia Base Team  | Time Window [t]: All Time                                                       ││ ACTIVE ││ ACTIVE │
+│Glia Base Team  | Time Window [t / T]: All Time                                                   ││ ACTIVE ││ ACTIVE │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘└────────┘└────────┘
 ┌ Metrics • [Tab]/[Shift+Tab] ─────────────────────────────────────────────────────────────────────────────────────────┐
 │ Wall Time │ CPU Time │ CPU Percent │ Max RSS │ Job Status                                                            │
@@ -113,7 +113,7 @@ Blame mode overlays metrics for different users on a single chart. This is parti
 
 ```text
 ┌ Glia TUI ────────────────────────────────────────────────────────────────────────────────────────┐┌ DB ────┐┌ API ───┐
-│Glia Base Team  | Time Window [t]: All Time                                                       ││ ACTIVE ││ ACTIVE │
+│Glia Base Team  | Time Window [t / T]: All Time                                                   ││ ACTIVE ││ ACTIVE │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘└────────┘└────────┘
 ┌ Metrics • [Tab]/[Shift+Tab] ─────────────────────────────────────────────────────────────────────────────────────────┐
 │ Wall Time │ CPU Time │ CPU Percent │ Max RSS │ Job Status                                                            │

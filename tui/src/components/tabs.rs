@@ -28,7 +28,7 @@ pub fn render_tabs(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" Metrics • [Tab]/[Shift+Tab] ")
+                .title(" Metrics • [Tab / Shift+Tab] ")
                 .border_style(Style::default().fg(LAVENDER))
                 .style(Style::default().fg(TEXT)),
         )

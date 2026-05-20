@@ -86,5 +86,5 @@ fn test_time_window_header_shows_shift_t() {
             content.push_str(buffer.get(x, y).symbol());
         }
     }
-    assert!(content.contains("[t/T]") || content.contains("t/T"), "Should find [t/T] in header");
+    assert!(content.contains("[t / T]") || content.contains("t / T"), "Should find [t / T] in header");
 }
