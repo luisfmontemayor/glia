@@ -1,3 +1,17 @@
+- [ ] consider changing job status in blame mode for something more informative
+- [ ] support row selection for chart subsetting by specific job
+- [ ] Support clicking for pane selection
+- [ ] Ensure there are no red flags on tui code
+- [ ] test with more data
+- [ ] put ticks on blame graph
+- [ ] revise commit history to see which commits can be squashed together, which can be shifted around, big nice cleanup of commit history
+- [ ] add ticks to the y axis
+- [ ] verifyt that tests are not silly, that they're actually sensible
+- [ ] Remove "value" heading from chart - uninformative
+- [x] if row selected and press c -> first column selected. If r clicked and column selected: first row in view (if scrolled) selected. if enter pressed in any moment: first cell in selected col or selected row selected. only 3 selection modes: row, column or cell for now. default is first row selected
+- [ ] tab + shift shortcut not labelled
+- [ ] y axis and y axis values don't have the same distance as origin.
+
 # TUI Dashboard (Session: 2026-04-10)
 - [x] Fix TUI bugs: Blame mode, Column mode, Cell expansion, Enter key selection, Unused mut warning.
 - [x] UI/UX: Lower 0 value grey tone of barchart to half the whiteness.
@@ -5,7 +19,6 @@
 - [x] Documentation: Update TUI README with current features.
 - [ ] Technical Debt: Rename `core` crate to avoid namespace collision (User task).
 - [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
-- [ ] fix tui, make consistent with spinup title etc 
 - [ ] add env var to add cores to the R installation
 - [ ] add most up to date conventional commits and make sure that the descriptions files for it are retained
 - [ ] Make README pitch-ready
