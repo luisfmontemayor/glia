@@ -1,6 +1,5 @@
 # TODO
 
-
 # CHART TICKS IMPLEMENTATION
 - [x] TDD: Update tests/test_ticks.rs to verify tick rendering alignment (@flash-executor) [commit: test(chart): add tests for data point ticks alignment]
 - [x] Implementation: Update src/components/chart.rs with ticks layout and rendering (@flash-executor) [commit: feat(chart): insert data point ticks layer above x-axis]
@@ -14,6 +13,15 @@
 - [x] T7: Final QA & todo.md Cleanup (@janitor)
 
 # ARCHIVE
+- [x] T1: TDD — Add test asserting blame chart y-axis has no "Value" title (@flash-executor)
+- [x] T2: Remove "Value" title from blame mode y-axis in chart.rs L228 (@flash-executor)
+- [x] T3: TDD — Add test asserting axis_line x-offset matches barchart_area x-offset (@flash-executor)
+- [x] T4: Fix axis line and label rendering to use barchart_area bounds instead of full axis_area (@flash-executor)
+- [x] T5: TDD — Add test asserting time window header contains both [t] and [T] hints (@flash-executor)
+- [x] T6: Update time window header span from "[t]" to "[t/T]" in header.rs L35 (@flash-executor)
+- [x] T7: TDD — Add tests for missing table mode transitions: r in Column mode, c in Row mode, Enter in Column mode (@flash-executor)
+- [x] T8: Add key bindings: r→Row in Column mode, c→Column in Row mode, Enter→Cell in Column mode (@flash-executor)
+- [x] T9: Run full test suite, commit, archive tasks (@monitor)
 - [x] T1: Update test_zero_value_bar_height to assert (b_width / 2) height (@flash-executor)
 - [x] T2: Fix zero_val calculation in chart.rs for 1:1 aspect ratio (@flash-executor)
 - [x] T3: Add test_date_alignment_under_data_points in test_ticks.rs (@flash-executor)
