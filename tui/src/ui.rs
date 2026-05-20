@@ -39,7 +39,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
             ("[Enter]", "Select"),
             ("[Esc]", "Unselect"),
             ("[s]", "Sort"),
-            ("[Arrows]", "Navigate"),
+            ("[Arrows/hjkl]", "Navigate"),
         ];
 
         let available_width = main_chunks[1].width.saturating_sub(2);
@@ -79,7 +79,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         let mut right_spans = Vec::new();
         for (i, (key, desc)) in right_keybinds.iter().enumerate() {
             if i > 0 {
-                right_spans.push(Span::raw(" |\u{00a0}"));
+                right_spans.push(Span::raw("\u{00a0}| "));
             }
             right_spans.push(Span::styled(*key, Style::default().add_modifier(Modifier::BOLD)));
             right_spans.push(Span::raw(format!("\u{00a0}{}", desc)));
