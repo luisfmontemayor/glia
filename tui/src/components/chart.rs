@@ -225,7 +225,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
             )
             .y_axis(
                 Axis::default()
-                    .title("Value")
+                    .title("")
                     .style(Style::default().fg(TEXT))
                     .bounds([0.0, max_y * 1.1])
                     .labels(vec![Span::raw(""), Span::raw(format!("{:.0}", max_y))]),
@@ -460,9 +460,9 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         f.render_widget(barchart, barchart_area);
 
         // 2. Axis line with integrated ticks
-        let mut axis_line = symbols::line::HORIZONTAL.repeat(axis_area.width as usize);
+        let mut axis_line = symbols::line::HORIZONTAL.repeat(barchart_area.width as usize);
         for &tx in &tick_positions {
-            let x_rel = tx.saturating_sub(axis_area.x) as usize;
+            let x_rel = tx.saturating_sub(barchart_area.x) as usize;
             if x_rel < axis_line.len() {
                 axis_line.replace_range(
                     axis_line
@@ -476,7 +476,7 @@ pub fn render_metric_chart(f: &mut Frame, app: &App, area: Rect) {
         }
         f.render_widget(
             Paragraph::new(axis_line).style(Style::default().fg(TEXT)),
-            axis_area,
+            Rect::new(barchart_area.x, axis_area.y, barchart_area.width, 1),
         );
 
         // 3. Time labels (HH:MM)
