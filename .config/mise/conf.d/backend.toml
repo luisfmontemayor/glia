@@ -1,0 +1,16 @@
+[tasks."backend:schema-check"]
+description = "Warn if models.py is newer than the latest migration"
+hide = true
+run = '''
+#!/usr/bin/env bash
+LATEST_MIGRATION=$(ls -t backend/migrations/versions/*.py 2>/dev/null | head -n 1)
+if [ -n "$LATEST_MIGRATION" ]; then
+    if [ "backend/models.py" -nt "$LATEST_MIGRATION" ]; then
+        echo -e "\033[0;33m⚠️  WARNING: backend/models.py has been modified since the last migration.\033[0m"
+        echo -e "\033[0;33m   You may need to run: \`mise run alembic -- revision --autogenerate -m '...'\`\033[0m"
+    fi
+fi
+'''
+
+[hooks]
+enter = "mise run backend:schema-check"
