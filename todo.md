@@ -1,3 +1,4 @@
+- Rename core to gcore across the codebase
 - [x] verify metrics tab legend uses exactly `[Tab / Shift+Tab]` (subagent: Command Legend Formatter)
 - [x] update time window legend in the header to exactly `[t / T]` (subagent: Command Legend Formatter)
 - [x] update test assertion in `tui/tests/header.rs` to check for `[t / T]` or `t / T` (subagent: Command Legend Formatter)
