@@ -3,7 +3,7 @@ import os
 
 from common.logs import setup_logger
 
-import core
+import gcore
 from glia_python.JobMetrics import JobMetrics
 
 logger = setup_logger("glia_python")
@@ -26,7 +26,7 @@ def push_telemetry(
     try:
         # The backend now only accepts batches (list of jobs)
         json_payload = f"[{metrics.model_dump_json()}]"
-        core.enqueue_to_background(json_payload, target_url, final_timeout)
+        gcore.enqueue_to_background(json_payload, target_url, final_timeout)
         return True
 
     except Exception as e:

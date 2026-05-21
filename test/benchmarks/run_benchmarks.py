@@ -23,7 +23,7 @@ BENCHMARKS = [
         "cmd": "Rscript benchmark_client2core.r",
     },
     {"name": "Backend-to-DB", "cmd": "python benchmark_core2db.py"},
-    {"name": "Backend-to-DB (Core)", "cmd": "python benchmark_core2db_core.py"},
+    {"name": "Backend-to-DB (Gcore)", "cmd": "python benchmark_gcore2db_gcore.py"},
 ]
 
 

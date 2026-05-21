@@ -1,10 +1,8 @@
 #![allow(unused_imports)]
 use pyo3::prelude::*;
 use std::option::Option;
-use crate::core as glia_core;
-use glia_core::GliaClient;
-#[cfg(test)]
-use std as core;
+use crate::gcore::GliaClient;
+use crate::gcore;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use std::env;
@@ -67,7 +65,7 @@ pub fn flush_queue() -> PyResult<PyFlushSummary> {
 #[pyfunction]
 pub fn trigger_panic() -> PyResult<()> {
     let result = panic::catch_unwind(|| {
-        glia_core::trigger_panic();
+        gcore::trigger_panic();
     });
 
     match result {
