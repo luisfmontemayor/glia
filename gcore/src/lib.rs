@@ -1,4 +1,4 @@
-pub mod core;
+pub mod gcore;
 
 #[cfg(feature = "python")]
 pub mod python_module;
@@ -14,9 +14,9 @@ use crate::python_module::*;
 
 #[cfg(all(feature = "python", not(doctest)))]
 #[pymodule]
-#[pyo3(name = "core")]
+#[pyo3(name = "gcore")]
 #[doc(hidden)]
-fn core_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn gcore_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFlushSummary>()?;
     m.add_function(wrap_pyfunction!(enqueue_to_background, m)?)?;
     m.add_function(wrap_pyfunction!(flush_queue, m)?)?;
