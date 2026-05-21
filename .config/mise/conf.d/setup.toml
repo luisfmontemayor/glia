@@ -6,6 +6,8 @@ run         = "mise install"
 alias       = "spd"
 description = "Python deps"
 run         = "uv sync && uv lock"
+sources     = ["pyproject.toml", "uv.lock"]
+outputs     = [".venv/"]
 
 [tasks."setup:r-deps"]
 description = "Sync R dependencies from DESCRIPTION using renv + pak"
@@ -48,6 +50,7 @@ message(paste("[Glia] Configured R_LIBS_USER ->", lib_path))
 description = "TUI dependencies"
 dir         = "tui"
 run         = "cargo fetch"
+sources     = ["Cargo.toml", "Cargo.lock"]
 
 [tasks."setup:deps"]
 alias       = "sd"

@@ -16,6 +16,10 @@ sources = [
   "../core/Cargo.lock",
   "../core/src/**/*.rs",
 ]
+outputs = [
+  "src/rust/Cargo.toml",
+  "src/rust/src/r_module.rs"
+]
 run = """
 mise run gliar:build-clean
 
@@ -63,6 +67,7 @@ Rscript -e "
   devtools::install(upgrade = FALSE, quick = TRUE);
   "
 """
+outputs = ["src/gliar.so"]
 
 [tasks."gliar:install"]
 description = "Compile Rust code and install gliar package locally"

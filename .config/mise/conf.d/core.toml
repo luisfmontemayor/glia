@@ -2,5 +2,7 @@
 description = "Build/Install Python extension"
 dir         = "core"
 run         = "maturin develop --release && cd .. && uv pip install -e core"
+sources     = ["Cargo.toml", "Cargo.lock", "src/**/*.rs", "pyproject.toml"]
+outputs     = ["target/release/"]
 
 # R built and installation is handled by gliar/src/Makevars
