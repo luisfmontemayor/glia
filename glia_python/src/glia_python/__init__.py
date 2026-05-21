@@ -3,14 +3,14 @@ import functools
 from collections.abc import Callable
 from typing import Any
 
-import core
+import gcore
 from glia_python.JobMetrics import JobMetrics
 from glia_python.tracker import JobTracker
 
 __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 
 # Ensure telemetry is flushed before exit
-atexit.register(core.flush_queue)
+atexit.register(gcore.flush_queue)
 
 
 class Glia:

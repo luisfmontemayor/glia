@@ -9,12 +9,12 @@ dependencies    = [
     "psutil>=7.2.1",
     "pytest==9.0.2",
     "common",
-    "core",
+    "gcore",
 ]
 
 [tool.uv.sources]
 common = { workspace = true }
-core = { workspace = true }
+gcore = { workspace = true }
 
 [build-system]
 requires      = ["uv_build>=0.9.17,<0.10.0"]
