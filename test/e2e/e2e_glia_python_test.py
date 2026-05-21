@@ -22,10 +22,10 @@ async def test_end_to_end_telemetry_flow(monkeypatch):
     
     with Glia.tracker(program_name=unique_name, context={"e2e": "true"}):
         _x = 1 + 1
-    
-    # Glia.tracker doesn't have an explicit flush, but glia_python.network uses core
-    import core
-    core.flush_queue()
+
+    # Glia.tracker doesn't have an explicit flush, but glia_python.network uses gcore
+    import gcore
+    gcore.flush_queue()
 
     async with httpx.AsyncClient(base_url=f"http://{settings.API_HOST}:{settings.API_PORT}") as client:
         response = await client.get("/telemetry")
