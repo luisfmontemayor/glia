@@ -1,18 +1,8 @@
 # To Do
 - Rename core to gcore across the codebase
-- [ ] consider changing job status in blame mode for something more informative
-- [ ] support row selection for chart subsetting by specific job
-- [ ] Support clicking for pane selection
-- [ ] Ensure there are no red flags on tui code
 - [ ] test with more data
-- [ ] put ticks on blame graph
 - [ ] revise commit history to see which commits can be squashed together, which can be shifted around, big nice cleanup of commit history
-- [ ] add ticks to the y axis
 - [ ] verifyt that tests are not silly, that they're actually sensible
-- [ ] Remove "value" heading from chart - uninformative
-- [ ] tab + shift shortcut not labelled
-- [ ] y axis and y axis values don't have the same distance as origin.
-
 - [ ] Technical Debt: Rename `core` crate to avoid namespace collision (User task).
 - [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
 - [ ] add env var to add cores to the R installation
@@ -20,7 +10,6 @@
 - [ ] Make README pitch-ready
 - [ ] Readme needs r installation path mapping
   - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
-- [ ] cli gui (TUI Dashboard)
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
 
 - [ ] fix: why does backend to db benchmark not show any throughput:
@@ -77,36 +66,18 @@ Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
 
 
 
+
 # In Progress
 - [/] downgrade to 3.10 for better interop (Done in `downgrade-python-3.10`)
 
+
 # Done
-- [x] verify metrics tab legend uses exactly `[Tab / Shift+Tab]` (subagent: Command Legend Formatter)
-- [x] update time window legend in the header to exactly `[t / T]` (subagent: Command Legend Formatter)
-- [x] update test assertion in `tui/tests/header.rs` to check for `[t / T]` or `t / T` (subagent: Command Legend Formatter)
-- [x] update controls table row in `tui/README.md` to `t / T` (subagent: Command Legend Formatter)
-- [x] update documentation in `tui/docs/UI.md` to `[t / T]` (subagent: Command Legend Formatter)
-- [x] run cargo test to verify all tests pass (subagent: Command Legend Formatter)
-- [x] commit changes (subagent: Command Legend Formatter)
-- [x] revert axis line alignment changes in chart.rs (subagent: Layout Reverter)
-- [x] remove test_axis_line_symmetric_overhang from chart_layout.rs (subagent: Layout Reverter)
-- [x] run cargo test --package tui to verify (subagent: Layout Reverter)
-- [x] commit changes with 'style(tui/chart): revert axis line alignment with barchart area' (subagent: Layout Reverter)
-- [x] fix(tui/app): reset selected column to first when transitioning from Row mode (subagent: Table Transition Fixer)
-  - [x] add tests for transition to app.rs tests (subagent: Table Transition Fixer)
-  - [x] update app.rs to check previous focus mode and force selection of first column when transitioning from Row (subagent: Table Transition Fixer)
-- [x] if row selected and press c -> first column selected. If r clicked and column selected: first row in view (if scrolled) selected. if enter pressed in any moment: first cell in selected col or selected row selected. only 3 selection modes: row, column or cell for now. default is first row selected
-- [x] Fix TUI bugs: Blame mode, Column mode, Cell expansion, Enter key selection, Unused mut warning.
-- [x] UI/UX: Lower 0 value grey tone of barchart to half the whiteness.
-- [x] UI/UX: Improve TUI legend/footer (ESC to select up, 'b' command, etc.).
-- [x] Documentation: Update TUI README with current features.
 - [x] Identify and document missing system dependencies (`cmake`, `libuv1-dev`, `pandoc`)
 - [x] health check: is it legit (Endpoints identified: `/health/live`, `/health/ready`)
 - [x] lazygit plugin: no files staged means it puts in messed up scope label (Done in `fix-conventional-commits`)
 - [x] backend migrations fix (Done in `fix-conventional-commits`)
 - [x] TODO: rename to something that reflects that this Enqueues the payload to a background worker.
 - [x] Make hardcoded "http://localhost" in tests and benchmarks configurable via environment variables.
-- [x] cli gui (TUI Dashboard)
 - [x] **Refine Installation Tests**:
     - [x] Update `test/installations/README.md` with detailed instructions.
     - [x] Improve `test/installations/build_rtest.sh` with logging and error handling.
@@ -159,13 +130,11 @@ Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
     - [x] Choose compulsory variables
         - run_id, program_name, user_name, script_sha256, exit_code_int, started_at, ended_at, cpu_time_sec, cpu_percent, max_rss_mb
 
-- [x] Create `tui/tui-design.md` detailing the color palette, functional mappings, and layout aesthetics.
-- [x] Phase 1: Scaffold TUI project with Ratatui and Tokio.
-- [x] Phase 2: Implement route mapping and data models.
-- [x] Phase 3: Implement core logic and visuals (Sparklines, metric switching).
-- [x] Phase 4: Polish (Panic hooks, formatting).
-- [x] Phase 5: Add stacked job status chart and top scripts table.
 
+# Notes & Archive
+# To Do
+# In Progress
+# Done
 # Notes & Archive
 # TUI Dashboard (Session: 2026-04-10)
 #######
