@@ -3,7 +3,7 @@
 __pycache__/
 llm-project-summary.txt
 scripts/copyDescription.sh
-core/target
+gcore/target
 gliar/src/glia_core
 gliar/renv
 gliar/src/rust/
