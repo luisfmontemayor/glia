@@ -1,0 +1,6 @@
+[tasks."gcore:install-python"]
+description = "Build/Install Python extension"
+dir         = "gcore"
+run         = "maturin develop --release && cd .. && uv pip install -e gcore"
+
+# R built and installation is handled by gliar/src/Makevars

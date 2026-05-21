@@ -1,7 +1,7 @@
-[tasks."test:core"]
-dir     = "core"
+[tasks."test:gcore"]
+dir     = "gcore"
 depends = ["api:status-wait", "db:status-wait"]
-run     = "cargo test --lib"
+run     = "cargo test --lib -- --test-threads=1"
 
 [tasks."test:backend"]
 depends = ["sync:db-migration", "api:status-wait"]
@@ -33,7 +33,7 @@ dir = "gliar"
 depends = ["api:status-wait", "db:status-wait", "gliar:install"]
 run = """
 Rscript -e '
-  source("renv/activate.R")
+  if (file.exists("renv/activate.R")) source("renv/activate.R")
 
   res <- testthat::test_file("../test/e2e/e2e_gliar_test.R"); 
   df <- as.data.frame(res); 
@@ -49,7 +49,7 @@ run         = "mise test:e2e-glia_python && mise test:e2e-gliar"
 description = "Run all tests"
 depends = ["api:status-wait", "db:status-wait"]
 run = """
-mise test:core && \
+mise test:gcore && \
 mise test:backend && \
 mise test:glia_python && \
 mise test:gliar && \

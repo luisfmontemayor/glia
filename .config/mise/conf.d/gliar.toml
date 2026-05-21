@@ -12,23 +12,22 @@ rm -rf src/rust/target
 description = "Sync minimal Rust core files and patch Cargo.toml for R"
 dir = "gliar"
 sources = [
-  "../core/Cargo.toml",
-  "../core/Cargo.lock",
-  "../core/src/**/*.rs",
+  "../gcore/Cargo.toml",
+  "../gcore/Cargo.lock",
+  "../gcore/src/**/*.rs",
 ]
 run = """
 mise run gliar:build-clean
 
 mkdir -p src/rust/src
-cp ../core/Cargo.toml src/rust/
-cp ../core/Cargo.lock src/rust/
-rsync -a --delete ../core/src/ src/rust/src/
+cp ../gcore/Cargo.toml src/rust/
+cp ../gcore/Cargo.lock src/rust/
+rsync -a --delete ../gcore/src/ src/rust/src/
 
 echo "Patching Cargo.toml for static linking..." &>2
 sed -i 's/crate-type = \\[[^]]*\\]/crate-type = ["staticlib"]/' src/rust/Cargo.toml
 
-echo "Patching Rust module name to 'gliar'..." &>2
-sed -i 's/mod core;/mod gliar;/' src/rust/src/r_module.rs
+echo "Using gcore module natively..." &>2
 """
 
 [tasks."gliar:sync-deps"]

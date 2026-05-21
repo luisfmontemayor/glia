@@ -10,7 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "common",
-    "core",
+    "gcore",
     "glia",
     "glia-python",
 ]
@@ -134,11 +134,6 @@ wheels = [
 name = "common"
 version = "0.1.0"
 source = { editable = "libs/python/common" }
-
-[[package]]
-name = "core"
-version = "0.1.0"
-source = { editable = "core" }
 
 [[package]]
 name = "dnspython"
@@ -302,6 +297,11 @@ wheels = [
 ]
 
 [[package]]
+name = "gcore"
+version = "0.1.0"
+source = { editable = "gcore" }
+
+[[package]]
 name = "glia"
 version = "0.1.0"
 source = { virtual = "." }
@@ -309,8 +309,8 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "common" },
-    { name = "core" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "gcore" },
     { name = "glia-python" },
     { name = "httpx" },
     { name = "pydantic-settings" },
@@ -332,8 +332,8 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.17.2" },
     { name = "asyncpg", specifier = ">=0.31.0" },
     { name = "common", editable = "libs/python/common" },
-    { name = "core", editable = "core" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.0" },
+    { name = "gcore", editable = "gcore" },
     { name = "glia-python", editable = "glia_python" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
@@ -354,7 +354,7 @@ version = "0.1.0"
 source = { editable = "glia_python" }
 dependencies = [
     { name = "common" },
-    { name = "core" },
+    { name = "gcore" },
     { name = "httpx" },
     { name = "psutil" },
     { name = "pytest" },
@@ -363,7 +363,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "common", editable = "libs/python/common" },
-    { name = "core", editable = "core" },
+    { name = "gcore", editable = "gcore" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "psutil", specifier = ">=7.2.1" },
     { name = "pytest", specifier = "==9.0.2" },

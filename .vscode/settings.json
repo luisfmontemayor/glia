@@ -9,7 +9,7 @@
   },
   "python.analysis.extraPaths": [
     "./libs/python/common/src",
-    "./core",  
+    "./gcore",  
     "./glia_python/src"
   ],
   "python.defaultInterpreterPath": "./.venv/bin/python",

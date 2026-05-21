@@ -17,16 +17,16 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "common",
     "glia_python",
-    "core",
+    "gcore",
 ]
 
 [tool.uv.workspace]
-members = ["glia_python", "core", "libs/python/common"]
+members = ["glia_python", "gcore", "libs/python/common"]
 
 [tool.uv.sources]
 common = { workspace = true, editable = true }
 glia_python = { workspace = true, editable = true }
-core = { workspace = true, editable = true }
+gcore = { workspace = true, editable = true }
 
 [tool.ty.environment]
 python-version = "3.12"
