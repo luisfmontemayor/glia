@@ -44,3 +44,25 @@ test_that("glia_wrap handles function tracking correctly", {
   expect_equal(tracked_f(5), 10)
   expect_called(mock_client, 1)
 })
+test_that("glia_track does not crash when run without glia_init and missing env vars", {
+  # Temporarily clear environment variable and global client
+  old_url <- Sys.getenv("GLIA_API_URL")
+  Sys.unsetenv("GLIA_API_URL")
+  
+  old_client <- gliar:::.glia_env$client
+  assign("client", NULL, envir = gliar:::.glia_env)
+  
+  on.exit({
+    if (old_url != "") Sys.setenv(GLIA_API_URL = old_url)
+    assign("client", old_client, envir = gliar:::.glia_env)
+  })
+
+  # Need mock tracker to bypass rust FFI
+  MockTracker <- create_mock_tracker(run_id = "track-missing")
+  assign("SystemTracker", MockTracker, envir = ns)
+
+  expect_warning({
+    result <- glia_track({ 1 + 1 })
+    expect_equal(result, 2)
+  }, "API endpoint not found")
+})
