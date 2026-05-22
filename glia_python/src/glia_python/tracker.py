@@ -17,8 +17,25 @@ try:
 except ImportError:
     pass
 
+from glia_python import _global_config
 from glia_python.JobMetrics import JobMetrics
 from glia_python.network import push_telemetry
+
+
+def is_interactive() -> bool:
+    try:
+        if hasattr(sys, "ps1"):
+            return True
+        if sys.flags.interactive:
+            return True
+        if "get_ipython" in sys.modules:
+            return True
+        if os.getenv("PYCHARM_HOSTED") or os.getenv("VSCODE_PID"):
+            return True
+    except Exception:
+        pass
+    return False
+
 
 
 class JobTracker:
@@ -42,17 +59,35 @@ class JobTracker:
         self._cpu_start = None
         self._user_meta = context or {}
 
+        # Merge config: Local > Init > Env
+        init_tags = _global_config.get("tags", {})
+        merged_meta = init_tags.copy()
+        merged_meta.update(self._user_meta)
+        
+        env_app_name = os.getenv("GLIA_APP_NAME")
+        init_app_name = _global_config.get("app_name")
+        final_app_name = init_app_name or env_app_name
+        
+        if final_app_name:
+            merged_meta["app_name"] = final_app_name
+            
+        init_app_version = _global_config.get("app_version")
+        if init_app_version:
+            merged_meta["app_version"] = init_app_version
+            
+        self._user_meta = merged_meta
+
         self.run_id = str(uuid.uuid4())
         self.user_name = getpass.getuser()
 
-        if sys.argv[0]:
+        if sys.argv and sys.argv[0] and not is_interactive():
             self.script_path = Path(os.path.abspath(sys.argv[0]))
             self.script_sha256 = self._calculate_sha256(self.script_path)
             base_name = self.script_path.name
         else:
             self.script_path = None
             self.script_sha256 = "unknown-hash"
-            base_name = "interactive"
+            base_name = "interactive_session"
 
         if program_name:
             self.program_name = f"{base_name}:{program_name}"

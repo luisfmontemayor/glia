@@ -3,6 +3,8 @@ import functools
 from collections.abc import Callable
 from typing import Any
 
+_global_config: dict[str, Any] = {}
+
 import gcore
 from glia_python.JobMetrics import JobMetrics
 from glia_python.tracker import JobTracker
@@ -13,7 +15,23 @@ __all__: list[str] = ["JobTracker", "JobMetrics", "Glia", "track"]
 atexit.register(gcore.flush_queue)
 
 
+
 class Glia:
+    @staticmethod
+    def init(
+        api_url: str | None = None,
+        app_name: str | None = None,
+        app_version: str | None = None,
+        tags: dict[str, Any] | None = None,
+    ) -> None:
+        if api_url is not None:
+            _global_config["api_url"] = api_url
+        if app_name is not None:
+            _global_config["app_name"] = app_name
+        if app_version is not None:
+            _global_config["app_version"] = app_version
+        if tags is not None:
+            _global_config["tags"] = tags
     @staticmethod
     def tracker(
         program_name: str | None = None, context: dict[str, Any] | None = None

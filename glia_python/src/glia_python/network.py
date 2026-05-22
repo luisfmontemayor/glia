@@ -4,10 +4,13 @@ import os
 from common.logs import setup_logger
 
 import gcore
+from glia_python import _global_config
 from glia_python.JobMetrics import JobMetrics
 
 logger = setup_logger("glia_python")
 
+def _get_api_url() -> str | None:
+    return _global_config.get("api_url") or os.getenv("GLIA_API_URL")
 
 def push_telemetry(
     metrics: JobMetrics, api_url: str | None = None, timeout: float | None = None
@@ -17,7 +20,7 @@ def push_telemetry(
     - Suppress Errors: Returns False on failure instead of crashing (Fail Silent).
     - Non-blocking: Enqueues the telemetry to the Rust background worker.
     """
-    target_url: str | None = api_url or os.getenv("GLIA_API_URL")
+    target_url: str | None = api_url or _get_api_url()
     if not target_url:
         logger.warning("[GLIA_PYTHON] No GLIA_API_URL configured. Telemetry dropped.")
         return False
