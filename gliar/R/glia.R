@@ -38,12 +38,7 @@ glia_init <- function(api_url = NULL,
   }
 
   if (is.null(target_url) || target_url == "") {
-    stop(
-      "[GLIAR] API endpoint not found. \n",
-      "Please set the GLIA_API_URL environment variable (e.g., in mise.toml) ",
-      "or provide it directly to glia_init(api_url = '...').",
-      call. = FALSE
-    )
+    target_url <- NULL
   }
 
   .glia_env$client <- GliaClient$new(base_url = target_url)
@@ -61,7 +56,9 @@ glia_init <- function(api_url = NULL,
     }
   }, onexit = TRUE)
   
-  message(paste("[GLIAR] Initialized tracking to:", api_url))
+  if (!is.null(target_url)) {
+    message(paste("[GLIAR] Initialized tracking to:", api_url))
+  }
   invisible(NULL)
 }
 
@@ -116,9 +113,18 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
   expr_quo <- rlang::enquo(expr)
   all_tags <- c(.glia_env$tags, tags)
   
-  # Flatten context for the 'meta' field
+  # Local > Init > Env precedence logic for version and tags
+  final_version <- version
+  if (is.null(final_version)) final_version <- .glia_env$app_version
+  
+  # Note: GLIA_APP_VERSION environment variable doesn't exist yet, but in case we want it
+  if (is.null(final_version)) {
+    env_version <- Sys.getenv("GLIA_APP_VERSION")
+    if (nzchar(env_version)) final_version <- env_version
+  }
+
   context <- list(
-    version = version %||% .glia_env$app_version,
+    version = final_version,
     description = description
   )
   context <- c(context[!sapply(context, is.null)], all_tags)
@@ -138,7 +144,15 @@ glia_track <- function(expr, name = NULL, version = NULL, tags = list(), descrip
       metrics$script_path <- as.character(metrics$script_path)
     }
 
-    final_name <- name %||% .glia_env$app_name %||% metrics$script_path
+    # Local > Init > Env for app_name
+    final_name <- name
+    if (is.null(final_name)) final_name <- .glia_env$app_name
+    if (is.null(final_name)) {
+      env_name <- Sys.getenv("GLIA_APP_NAME")
+      if (nzchar(env_name)) final_name <- env_name
+    }
+    if (is.null(final_name)) final_name <- metrics$script_path
+
     metrics$program_name <- as.character(final_name)
 
     .glia_env$client$send_job_run(metrics)

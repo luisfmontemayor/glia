@@ -10,21 +10,32 @@ SystemTracker <- R6::R6Class("SystemTracker",
     cpu_start = NULL,
     run_id = NULL,
     user_meta = NULL,
-    script_path = "R_session", # Default to string instead of NULL
+    script_path = NULL,
     
     initialize = function(context = list()) {
       self$process <- ps::ps_handle()
       self$user_meta <- context
       self$run_id <- uuid::UUIDgenerate()
       
-      # Attempt to detect script path (basic heuristic for Rscript)
-      args <- commandArgs(trailingOnly = FALSE)
-      file_arg <- grep("--file=", args, value = TRUE)
-      if (length(file_arg) > 0) {
-        # Ensure we only take one and it is a character string
-        path <- sub("--file=", "", file_arg[1])
-        if (nchar(path) > 0) {
-          self$script_path <- path
+      # Determine if we are in an interactive session
+      is_interactive <- interactive() || Sys.getenv("RSTUDIO") == "1"
+      if (is_interactive) {
+        self$script_path <- "interactive_session"
+      } else {
+        # Attempt to detect script path (basic heuristic for Rscript)
+        args <- commandArgs(trailingOnly = FALSE)
+        file_arg <- grep("--file=", args, value = TRUE)
+        if (length(file_arg) > 0) {
+          # Ensure we only take one and it is a character string
+          path <- sub("--file=", "", file_arg[1])
+          if (nchar(path) > 0) {
+            self$script_path <- path
+          }
+        }
+        
+        # Fallback if not interactive and no --file= is found
+        if (is.null(self$script_path)) {
+          self$script_path <- "R_session"
         }
       }
     },
@@ -59,13 +70,18 @@ SystemTracker <- R6::R6Class("SystemTracker",
       sha <- "" 
       if (!is.null(self$script_path) && 
           self$script_path != "R_session" && 
+          self$script_path != "interactive_session" &&
           file.exists(self$script_path)) {
         sha <- digest::digest(self$script_path, file = TRUE, algo = "sha256")
       }
       
       prog_name <- "r_client"
-      if (!is.null(self$script_path) && self$script_path != "R_session") {
-        prog_name <- basename(self$script_path)
+      if (!is.null(self$script_path)) {
+        if (self$script_path == "interactive_session" || self$script_path == "R_session") {
+          prog_name <- self$script_path
+        } else {
+          prog_name <- basename(self$script_path)
+        }
       }
 
       # Return the list, ensuring all character fields are actual strings

@@ -15,10 +15,8 @@ GliaClient <- R6::R6Class("GliaClient",
       }
 
       if (is.null(target_url) || target_url == "") {
-        stop(
-          "[GLIAR] GLIA_API_URL environment variable is not set and no base_url was provided. ",
-          "Telemetry cannot be sent without a target endpoint."
-        )
+        # Don't stop here. Warn-and-drop will be handled at flush/queue time.
+        target_url <- NULL
       }
 
       self$base_url <- target_url
@@ -27,6 +25,11 @@ GliaClient <- R6::R6Class("GliaClient",
 
     send_job_run = function(payload) {
       if (is.null(payload)) return(FALSE)
+      
+      if (is.null(self$base_url) || self$base_url == "") {
+        warning("[GLIAR] API endpoint not found. Telemetry will be dropped.", call. = FALSE)
+        return(FALSE)
+      }
 
       # The backend now only accepts batches (list of jobs)
       json_str <- paste0("[", as.character(jsonlite::toJSON(payload, auto_unbox = TRUE)), "]")
@@ -47,6 +50,9 @@ GliaClient <- R6::R6Class("GliaClient",
     },
 
     flush = function() {
+      if (is.null(self$base_url) || self$base_url == "") {
+        return(NULL)
+      }
       tryCatch({
         # Rust FFI (Blocking)
         flush_queue()
