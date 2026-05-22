@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from common.logs import setup_logger
 
-import core
+import gcore
 
 logger = setup_logger("benchmark_core2db_core.py")
 
@@ -17,10 +17,10 @@ if not API_URL:
 
 
 def push_telemetry_core(url, iteration, load_factor):
-    """Uses core.enqueue_to_background to hit the FastAPI /ingest endpoint."""
+    """Uses gcore.enqueue_to_background to hit the FastAPI /ingest endpoint."""
     payload = {
         "run_id": str(uuid.uuid4()),
-        "hostname": "db-stress-node-core",
+        "hostname": "db-stress-node-gcore",
         "os_info": "Linux Performance-Test-Core",
         "user_name": "stress_user",
         "program_name": "db_stress_worker_core",
@@ -31,14 +31,14 @@ def push_telemetry_core(url, iteration, load_factor):
         "cpu_percent": 10.0,
         "max_rss_mb": 50.0,
         "exit_code_int": 0,
-        "argv": ["--db-stress-core"],
-        "script_sha256": "db-stress-hash-core",
+        "argv": ["--db-stress-gcore"],
+        "script_sha256": "db-stress-hash-gcore",
         "meta": {"iteration": iteration, "load": load_factor},
     }
 
     try:
         # enqueue_to_background is synchronous and adds to an internal Rust queue
-        core.enqueue_to_background(json.dumps(payload), url)
+        gcore.enqueue_to_background(json.dumps(payload), url)
         return True
     except Exception as e:
         logger.error(f"Error queueing telemetry: {e}")
@@ -47,12 +47,12 @@ def push_telemetry_core(url, iteration, load_factor):
 
 def run_benchmark(iterations):
     """
-    Performance test for the 'Persistence Barrier' using core.
+    Performance test for the 'Persistence Barrier' using gcore.
     Measures the time it takes to queue and then FLUSH all telemetry.
     """
-    logger.info(f"Starting DB stress test (via core): {iterations} writes")
+    logger.info(f"Starting DB stress test (via gcore): {iterations} writes")
 
-    # Set the queue limit via environment variable for the Rust core
+    # Set the queue limit via environment variable for the Rust gcore
     os.environ["CORE_QUEUE_LIMIT"] = str(iterations + 100)
 
     start_time = time.perf_counter()
@@ -67,7 +67,7 @@ def run_benchmark(iterations):
     logger.info(f"Queued {success_count} items. Flushing to DB...")
     
     flush_start = time.perf_counter()
-    summary = core.flush_queue()
+    summary = gcore.flush_queue()
     flush_end = time.perf_counter()
     
     total_duration = flush_end - start_time
@@ -92,11 +92,11 @@ def run_benchmark(iterations):
 
     print(f"REPORT_START{json.dumps(report)}REPORT_END")
 
-    logger.info(f"Backend-to-DB (core) stress test complete. Failed: {summary.failed_jobs}")
+    logger.info(f"Backend-to-DB (gcore) stress test complete. Failed: {summary.failed_jobs}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Backend-to-DB benchmark using core")
+    parser = argparse.ArgumentParser(description="Run Backend-to-DB benchmark using gcore")
     parser.add_argument(
         "--iterations",
         type=int,

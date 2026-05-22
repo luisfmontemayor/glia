@@ -1,8 +1,7 @@
-[tasks."core:install-python"]
+[tasks."gcore:install-python"]
 description = "Build/Install Python extension"
-dir         = "core"
-run         = "maturin develop --release && cd .. && uv pip install -e core"
+dir         = "gcore"
+run         = "maturin develop --release && cd .. && uv pip install -e gcore"
 sources     = ["Cargo.toml", "Cargo.lock", "src/**/*.rs", "pyproject.toml"]
 outputs     = ["target/release/"]
-
 # R built and installation is handled by gliar/src/Makevars

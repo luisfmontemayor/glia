@@ -12,7 +12,7 @@ logger = setup_logger("GLIA_PYTHON STRESS TEST")
 def run_benchmark(iterations):
     """
     Performance test for the 'Client-to-Core' inflection point.
-    Target: Measure the delta introduced by JobTracker -> core hand-off.
+    Target: Measure the delta introduced by JobTracker -> gcore hand-off.
     """
     stress_load = iterations * 5
 

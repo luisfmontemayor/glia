@@ -1,5 +1,5 @@
 use extendr_api::prelude::*;
-use crate::core::{self, GliaClient};
+use crate::gcore::{self, GliaClient};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use std::env;
@@ -67,12 +67,12 @@ pub fn flush_queue() -> Robj {
 #[extendr]
 pub fn trigger_panic() {
     let _ = panic::catch_unwind(|| {
-        core::trigger_panic();
+        gcore::trigger_panic();
     });
 }
 
 extendr_module! {
-    mod core; 
+    mod gcore; 
     fn enqueue_to_background;
     fn flush_queue;
     fn trigger_panic;

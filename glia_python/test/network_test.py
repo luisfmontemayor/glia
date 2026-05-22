@@ -6,7 +6,7 @@ import pytest
 from glia_python.JobMetrics import JobMetrics
 from glia_python.network import push_telemetry
 
-import core
+import gcore
 
 
 def create_sample_metrics() -> JobMetrics:
@@ -30,7 +30,7 @@ def create_sample_metrics() -> JobMetrics:
     )
 
 
-@patch("glia_python.network.core.enqueue_to_background")
+@patch("glia_python.network.gcore.enqueue_to_background")
 def test_push_telemetry_success(mock_queue):
     """Verify that metrics are correctly serialized and queued."""
     metrics = create_sample_metrics()
@@ -50,7 +50,7 @@ def test_push_telemetry_success(mock_queue):
 
 
 @patch("os.getenv")
-@patch("glia_python.network.core.enqueue_to_background")
+@patch("glia_python.network.gcore.enqueue_to_background")
 def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     metrics = create_sample_metrics()
     mock_getenv.value = "http://env-var-url:9000"
@@ -66,11 +66,11 @@ def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     # but the logic is what we want to test.
 
 
-@patch("glia_python.network.core.enqueue_to_background")
+@patch("glia_python.network.gcore.enqueue_to_background")
 def test_push_telemetry_fail_fast(mock_queue):
     metrics = create_sample_metrics()
 
-    # Simulate an exception inside the core queueing logic (e.g. queue full)
+    # Simulate an exception inside the gcore queueing logic (e.g. queue full)
     mock_queue.side_effect = Exception("Queue full or shutdown")
 
     success = push_telemetry(metrics, api_url="http://bad-url")
@@ -82,7 +82,7 @@ def test_push_telemetry_fail_fast(mock_queue):
 def test_rust_panic_caught():
     """Verify that a Rust panic doesn't crash the Python process."""
     with pytest.raises(RuntimeError, match="Intentional Rust panic caught"):
-        core.trigger_panic()
+        gcore.trigger_panic()
 
 
 def test_non_utf8_payload():
@@ -94,6 +94,6 @@ def test_non_utf8_payload():
     # Depending on how pyo3 handles it, it might raise a UnicodeEncodeError
     # before reaching Rust, or Rust might catch it.
     try:
-        core.enqueue_to_background(invalid_str, "http://test-host", 1.0)
+        gcore.enqueue_to_background(invalid_str, "http://test-host", 1.0)
     except (UnicodeEncodeError, RuntimeError):
         pass  # Success if it doesn't crash the interpreter

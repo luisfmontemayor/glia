@@ -89,21 +89,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "crossbeam-channel",
- "extendr-api",
- "mockito",
- "once_cell",
- "pyo3",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -273,6 +258,21 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
+]
+
+[[package]]
+name = "gcore"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "extendr-api",
+ "mockito",
+ "once_cell",
+ "pyo3",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

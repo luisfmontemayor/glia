@@ -1,5 +1,5 @@
-from pathlib import Path
 from scripts.conventional_commits.scopes import add_scope_category
+
 
 def test_scope_category():
     test_cases = [
