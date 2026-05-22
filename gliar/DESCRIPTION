@@ -29,3 +29,5 @@ Suggests:
     argparse (>= 2.3.1)
 Config/rextendr/version: 0.4.2
 Config/testthat/edition: 3
+Author: Luis Montemayor <luis@example.com>
+Maintainer: Luis Montemayor <luis@example.com>

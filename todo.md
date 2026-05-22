@@ -1,4 +1,8 @@
 # To Do
+- [x] @flash-executor Step 1: Python Client Config & Interactive Logic. Implement pseudo-stateless config and interactive detection in glia_python.
+- [x] @flash-executor Step 2: Python Tests. Provide test coverage for the Python configuration changes.
+- [x] @flash-executor Step 3: R Client Config & Warn-and-Drop Fallback. Convert R to pseudo-stateless, add warn-and-drop, and interactive detection.
+- [x] @flash-executor Step 4: R Tests. Provide test coverage for the R configuration changes.
 - Rename core to gcore across the codebase
 - [ ] test with more data
 - [ ] revise commit history to see which commits can be squashed together, which can be shifted around, big nice cleanup of commit history
