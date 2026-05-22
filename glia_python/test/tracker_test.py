@@ -43,9 +43,9 @@ def setup_platform_ram(mock_sys, mock_resource, platform: str, usage_val: int):
 @patch("glia_python.tracker.sys")
 @patch("glia_python.tracker.psutil")
 @patch("glia_python.tracker.time")
-def test_context_manager_tracker(mock_time, mock_psutil, mock_sys):
+@patch("glia_python.tracker.is_interactive", return_value=False)
+def test_context_manager_tracker(mock_is_int, mock_time, mock_psutil, mock_sys):
     setup_system_mocks(mock_psutil, mock_time)
-
     mock_sys.argv = ["/path/to/script.py", "--arg"]
 
     with Glia.tracker(program_name="test_job") as tracker:
@@ -61,7 +61,8 @@ def test_context_manager_tracker(mock_time, mock_psutil, mock_sys):
 @patch("glia_python.tracker.sys")
 @patch("glia_python.tracker.psutil")
 @patch("glia_python.tracker.time")
-def test_decorator_usage(mock_time, mock_psutil, mock_sys):
+@patch("glia_python.tracker.is_interactive", return_value=False)
+def test_decorator_usage(mock_is_int, mock_time, mock_psutil, mock_sys):
     setup_system_mocks(mock_psutil, mock_time)
 
     mock_sys.argv = ["app.py"]
@@ -90,7 +91,9 @@ def test_decorator_usage(mock_time, mock_psutil, mock_sys):
 
 # 3. Test various script name detection scenarios.
 @patch("glia_python.tracker.sys")
-def test_program_name_logic(mock_sys):
+@patch("glia_python.tracker.is_interactive", return_value=False)
+def test_program_name_logic(mock_is_int, mock_sys):
+    
     # Case 1: Standard script execution
     mock_sys.argv = ["/abs/path/model_train.py", "--epochs=10"]
     with patch("pathlib.Path.open", mock_open(read_data=b"")):
@@ -98,12 +101,14 @@ def test_program_name_logic(mock_sys):
     assert t1.program_name == "model_train.py:main"
 
     # Case 2: Interactive session (e.g., Jupyter, Python REPL, etc.)
+    mock_is_int.return_value = True
     mock_sys.argv = [""]
     t2 = JobTracker(program_name="cell_1")
-    assert t2.program_name == "interactive:cell_1"
+    assert t2.program_name == "interactive_session:cell_1"
     assert t2.script_sha256 == "unknown-hash"
 
     # Case 3: No program_name provided
+    mock_is_int.return_value = False
     mock_sys.argv = ["/usr/bin/pytest"]
     with patch("pathlib.Path.open", mock_open(read_data=b"")):
         t3 = JobTracker()
@@ -113,7 +118,8 @@ def test_program_name_logic(mock_sys):
 # 4. The JobMetrics schema correctly separates system telemetry from user metadata.
 @patch("glia_python.tracker.platform")
 @patch("glia_python.tracker.sys")
-def test_metrics_schema_separation(mock_sys, mock_platform):
+@patch("glia_python.tracker.is_interactive", return_value=False)
+def test_metrics_schema_separation(mock_is_int, mock_sys, mock_platform):
     mock_platform.node.return_value = "test-host"
     mock_platform.system.return_value = "TestOS"
     mock_platform.release.return_value = "1.0.0"
@@ -135,7 +141,7 @@ def test_tracker_initial_context():
     with JobTracker(context=initial_data) as tracker:
         pass
 
-    assert tracker.metrics is not None 
+    assert tracker.metrics is not None
     assert tracker.metrics.meta["env"] == "staging"
 
 
