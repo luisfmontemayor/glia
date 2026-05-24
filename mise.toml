@@ -1,6 +1,7 @@
 [settings]
 experimental = true
 lockfile     = true
+python.uv_venv_auto = true
 
 [tools]
 gum    = "0.17.0"

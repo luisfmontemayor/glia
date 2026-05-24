@@ -1,8 +1,4 @@
 # To Do
-- [x] @flash-executor Step 1: Python Client Config & Interactive Logic. Implement pseudo-stateless config and interactive detection in glia_python.
-- [x] @flash-executor Step 2: Python Tests. Provide test coverage for the Python configuration changes.
-- [x] @flash-executor Step 3: R Client Config & Warn-and-Drop Fallback. Convert R to pseudo-stateless, add warn-and-drop, and interactive detection.
-- [x] @flash-executor Step 4: R Tests. Provide test coverage for the R configuration changes.
 - Rename core to gcore across the codebase
 - [ ] test with more data
 - [ ] revise commit history to see which commits can be squashed together, which can be shifted around, big nice cleanup of commit history
@@ -10,12 +6,8 @@
 - [ ] Technical Debt: Rename `core` crate to avoid namespace collision (User task).
 - [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
 - [ ] add env var to add cores to the R installation
-- [x] add most up to date conventional commits and make sure that the descriptions files for it are retained
 - [ ] Make README pitch-ready
-- [x] Readme needs r installation path mapping
-  - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
-
 - [ ] fix: why does backend to db benchmark not show any throughput:
 ```
 ## Benchmark:   Backend-to-DB
@@ -29,47 +21,37 @@ Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
 - [ ] Readme needs r installation path mapping
 - [ ] Test the R installation in a bare container
   - **Plan**: Create a Dockerfile starting from a minimal Ubuntu image. Install `R`, `rustc`, `cargo`, `mise`, and all identified system depend>
-
 - [ ] encrypt comms, start with https?
 - [ ] cloud, by using the sandbox software for aws, k8 and ansible
 - [ ] work on type safety
 - [ ] **Future:** Add I/O metrics to models and clients (Postponed).
 - [ ] An interactive mode
-
-
-
-
-
-
 - [ ] **Mise R Plugin Integration**:
     - Add the custom `mise-r` plugin URL to `mise.toml` so `mise install` works properly for new users.
     - Update `test/installations/Dockerfile.Rtest` to verify the unbiased installation of R through the plugin.
 - [ ] **Conventional Commits Enhancement**:
     - [ ] Add `docs` as a valid scope category for documentation changes.
-
 - **Backend:** FastAPI (Python 3.12+)
 - **Database:** PostgreSQL (Optimized for high-frequency writes)
 - **Infrastructure:** Docker / Compose
 - **Tooling:** `uv` (Python), `mise` (Env management), `conventional commits`
-
 - The client having too much observer effect error
 - Errors because of far too large pool of jobs
 - Data missing because of intermittent connection
 - Data missing because of overwhelmed backend
-
-
-
 - 2 Clients: Python and R (Single script model).
 - 1 Data Pipeline: Client -> FastAPI -> PostgreSQL.
-
 - CLI client for bash scripting
 - Nextflow program for scripting
 - Queue and queue worker implemented
 - I/O Metrics implementation
-
-
-
-
+- [x] @flash-executor Step 1: Python Client Config & Interactive Logic. Implement pseudo-stateless config and interactive detection in glia_python.
+- [x] @flash-executor Step 2: Python Tests. Provide test coverage for the Python configuration changes.
+- [x] @flash-executor Step 3: R Client Config & Warn-and-Drop Fallback. Convert R to pseudo-stateless, add warn-and-drop, and interactive detection.
+- [x] @flash-executor Step 4: R Tests. Provide test coverage for the R configuration changes.
+- [x] add most up to date conventional commits and make sure that the descriptions files for it are retained
+- [x] Readme needs r installation path mapping
+  - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
 
 # In Progress
 - [/] downgrade to 3.10 for better interop (Done in `downgrade-python-3.10`)
