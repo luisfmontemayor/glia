@@ -23,3 +23,6 @@ test/benchmarks/renv/
 **/.ruff_cache/
 **/target/
 **/renv/
+glia_python/scratch.patch
+gliar.Rcheck/
+tui/*.txt
