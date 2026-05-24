@@ -14,14 +14,25 @@ A telemetry suite for technical data teams working on joint linux systems.
    - Set up the local PostgreSQL database in a Docker container.
    - Configure helper tools like `lazygit`.
 
+### System Requirements for R
+Because many R packages (such as `fs`, `xml2`, and `ragg`) compile from C/C++ source code, you will need the underlying system libraries. On Ubuntu/Debian systems, run:
+
+```bash
+sudo apt-get install -y build-essential libcurl4-openssl-dev libssl-dev libxml2-dev \
+    libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev \
+    libtiff-dev libjpeg-dev libuv1-dev cmake pandoc
+```
+*(For a complete, minimal list of packages, refer to `test/installations/Dockerfile.Rtest`).*
+
 ### R Environment & Dependency Management
 This project uses **renv** to manage R dependencies in an isolated, project-local library within the `gliar/` directory.
 
-1. **Installation**: Run `mise run setup:r-deps` to initialize the environment and install packages defined in `gliar/DESCRIPTION`.
-2. **Library Mapping**: The setup task automatically generates a `.env.r` file in the project root. This file defines `R_LIBS_USER`, pointing R to the local library.
-3. **Automatic Activation**: `mise` is configured to automatically load `.env.r`. When you run R commands via `mise run` or within a `mise`-activated shell, your session will correctly use the project-local dependencies.
+1. **R Plugin**: Ensure the `mise-r` plugin is installed: `mise plugin install r https://github.com/mise-plugins/mise-r.git`.
+2. **Installation**: Run `mise run setup:r-deps` to initialize the environment and install packages defined in `gliar/DESCRIPTION`.
+3. **Library Path Mapping**: Unlike Python virtual environments, `mise` does not natively sandbox R packages. To fix this, our setup task generates a `.env.r` file containing the explicit `R_LIBS_USER` mapping for your OS/Architecture (e.g., `R_LIBS_USER=/path/to/glia/gliar/renv/library/...`).
+4. **Automatic Activation**: `mise.toml` is configured to automatically load `.env.r`. When you run R commands via `mise run` or within a `mise`-activated shell, your session is sandboxed strictly to the project-local dependencies.
 
-If you are not using `mise` for your R session, you can manually source the configuration:
+If you are executing R scripts outside of `mise`, manually source the configuration:
 ```bash
 source .env.r
 R
