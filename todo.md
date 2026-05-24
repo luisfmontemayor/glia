@@ -12,7 +12,7 @@
 - [ ] add env var to add cores to the R installation
 - [x] add most up to date conventional commits and make sure that the descriptions files for it are retained
 - [ ] Make README pitch-ready
-- [ ] Readme needs r installation path mapping
+- [x] Readme needs r installation path mapping
   - **Plan**: Document how `mise run setup:r-deps` initializes the `renv` environment and generates a `.env.r` file with `R_LIBS_USER` for corr>
 - [ ] migrate from UV to mise if it really does do everything uv does. Weight pros and cons and pick
 
