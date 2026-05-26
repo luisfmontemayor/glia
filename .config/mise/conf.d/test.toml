@@ -5,11 +5,11 @@ run     = "cargo test --lib -- --test-threads=1"
 
 [tasks."test:backend"]
 depends = ["sync:db-migration", "api:status-wait"]
-run     = "uv run pytest backend/test --color=yes"
+run     = "pytest backend/test --color=yes"
 
 [tasks."test:glia_python"]
 depends = ["api:status-wait", "db:status-wait"]
-run     = "uv run pytest glia_python/test --color=yes"
+run     = "pytest glia_python/test --color=yes"
 
 [tasks."test:gliar"]
 description = "Run R package tests"
@@ -25,7 +25,7 @@ run     = "cargo test"
 [tasks."test:e2e-glia_python"]
 description = "Tests client run, push to db, db write and query for integrity"
 depends     = ["api:status-wait", "db:status-wait"]
-run         = "uv run pytest test/e2e/e2e_glia_python_test.py"
+run         = "pytest test/e2e/e2e_glia_python_test.py"
 
 [tasks."test:e2e-gliar"]
 description = "E2E: R client run, push to db, and backend verification"

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run -q
+#!/usr/bin/env -S python
 # Written by Luis Felipe Montemayor, sometime around March of 2026
 import json
 import os
@@ -36,7 +36,9 @@ def check_infrastructure():
 
     if status != "0":
         logger.error("Infrastructure check FAILED.")
-        logger.error("Ensure the API is running ('mise api:up') and the database is accessible.")
+        logger.error(
+            "Ensure the API is running ('mise api:up') and the database is accessible."
+        )
         return False
 
     logger.info("Infrastructure is healthy. Proceeding with benchmarks.")
@@ -101,8 +103,12 @@ def main():
             report = run_benchmark(b["cmd"], iterations)
 
             if report and "latency_ms" in report:
-                performance_profile[benchmark_name]["latency"].append(report["latency_ms"])
-                performance_profile[benchmark_name]["throughput"].append(report.get("throughput", "ERR"))
+                performance_profile[benchmark_name]["latency"].append(
+                    report["latency_ms"]
+                )
+                performance_profile[benchmark_name]["throughput"].append(
+                    report.get("throughput", "ERR")
+                )
             else:
                 performance_profile[benchmark_name]["latency"].append("ERR")
                 performance_profile[benchmark_name]["throughput"].append("ERR")
@@ -146,6 +152,7 @@ def main():
         print(f"{'Latency (ms):':<{header_width}}{latency_str}")
         print(f"{'Throughput (j/s):':<{header_width}}{throughput_str}")
         print("-" * 80)
+
 
 if __name__ == "__main__":
     main()

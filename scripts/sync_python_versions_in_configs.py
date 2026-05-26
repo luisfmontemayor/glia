@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run -q
+#!/usr/bin/env -S python
 # Written by Luis Felipe Montemayor, sometime around January of 2026
 # https://open.spotify.com/track/2hkJ7fYPM5V27pjxiPG2gg?si=f7a42e6525d44707
 """
@@ -12,8 +12,19 @@ from pathlib import Path
 from sys import stderr
 
 VERSION_FILE: Path = Path(".python-version")
-IGNORED_DIRS: set[str] = {".venv", "node_modules", ".git", "dist", "build", "gliar", ".config/mise/conf.d/"}
-IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("gcore/Cargo.toml")} | {p for p in Path(".config/mise/conf.d/").rglob("*.toml")}
+IGNORED_DIRS: set[str] = {
+    ".venv",
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    "gliar",
+    ".config/mise/conf.d/",
+}
+IGNORED_TOMLS: set[Path] = {Path("ruff.toml"), Path("gcore/Cargo.toml")} | {
+    p for p in Path(".config/mise/conf.d/").rglob("*.toml")
+}
+
 
 def get_python_version(version_file: Path = VERSION_FILE) -> str:
     version: str = version_file.read_text().strip()
@@ -38,7 +49,6 @@ def get_version_keys(version: str) -> list[tuple[Path, str, str]]:
             r'(requires-python\s*=\s*)"[^"]*"',
             rf'\1">={version}"',
         ),
-
         (
             Path("gcore/pyproject.toml"),
             r'(requires-python\s*=\s*)"[^"]*"',

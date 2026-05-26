@@ -1,6 +1,6 @@
 [tasks."api:status"]
 description = "Check API status"
-run         = """
+run = """
 if curl -sf -o /dev/null http://localhost:8000/health/ready; then
   echo "SUCCESS: Backend API ready for requests"
 else
@@ -28,7 +28,7 @@ echo "\n[SUCCESS] API is ready."
 
 [tasks."api:up"]
 description = "Start API server"
-run         = "uv run fastapi dev backend/main.py"
+run         = "fastapi dev backend/main.py"
 
 [tasks."api:down"]
 description = "Stop API server"

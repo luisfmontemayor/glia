@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run -q
+#!/usr/bin/env -S python
 # Written by Luis Felipe Montemayor, sometime around December of 2025
 from conventional_commits import scopes
 
