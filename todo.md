@@ -12,7 +12,6 @@ why is the success quoted at the end where it should be
 - [ ] RENV_CONFIG_PAK_ENABLED should always be enabled. always use pak
 
 ## Mise Task Clean Up
-- [ ] mise tasks: You are currently using sources and outputs for R dependencies, but you aren't using them for the Python uv sync or Rust cargo build task.
 - [ ] assess depend in mise tomls and assess if it needs to be changed to a "pre" hook
 
 ## Testing
