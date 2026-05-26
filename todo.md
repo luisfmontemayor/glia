@@ -1,18 +1,15 @@
 # To Do
-In test all:
+~~In test all:
 [test:all] [test:e2e-gliar] [ FAIL 0 | WARN 0 | SKIP 0 | PASS 7 ][1] "[SUCCESS] E2E: Verified job e2e_r_3b4b71"
 why is the success quoted at the end where it should be 
-[test:all] [test:e2e-gliar] [SUCCESS] E2E: Verified job e2e_r_3b4b71
+[test:all] [test:e2e-gliar] [SUCCESS] E2E: Verified job e2e_r_3b4b71~~
 ## R Installation Clean Up
-- [ ] Add custom `mise-r` plugin URL under `[plugins]` in `mise.toml` so `mise install` works properly for new users.
-- [ ] Update `test/installations/Dockerfile.Rtest` to use the auto-installed R plugin from `mise.toml` instead of manual plugin installation.
-- [ ] Verify the updated R installation test by running `test/installations/build_rtest.sh`.
-- [ ] Add `MAKEFLAGS="-j$(nproc)"` or similar env var to `mise.toml` / `.env.r` to allocate multiple cores during R package compilation/installation.
-- [ ] Investigate if `RENV_CONFIG_PAK_ENABLED` can be safely enabled inside `Dockerfile.Rtest` without causing "Subprocess is busy" errors, or document the limitation.
-- [ ] RENV_CONFIG_PAK_ENABLED should always be enabled. always use pak
-
-## Mise Task Clean Up
-- [ ] assess depend in mise tomls and assess if it needs to be changed to a "pre" hook
+- [x] Add custom `mise-r` plugin URL under `[plugins]` in `mise.toml` so `mise install` works properly for new users.
+- [x] Update `test/installations/Dockerfile.Rtest` to use the auto-installed R plugin from `mise.toml` instead of manual plugin installation.
+- [x] Verify the updated R installation test by running `test/installations/build_rtest.sh`.
+- [x] Add `MAKEFLAGS="-j$(nproc)"` or similar env var to `mise.toml` / `.env.r` to allocate multiple cores during R package compilation/installation.
+- [x] Investigate if `RENV_CONFIG_PAK_ENABLED` can be safely enabled inside `Dockerfile.Rtest` without causing "Subprocess is busy" errors, or document the limitation.
+- [x] RENV_CONFIG_PAK_ENABLED should always be enabled. always use pak
 
 ## Testing
 - [ ] test with more data
@@ -24,12 +21,6 @@ why is the success quoted at the end where it should be
 Latency (ms):           268.09      719.26     2976.05     6436.28     9690.97
 Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
 ```
-
-## Client Resilience & Connection Handling
-- [ ] The client having too much observer effect error
-- [ ] Errors because of far too large pool of jobs
-- [ ] Data missing because of intermittent connection
-- [ ] Data missing because of overwhelmed backend
 
 ## Conventional Commits & Git History
 - [ ] revise commit history to see which commits can be squashed together, which can be shifted around, big nice cleanup of commit history
@@ -52,6 +43,12 @@ Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
 
 ## Documentation
 - [ ] Make README pitch-ready
+
+## Client Resilience & Connection Handling - potential problems
+- [ ] The client having too much observer effect error
+- [ ] Errors because of far too large pool of jobs
+- [ ] Data missing because of intermittent connection
+- [ ] Data missing because of overwhelmed backend
 
 ## Architecture Context (Notes)
 - **Backend:** FastAPI (Python 3.12+)

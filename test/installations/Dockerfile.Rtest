@@ -63,14 +63,13 @@ ENV MISE_SETTINGS__GITHUB_ATTESTATIONS=false
 ENV MISE_SETTINGS__VERIFY_SLSA=false
 ENV MISE_SETTINGS__VERIFY=false
 ENV R_CONFIGURE_OPTIONS="--with-x=no"
-# Disable pak for renv to avoid "Subprocess is busy" errors in Docker
-ENV RENV_CONFIG_PAK_ENABLED=FALSE
+# Enable pak for renv
+ENV RENV_CONFIG_PAK_ENABLED=TRUE
 SHELL ["/bin/bash", "-c"]
 
 RUN curl https://mise.run | sh && \
     chmod +x /root/.local/bin/mise && \
     mise trust && \
-    mise plugin install r https://github.com/mise-plugins/mise-r.git && \
     mise install && \
     # Install renv globally to ensure setup tasks can run without .Rprofile failures
     mise exec -- Rscript -e "install.packages('renv', repos='https://cloud.r-project.org')" && \

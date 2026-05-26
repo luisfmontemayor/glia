@@ -3,6 +3,9 @@ experimental = true
 lockfile     = true
 python.uv_venv_auto = true
 
+[plugins]
+r = "https://github.com/mise-plugins/mise-r.git"
+
 [tools]
 gum    = "0.17.0"
 python = "3.12.0"
@@ -19,6 +22,8 @@ _.path        = ["./scripts"]
 PYTHONPATH    = "{{config_root}}/scripts:$PYTHONPATH"
 VERSION       = "0.1.0"
 GLIA_DEV_MODE = true
+# Used for complilation of software, particularly R. The number represents the number of CPUs allocated for compiling
+MAKEFLAGS     = "-j1"
 
 RENV_CONFIG_PAK_ENABLED    = true
 RENV_PATHS_LIBRARY         = "renv/library"
