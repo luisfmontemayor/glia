@@ -1,5 +1,6 @@
 #!/usr/bin/env -S python
 # Written by Luis Felipe Montemayor, sometime around March of 2026
+import datetime
 import json
 import os
 import re
@@ -22,8 +23,8 @@ BENCHMARKS = [
         "name": "Client-to-Core (R)",
         "cmd": "Rscript benchmark_client2core.r",
     },
-    {"name": "Backend-to-DB", "cmd": "python benchmark_core2db.py"},
-    {"name": "Backend-to-DB (Gcore)", "cmd": "python benchmark_gcore2db_gcore.py"},
+    {"name": "API Ingestion (Python Async HTTP)", "cmd": "python benchmark_core2db.py"},
+    {"name": "API Ingestion (Rust Core Batching)", "cmd": "python benchmark_gcore2db_gcore.py"},
 ]
 
 
@@ -152,6 +153,42 @@ def main():
         print(f"{'Latency (ms):':<{header_width}}{latency_str}")
         print(f"{'Throughput (j/s):':<{header_width}}{throughput_str}")
         print("-" * 80)
+
+    # Benchmark Library Implementation
+    library_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "benchmark_library.json")
+    try:
+        git_hash = subprocess.getoutput("git rev-parse HEAD").strip()
+    except Exception:
+        git_hash = "unknown"
+        
+    setup_type = os.environ.get("BENCHMARK_SETUP_TYPE", "local")
+    
+    # We use timezone-aware UTC datetime
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    record = {
+        "timestamp": now_utc.isoformat(),
+        "git_commit": git_hash,
+        "runtime": f"Python {sys.version.split()[0]}",
+        "setup_type": setup_type,
+        "performance_profile": performance_profile
+    }
+    
+    library_data = []
+    if os.path.exists(library_path):
+        try:
+            with open(library_path, "r") as f:
+                library_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Could not read existing benchmark library: {e}")
+            
+    library_data.append(record)
+    
+    try:
+        with open(library_path, "w") as f:
+            json.dump(library_data, f, indent=2)
+        logger.info(f"Appended benchmark results to {library_path}")
+    except Exception as e:
+        logger.error(f"Failed to write benchmark library: {e}")
 
 
 if __name__ == "__main__":

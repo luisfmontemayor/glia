@@ -1,21 +1,9 @@
 # To Do
-~~In test all:
-[test:all] [test:e2e-gliar] [ FAIL 0 | WARN 0 | SKIP 0 | PASS 7 ][1] "[SUCCESS] E2E: Verified job e2e_r_3b4b71"
-why is the success quoted at the end where it should be 
-[test:all] [test:e2e-gliar] [SUCCESS] E2E: Verified job e2e_r_3b4b71~~
-## R Installation Clean Up
-- [x] Add custom `mise-r` plugin URL under `[plugins]` in `mise.toml` so `mise install` works properly for new users.
-- [x] Update `test/installations/Dockerfile.Rtest` to use the auto-installed R plugin from `mise.toml` instead of manual plugin installation.
-- [x] Verify the updated R installation test by running `test/installations/build_rtest.sh`.
-- [x] Add `MAKEFLAGS="-j$(nproc)"` or similar env var to `mise.toml` / `.env.r` to allocate multiple cores during R package compilation/installation.
-- [x] Investigate if `RENV_CONFIG_PAK_ENABLED` can be safely enabled inside `Dockerfile.Rtest` without causing "Subprocess is busy" errors, or document the limitation.
-- [x] RENV_CONFIG_PAK_ENABLED should always be enabled. always use pak
-
 ## Testing
 - [ ] test with more data
 - [ ] verifyt that tests are not silly, that they're actually sensible
-- [ ] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
-- [ ] fix: why does backend to db benchmark not show any throughput:
+- [x] ensure that benchmarks tests keeps a library with the git commit hash, runtime and setup type (local/distributed/k8s, whatever setup)
+- [x] fix: why does backend to db benchmark not show any throughput:
 ```
 ## Benchmark:   Backend-to-DB
 Latency (ms):           268.09      719.26     2976.05     6436.28     9690.97

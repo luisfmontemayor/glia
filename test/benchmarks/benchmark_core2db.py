@@ -38,9 +38,12 @@ async def push_telemetry_direct(client, url, iteration, load_factor):
 
     try:
         start = time.perf_counter()
-        response = await client.post(url, json=payload)
+        response = await client.post(url, json=[payload])
+        if response.status_code != 201:
+            logger.warning(f"Error {response.status_code}: {response.text}")
         return response.status_code, time.perf_counter() - start
-    except Exception:
+    except Exception as e:
+        logger.error(f"Exception during request: {e}")
         return 500, 0
 
 
