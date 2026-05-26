@@ -6,8 +6,8 @@ run         = "mise install"
 alias       = "spd"
 description = "Sync Python dependencies cleanly using frozen lock specifications"
 sources     = ["pyproject.toml", "uv.lock"]
-outputs     = [".venv/"]
-run         = "uv sync --frozen --all-extras"
+outputs     = [".venv/.mise-timestamp"]
+run         = "uv sync --frozen --all-extras && touch .venv/.mise-timestamp"
 
 [tasks."setup:r-deps"]
 description = "Sync R dependencies from DESCRIPTION using renv + pak"
