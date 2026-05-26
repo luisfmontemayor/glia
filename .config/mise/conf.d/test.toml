@@ -30,7 +30,7 @@ run         = "pytest test/e2e/e2e_glia_python_test.py"
 [tasks."test:e2e-gliar"]
 description = "E2E: R client run, push to db, and backend verification"
 dir = "gliar"
-depends = ["api:status-wait", "db:status-wait", "gliar:install"]
+depends = ["api:status-wait", "db:status-wait", "gliar:build"]
 run = """
 Rscript -e '
   if (file.exists("renv/activate.R")) source("renv/activate.R")
