@@ -11,4 +11,9 @@ Lightweight R client for pushing system telemetry to the Glia backend.
 \author{
 \strong{Maintainer}: Luis Felipe Montemayor \email{lfelipemonte@gmail.com}
 
+Authors:
+\itemize{
+  \item Luis Felipe Montemayor \email{lfelipemonte@gmail.com}
+}
+
 }

@@ -72,7 +72,7 @@ pub fn trigger_panic() {
 }
 
 extendr_module! {
-    mod gcore; 
+    mod gliar; 
     fn enqueue_to_background;
     fn flush_queue;
     fn trigger_panic;
