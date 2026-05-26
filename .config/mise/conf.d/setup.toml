@@ -4,10 +4,10 @@ run         = "mise install"
 
 [tasks."setup:python-deps"]
 alias       = "spd"
-description = "Python deps"
-run         = "uv sync && uv lock"
+description = "Sync Python dependencies cleanly using frozen lock specifications"
 sources     = ["pyproject.toml", "uv.lock"]
 outputs     = [".venv/"]
+run         = "uv sync --frozen --all-extras"
 
 [tasks."setup:r-deps"]
 description = "Sync R dependencies from DESCRIPTION using renv + pak"
