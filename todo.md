@@ -1,4 +1,31 @@
 # To Do
+## Test Audit Bugs (2026-05-26)
+### CRITICAL
+- [ ] Python `network_test.py`: `.value` instead of `.return_value` on `mock_getenv` — test passes vacuously
+- [ ] Backend `main_test.py`: tests hit the real Postgres DB — no session override, no test DB, no isolation
+- [ ] Backend `main_test.py`: requires a live running server — integration tests disguised as unit tests, use `ASGITransport` instead
+- [ ] R `test-glia.R`: namespace mocks (`SystemTracker`, `.glia_env$client`) leak across tests — no teardown/`withr::defer`
+- [ ] R `test-tracker.R`: `mockery::stub` on `ps::ps_cpu_times` silently ignores process handle — tracker could pass `NULL` and tests pass
+
+### WARNING
+- [ ] Python `network_test.py`: missing `_global_config.clear()` autouse fixture — stale config can skip env var path
+- [ ] Python `tracker_test.py`: 5 tests leak real `push_telemetry` → FFI calls through `__exit__` (L47, L65, L139, L149, L159)
+- [ ] Python `tracker_test.py`: `platform` mock incomplete — `time.time()` and `psutil` leak real system values
+- [ ] Backend `main_test.py`: cleanup uses production engine directly — no env guard against accidental prod `DELETE`
+- [ ] Backend `test/`: no `conftest.py` with shared fixtures for test DB, client, or cleanup
+- [ ] Backend `main_test.py`: assertions only check `status_code` + `run_id` — no field integrity verification
+- [ ] R `test-glia.R`: mock tracker `capture()` returns 2 fields vs real 15+ — payload shape contract untested
+- [ ] R `test-glia.R`: no assertion on payload contents passed to `send_job_run` — only call count checked
+- [ ] R `test-network.R`: `GliaClient$new()` with no args depends on `GLIA_API_URL` env var from runner
+- [ ] R `test-tracker.R`: test 2 bypasses `start()` by setting private fields directly — `start()` correctness untested
+
+### INFO
+- [ ] Backend: no tests for error paths (invalid payloads, DB unreachable, duplicate `run_id`)
+- [ ] Backend: `GET /telemetry` endpoint has zero test coverage
+- [ ] Backend: `test_api_status` shells out to `mise run api:status` — tests infra, not code
+- [ ] R `test-network.R`: `mockery::stub` on R6 methods is brittle — could break with R6 version changes
+- [ ] R `test-tracker.R`: `stub(tracker$capture, "Sys.time", Sys.time)` is a no-op identity stub
+- [ ] Python `network_test.py`: smoke tests (`test_rust_panic_caught`, `test_non_utf8_payload`) call real FFI — integration tests in unit test file
 ## Testing
 - [ ] test with more data
 - [ ] verifyt that tests are not silly, that they're actually sensible
