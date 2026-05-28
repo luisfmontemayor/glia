@@ -59,5 +59,5 @@ test_that("R Client E2E: telemetry reaches backend", {
   
   expect_gt(as.numeric(found_job[["wall_time_ms"]]), 0)
   
-  cat(paste0("[SUCCESS] E2E: Verified job ", unique_name, "\n"))
+  cat(paste0("\n[SUCCESS] E2E: Verified job ", unique_name, "\n"))
 })
