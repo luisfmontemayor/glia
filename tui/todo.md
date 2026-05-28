@@ -1,4 +1,14 @@
 # TODO
+## high priority
+- [ ] add same padding on top as horizontally for graph pane yes
+- [ ] why are time labels showing data being shown backwards from oldest to newest right to left makes no sense on plit
+- [ ] line plot: it's super centered and quashed. Line does not occupy entire x axis
+- [ ] search: why is it there and not work?
+- [ ] Specify row, cell or col selection for table
+- [ ] sort doesn't work
+- [ ] numbers and ticks not centred yet again. The testing should have caught this. The number labels are not perfectly centred with ticks 
+
+# mediun prioritis
 - [ ] consider changing job status in blame mode for something more informative
 - [ ] support row selection for chart subsetting by specific job
 - [ ] Support clicking for pane selection

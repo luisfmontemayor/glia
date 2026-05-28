@@ -1,4 +1,10 @@
 # To Do
+## Distributed Setup & Telemetry Architecture (2026-05-28)
+- [ ] Backend: Implement single global shared API Key authentication via `GLIA_API_KEY` environment variable.
+- [ ] Backend: Add TODO for better key management/encryption later.
+- [ ] Core (Rust): Update `gcore` to accept `GLIA_API_KEY` and send it as a header in batch requests.
+- [ ] Infrastructure: Create a `docker-compose.yml` that simulates the distributed setup (1 backend + multiple workers generating telemetry).
+- [ ] Infrastructure: Set up deployed test using LocalStack to simulate AWS services locally.
 ## Test Audit Bugs (2026-05-26)
 ### CRITICAL
 - [ ] Python `network_test.py`: `.value` instead of `.return_value` on `mock_getenv` — test passes vacuously
