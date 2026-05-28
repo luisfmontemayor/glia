@@ -1,0 +1,146 @@
+[
+ {
+    "timestamp": "2026-05-26T17:28:12.629475+00:00",
+    "git_commit": "b332b8f233936c3bd5f9804ad665b7ee8cea31cf",
+    "runtime": "Python 3.12.0",
+    "setup_type": "local",
+    "performance_profile": {
+      "Client-to-Core (Python)": {
+        "latency": [
+          0.165,
+          0.1325,
+          0.1459,
+          0.1659,
+          0.1687
+        ],
+        "throughput": [
+          6060.06,
+          7544.83,
+          6854.48,
+          6026.89,
+          5928.91
+        ]
+      },
+      "Client-to-Core (R)": {
+        "latency": [
+          1.79,
+          1.76,
+          1.718,
+          1.7188,
+          1.775
+        ],
+        "throughput": [
+          558.66,
+          568.18,
+          582.07,
+          581.82,
+          563.38
+        ]
+      },
+      "API Ingestion (Python Async HTTP)": {
+        "latency": [
+          239.03,
+          626.64,
+          2596.78,
+          5033.99,
+          7967.71
+        ],
+        "throughput": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "API Ingestion (Rust Core Batching)": {
+        "latency": [
+          0.78,
+          0.53,
+          0.21,
+          0.21,
+          0.18
+        ],
+        "throughput": [
+          1280.44,
+          1903.82,
+          4765.62,
+          4842.71,
+          5410.98
+        ]
+      }
+    }
+  },
+  {
+    "timestamp": "2026-05-26T18:04:17.057930+00:00",
+    "git_commit": "b332b8f233936c3bd5f9804ad665b7ee8cea31cf",
+    "runtime": "Python 3.12.0",
+    "setup_type": "local",
+    "performance_profile": {
+      "Client-to-Core (Python)": {
+        "latency": [
+          0.1172,
+          0.1167,
+          0.1215,
+          0.1339,
+          0.1339
+        ],
+        "throughput": [
+          8528.94,
+          8571.82,
+          8230.35,
+          7465.68,
+          7467.18
+        ]
+      },
+      "Client-to-Core (R)": {
+        "latency": [
+          1.75,
+          1.53,
+          1.846,
+          1.8938,
+          1.673
+        ],
+        "throughput": [
+          571.43,
+          653.59,
+          541.71,
+          528.05,
+          597.73
+        ]
+      },
+      "API Ingestion (Python Async HTTP)": {
+        "latency": [
+          946.34,
+          1668.91,
+          6751.98,
+          13405.26,
+          19773.97
+        ],
+        "throughput": [
+          65.3,
+          64.98,
+          39.79,
+          32.73,
+          24.45
+        ]
+      },
+      "API Ingestion (Rust Core Batching)": {
+        "latency": [
+          7.47,
+          5.25,
+          2.11,
+          1.32,
+          1.07
+        ],
+        "throughput": [
+          133.94,
+          190.31,
+          473.3,
+          758.89,
+          934.14
+        ]
+      }
+    }
+  }
+]

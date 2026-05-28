@@ -17,14 +17,14 @@ ITERATIONS_LIST = [100, 200, 500, 800, 1000]
 BENCHMARKS = [
     {
         "name": "Client-to-Core (Python)",
-        "cmd": "python benchmark_client2core.py",
+        "cmd": "python benchmark_client_to_core_python.py",
     },
     {
         "name": "Client-to-Core (R)",
-        "cmd": "Rscript benchmark_client2core.r",
+        "cmd": "Rscript benchmark_client_to_core_r.r",
     },
-    {"name": "API Ingestion (Python Async HTTP)", "cmd": "python benchmark_core2db.py"},
-    {"name": "API Ingestion (Rust Core Batching)", "cmd": "python benchmark_gcore2db_gcore.py"},
+    {"name": "API Ingestion (Python Async HTTP)", "cmd": "python benchmark_api_ingestion_python_async_http.py"},
+    {"name": "API Ingestion (Rust Core Batching)", "cmd": "python benchmark_api_ingestion_rust_core_batching.py"},
 ]
 
 
