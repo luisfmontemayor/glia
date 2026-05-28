@@ -20,7 +20,7 @@ test_that("SystemTracker captures CPU and Wall time correctly", {
   mock_mem <- mock(list(rss = 104857600))
   
   # 2. Initialize Tracker
-  tracker <- SystemTracker$new()
+  tracker <- gliar:::SystemTracker$new()
   
   # 3. Apply Mocks (stubbing the specific methods on this instance)
   stub(tracker$start, "ps::ps_cpu_times", mock_cpu)
@@ -49,7 +49,7 @@ test_that("SystemTracker detects script path and calculates SHA256", {
   mock_exists <- mock(TRUE)
   mock_digest <- mock("test-sha-hash")
   
-  tracker <- SystemTracker$new()
+  tracker <- gliar:::SystemTracker$new()
   
   # Force set script path (since we can't easily mock commandArgs in R6 init post-hoc)
   tracker$script_path <- "/tmp/test_script.R"
@@ -76,6 +76,6 @@ test_that("SystemTracker detects script path and calculates SHA256", {
 })
 
 test_that("capture throws error if not started", {
-  tracker <- SystemTracker$new()
+  tracker <- gliar:::SystemTracker$new()
   expect_error(tracker$capture(), "Tracker not started")
 })
