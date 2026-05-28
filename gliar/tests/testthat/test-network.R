@@ -5,9 +5,9 @@ library(gliar)
 test_that("GliaClient queues valid payload successfully", {
   # Mock returns a list indicating success in the new FFI
   mock_ffi <- mock(list(success = TRUE))
-  client <- GliaClient$new(base_url = "http://test-api/injest")
+  client <- gliar:::GliaClient$new(base_url = "http://test-api/injest")
   
-  local_mocked_bindings(enqueue_to_background = mock_ffi)
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
   
   payload <- list(run_id = "123", cpu_percent = 50)
   success <- client$send_job_run(payload)
@@ -18,8 +18,8 @@ test_that("GliaClient queues valid payload successfully", {
 
 test_that("GliaClient handles queueing errors gracefully", {
   mock_ffi <- mock(list(success = FALSE, error = "Queue Full"))
-  client <- GliaClient$new()
-  local_mocked_bindings(enqueue_to_background = mock_ffi)
+  client <- gliar:::GliaClient$new()
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
 
   expect_warning(
     success <- client$send_job_run(list(data = 1)),
@@ -30,8 +30,8 @@ test_that("GliaClient handles queueing errors gracefully", {
 
 test_that("GliaClient handles FFI/Rust errors gracefully", {
   mock_ffi <- mock(stop("FFI Error"))
-  client <- GliaClient$new()
-  local_mocked_bindings(enqueue_to_background = mock_ffi)
+  client <- gliar:::GliaClient$new()
+  stub(client$send_job_run, "enqueue_to_background", mock_ffi)
 
   expect_warning(
     client$send_job_run(list(data = 1)),
