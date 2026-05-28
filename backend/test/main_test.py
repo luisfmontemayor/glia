@@ -37,7 +37,7 @@ app.dependency_overrides[get_db_session] = get_test_session
 
 
 def test_api_status():
-    run_command(command=["mise", "run", "api:status"], capture=False)
+    run_command(command=["mise", "run", "api:status"], capture=False, check=True)
 
 
 @pytest_asyncio.fixture
