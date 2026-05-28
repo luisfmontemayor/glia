@@ -5,11 +5,6 @@ from glia_python.tracker import JobTracker
 from glia_python.network import push_telemetry
 import pytest
 
-@pytest.fixture(autouse=True)
-def reset_global_config():
-    _global_config.clear()
-    yield
-    _global_config.clear()
 
 def test_global_config_init():
     Glia.init(api_url="http://init-url", app_name="init-app", app_version="1.0.0", tags={"init": "tag"})
