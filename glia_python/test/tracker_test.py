@@ -9,6 +9,11 @@ import pytest
 
 from glia_python import Glia, JobTracker
 
+@pytest.fixture(autouse=True)
+def mock_push_telemetry():
+    with patch("glia_python.tracker.push_telemetry") as mock_push:
+        yield mock_push
+
 
 def setup_system_mocks(mock_psutil, mock_time):
     """
