@@ -39,6 +39,9 @@ test_that("SystemTracker captures CPU and Wall time correctly", {
   expect_equal(metrics$cpu_time_sec, 10.0) # (8+2) - (0+0)
   expect_equal(metrics$cpu_percent, 50.0)  # 10s CPU / 20s Wall * 100
   expect_equal(metrics$max_rss_kb, 102400)
+  
+  expect_args(mock_cpu, 1, tracker$process)
+  expect_args(mock_cpu, 2, tracker$process)
 })
 
 test_that("SystemTracker detects script path and calculates SHA256", {
@@ -54,18 +57,22 @@ test_that("SystemTracker detects script path and calculates SHA256", {
   stub(tracker$capture, "file.exists", mock_exists)
   stub(tracker$capture, "digest::digest", mock_digest)
   # Stub deps to avoid errors
-  stub(tracker$capture, "Sys.time", Sys.time)
-  stub(tracker$capture, "ps::ps_cpu_times", list(user=1, system=1))
-  stub(tracker$capture, "ps::ps_memory_info", list(rss=100))
+  mock_time_fixed <- mock(as.POSIXct("2025-01-01 12:00:20", tz = "UTC"))
+  mock_cpu_fixed <- mock(list(user=1, system=1))
+  mock_mem_fixed <- mock(list(rss=100))
   
+  stub(tracker$capture, "Sys.time", mock_time_fixed)
+  stub(tracker$capture, "ps::ps_cpu_times", mock_cpu_fixed)
+  stub(tracker$capture, "ps::ps_memory_info", mock_mem_fixed)  
   # Manually start to satisfy check
-  tracker$start_time <- Sys.time()
+  tracker$start_time <- as.POSIXct("2025-01-01 12:00:00", tz = "UTC")
   tracker$cpu_start <- list(user=0, system=0)
   
   metrics <- tracker$capture()
   
   expect_equal(metrics$script_path, "/tmp/test_script.R")
   expect_equal(metrics$script_sha256, "test-sha-hash")
+  expect_args(mock_cpu_fixed, 1, tracker$process)
 })
 
 test_that("capture throws error if not started", {
