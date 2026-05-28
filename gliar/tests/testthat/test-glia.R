@@ -18,6 +18,12 @@ ns <- asNamespace("gliar")
 if (bindingIsLocked("SystemTracker", ns)) unlockBinding("SystemTracker", ns)
 
 test_that("glia_track executes code and sends metrics on success", {
+  old_client <- gliar:::.glia_env$client
+  old_tracker <- ns$SystemTracker
+  withr::defer({
+    assign("client", old_client, envir = gliar:::.glia_env)
+    assign("SystemTracker", old_tracker, envir = ns)
+  })
   glia_init(api_url = "http://test-api/injest")
   mock_client <- mock(TRUE)
 
@@ -33,6 +39,12 @@ test_that("glia_track executes code and sends metrics on success", {
 })
 
 test_that("glia_wrap handles function tracking correctly", {
+  old_client <- gliar:::.glia_env$client
+  old_tracker <- ns$SystemTracker
+  withr::defer({
+    assign("client", old_client, envir = gliar:::.glia_env)
+    assign("SystemTracker", old_tracker, envir = ns)
+  })
   glia_init(api_url = "http://test-api/injest")
   mock_client <- mock(TRUE)
   assign("client", list(send_job_run = mock_client), envir = gliar:::.glia_env)
@@ -52,9 +64,11 @@ test_that("glia_track does not crash when run without glia_init and missing env 
   old_client <- gliar:::.glia_env$client
   assign("client", NULL, envir = gliar:::.glia_env)
   
+  old_tracker <- ns$SystemTracker
   on.exit({
     if (old_url != "") Sys.setenv(GLIA_API_URL = old_url)
     assign("client", old_client, envir = gliar:::.glia_env)
+    assign("SystemTracker", old_tracker, envir = ns)
   })
 
   # Need mock tracker to bypass rust FFI
