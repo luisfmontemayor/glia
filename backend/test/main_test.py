@@ -4,12 +4,36 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from common.cli import run_command
-from httpx import AsyncClient
-from sqlmodel import delete
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel, delete
 
 from backend.config import settings
-from backend.database import engine
+from backend.database import engine, get_db_session
+from backend.main import app
 from backend.models import Job
+
+# Polyfill JSONB for SQLite testing
+from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
+def visit_JSONB(self, type_, **kw):
+    return "JSON"
+SQLiteTypeCompiler.visit_JSONB = visit_JSONB
+
+test_engine = create_async_engine(
+    "sqlite+aiosqlite://",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestSessionLocal = async_sessionmaker(
+    bind=test_engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
+)
+
+async def get_test_session():
+    async with TestSessionLocal() as session:
+        yield session
+
+app.dependency_overrides[get_db_session] = get_test_session
 
 
 def test_api_status():
@@ -18,15 +42,19 @@ def test_api_status():
 
 @pytest_asyncio.fixture
 async def ingest_cleanup_client():
+    async with test_engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+        
     job_ids = [str(uuid4()) for _ in range(3)]
     async with AsyncClient(
-        base_url=f"http://{settings.API_HOST}:{settings.API_PORT}",
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
     ) as client:
         yield client, job_ids
 
     print(f"\n[CLEANUP] Removing Job IDs: {job_ids}")
-    async with engine.begin() as conn:
-        await conn.execute(delete(Job).where(Job.run_id.in_(job_ids)))
+    async with test_engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.drop_all)
 
 
 @pytest.mark.asyncio
