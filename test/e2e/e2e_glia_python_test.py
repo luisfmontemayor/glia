@@ -16,6 +16,9 @@ async def test_end_to_end_telemetry_flow(monkeypatch):
     unique_name = f"e2e_{unique_id}"
     api_url = f"http://{settings.API_HOST}:{settings.API_PORT}/ingest"
     monkeypatch.setenv("GLIA_API_URL", api_url)
+    
+    from glia_python import _global_config
+    _global_config.clear()
 
     # We don't need to mock core.enqueue_to_background anymore if we want a true E2E
     # But since core is a background worker, we need to ensure it flushes.
