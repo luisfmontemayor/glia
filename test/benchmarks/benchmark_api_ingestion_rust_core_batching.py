@@ -9,7 +9,7 @@ from common.logs import setup_logger
 
 import gcore
 
-logger = setup_logger("benchmark_core2db_core.py")
+logger = setup_logger("benchmark_api_ingestion_rust_core_batching.py")
 
 API_URL = os.environ.get("GLIA_API_URL")
 if not API_URL:
