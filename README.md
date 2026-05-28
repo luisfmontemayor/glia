@@ -6,13 +6,17 @@
 A telemetry suite for technical data teams working on joint linux systems.
 
 ## Installation & Setup
-1. If you don't have `mise` installed: [Install mise](https://mise.jdx.dev/getting-started.html), a tool for managing language runtimes and environment variables.
-2. [Install Docker](https://www.docker.com/get-started/).
-3. Run `mise run setup:all`. This command will:
+
+1. **Prerequisites**: 
+   - [Install mise](https://mise.jdx.dev/getting-started.html) (manages language runtimes and tasks).
+   - [Install Docker](https://www.docker.com/get-started/) (runs the PostgreSQL database).
+
+2. **Automated Setup**:
+   Run `mise run setup:all`. This single command will interactively set up your entire environment:
    - Install all required language runtimes (Python, R, Rust).
-   - Install all project dependencies (Python packages via `uv`, R packages via `renv`).
-   - Set up the local PostgreSQL database in a Docker container.
-   - Configure helper tools like `lazygit`.
+   - Sync project dependencies (`uv` for Python, `renv` for R, `cargo` for Rust TUI).
+   - **Configure Database**: Interactively set up PostgreSQL credentials (`db:setup-creds` via `setup_postgres_creds.py`), generate the `.env` file, and start the local database container.
+   - Configure helper tools (e.g., `lazygit`).
 
 ### System Requirements for R
 Because many R packages (such as `fs`, `xml2`, and `ragg`) compile from C/C++ source code, you will need the underlying system libraries. On Ubuntu/Debian systems, run:
