@@ -53,7 +53,7 @@ def test_push_telemetry_success(mock_queue):
 @patch("glia_python.network.gcore.enqueue_to_background")
 def test_push_telemetry_uses_env_var(mock_queue, mock_getenv):
     metrics = create_sample_metrics()
-    mock_getenv.value = "http://env-var-url:9000"
+    mock_getenv.return_value = "http://env-var-url:9000"
 
     mock_queue.return_value = None
 
