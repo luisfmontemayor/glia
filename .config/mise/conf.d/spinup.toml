@@ -9,4 +9,4 @@ run         = "mise run api:up && mise run api:status-wait"
 [tasks.spinup]
 alias       = "su"
 description = "Start database and API server"
-run         = "mise spinup:db && mise run spinup:api"
+run         = "mise run setup:ccs && mise spinup:db && mise run spinup:api"

@@ -57,6 +57,7 @@ Throughput (j/s):         0.00        0.00        0.00        0.00        0.00
 - [ ] Nextflow program for scripting
 - [ ] Queue and queue worker implemented
 - [ ] I/O Metrics implementation
+- [ ] make a dev mode su
 
 ## Infrastructure, Cloud & Security
 - [ ] encrypt comms, start with https?

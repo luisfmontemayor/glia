@@ -55,11 +55,15 @@ sources     = ["Cargo.toml", "Cargo.lock"]
 [tasks."setup:deps"]
 alias       = "sd"
 description = "Run all deps installation tasks"
-run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-deps && mise setup:tui-deps && mise sync:lazygit"
+run         = "mise setup:mise-deps && mise setup:python-deps && mise setup:r-deps && mise setup:tui-deps && mise setup:ccs && mise sync:lazygit"
 
 [tasks."setup:db"]
 description = "Full database lifecycle"
 run         = "mise db:setup-creds"
+
+[tasks."setup:ccs"]
+description = "Setup conventional commits lazygit wizard"
+run         = "bash scripts/conventional_commits/lazygit_wizard_setup.sh"
 
 [tasks."setup:all"]
 description = "Plug-and-play setup from scratch: dependencies then local database"
