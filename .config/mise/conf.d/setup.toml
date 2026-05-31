@@ -63,7 +63,7 @@ run         = "mise db:setup-creds"
 
 [tasks."setup:ccs"]
 description = "Setup conventional commits lazygit wizard"
-run         = "bash scripts/conventional_commits/lazygit_wizard_setup.sh"
+run         = "git submodule update --init scripts/conventional_commits && bash scripts/conventional_commits/lazygit_wizard_setup.sh"
 
 [tasks."setup:all"]
 description = "Plug-and-play setup from scratch: dependencies then local database"
